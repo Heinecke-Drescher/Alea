@@ -2,13 +2,9 @@ import { Box, useComputedColorScheme, useMantineTheme } from "@mantine/core";
 import { clamp, useElementSize } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import { Layer, Line, Stage } from "react-konva";
+import { CELL_SIZE, COLUMNS, MAP_HEIGHT, MAP_WIDTH, ROWS } from "./grid";
+import { TokenLayer } from "./TokenLayer";
 
-const COLUMNS = 30;
-const ROWS = 20;
-const CELL_SIZE = 50;
-
-const MAP_WIDTH = COLUMNS * CELL_SIZE;
-const MAP_HEIGHT = ROWS * CELL_SIZE;
 const COLUMN_LINES = Array.from(
   { length: COLUMNS + 1 },
   (_, i) => i * CELL_SIZE,
@@ -71,6 +67,7 @@ export function Board() {
             />
           ))}
         </Layer>
+        <TokenLayer />
       </Stage>
     </Box>
   );

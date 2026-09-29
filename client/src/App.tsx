@@ -1,15 +1,29 @@
 import "@mantine/core/styles.css";
-import { AppShell, Burger, Group, MantineProvider, Title } from "@mantine/core";
+import "@mantine/dropzone/styles.css";
+import "@mantine/notifications/styles.css";
+import {
+  AppShell,
+  Burger,
+  Group,
+  MantineProvider,
+  Stack,
+  Title,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { Notifications } from "@mantine/notifications";
 import { MotionConfig } from "motion/react";
+import { ErrorBoundary } from "react-error-boundary";
 import { Board } from "./board/Board";
+import { MapError } from "./board/MapError";
 import { DicePanel } from "./dice/DicePanel";
+import { TokenPanel } from "./tokens/TokenPanel";
 
 export function App() {
   const [asideOpened, { toggle: toggleAside }] = useDisclosure();
 
   return (
     <MantineProvider defaultColorScheme="auto">
+      <Notifications />
       <MotionConfig reducedMotion="user">
         <AppShell
           header={{ height: 60 }}
@@ -31,10 +45,15 @@ export function App() {
             </Group>
           </AppShell.Header>
           <AppShell.Main>
-            <Board />
+            <ErrorBoundary FallbackComponent={MapError}>
+              <Board />
+            </ErrorBoundary>
           </AppShell.Main>
           <AppShell.Aside p="md">
-            <DicePanel />
+            <Stack>
+              <TokenPanel />
+              <DicePanel />
+            </Stack>
           </AppShell.Aside>
         </AppShell>
       </MotionConfig>
