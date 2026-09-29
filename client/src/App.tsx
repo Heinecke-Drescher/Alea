@@ -1,14 +1,8 @@
 import "@mantine/core/styles.css";
-import {
-  AppShell,
-  Burger,
-  Group,
-  MantineProvider,
-  Text,
-  Title,
-} from "@mantine/core";
+import { AppShell, Burger, Group, MantineProvider, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { MotionConfig } from "motion/react";
+import { Board } from "./board/Board";
 import { DicePanel } from "./dice/DicePanel";
 
 export function App() {
@@ -18,7 +12,6 @@ export function App() {
     <MantineProvider defaultColorScheme="auto">
       <MotionConfig reducedMotion="user">
         <AppShell
-          padding="md"
           header={{ height: 60 }}
           aside={{
             width: 320,
@@ -38,7 +31,7 @@ export function App() {
             </Group>
           </AppShell.Header>
           <AppShell.Main>
-            <Text c="dimmed">Map</Text>
+            <Board />
           </AppShell.Main>
           <AppShell.Aside p="md">
             <DicePanel />
