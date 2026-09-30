@@ -11,9 +11,50 @@ export interface Token {
   size: number;
 }
 
+export interface Cell {
+  x: number;
+  y: number;
+  color: string;
+}
+
+export interface Stroke {
+  id: string;
+  color: string;
+  points: number[];
+}
+
 export const roomDoc = new Y.Doc();
 export const tokensMap = roomDoc.getMap<Token>("tokens");
 export const imagesMap = roomDoc.getMap<string>("images");
+export const cellsMap = roomDoc.getMap<Cell>("cells");
+
+export function paintCell(x: number, y: number, color: string) {
+  const key = `${x},${y}`;
+  if (cellsMap.get(key)?.color === color) return;
+  cellsMap.set(key, { x, y, color });
+}
+
+export function eraseCell(x: number, y: number) {
+  cellsMap.delete(`${x},${y}`);
+}
+
+export const strokesMap = roomDoc.getMap<Stroke>("strokes");
+
+export function addStroke(color: string, points: number[]) {
+  const id = nanoid();
+  strokesMap.set(id, { id, color, points });
+}
+
+export function removeStroke(id: string) {
+  strokesMap.delete(id);
+}
+
+export function clearDrawings() {
+  roomDoc.transact(() => {
+    cellsMap.clear();
+    strokesMap.clear();
+  });
+}
 
 export function addToken(name: string, imageDataUrl: string) {
   const id = nanoid();

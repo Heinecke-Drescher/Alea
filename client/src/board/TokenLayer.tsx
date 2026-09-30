@@ -3,12 +3,16 @@ import { imagesMap, tokensMap } from "../room/roomDoc";
 import { useY } from "../room/useY";
 import { TokenView } from "./TokenView";
 
-export function TokenLayer() {
+interface TokenLayerProps {
+  listening: boolean;
+}
+
+export function TokenLayer({ listening }: TokenLayerProps) {
   const tokens = Object.values(useY(tokensMap));
   const images = useY(imagesMap);
 
   return (
-    <Layer>
+    <Layer listening={listening}>
       {tokens.map((token) => {
         const imageDataUrl = images[token.imageId];
         // A move that races with a remove can bring the token back without its image.

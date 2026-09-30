@@ -1,12 +1,19 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { COLUMNS, ROWS } from "../board/grid";
 import {
+  addStroke,
   addToken,
+  cellsMap,
+  clearDrawings,
+  eraseCell,
   imagesMap,
   moveToken,
+  paintCell,
+  removeStroke,
   removeToken,
   resizeToken,
   roomDoc,
+  strokesMap,
   tokensMap,
 } from "./roomDoc";
 
@@ -22,6 +29,39 @@ beforeEach(() => {
   roomDoc.transact(() => {
     tokensMap.clear();
     imagesMap.clear();
+    cellsMap.clear();
+    strokesMap.clear();
+  });
+});
+
+describe("drawing", () => {
+  it("paints and erases cells", () => {
+    paintCell(2, 3, "#ff0000");
+    paintCell(2, 3, "#00ff00");
+    expect(Array.from(cellsMap.values())).toEqual([
+      { x: 2, y: 3, color: "#00ff00" },
+    ]);
+    eraseCell(2, 3);
+    expect(cellsMap.size).toBe(0);
+  });
+
+  it("adds and removes strokes", () => {
+    addStroke("#000000", [0, 0, 10, 10]);
+    const [stroke] = strokesMap.values();
+    if (!stroke) throw new Error("Expected a stroke");
+    expect(stroke).toMatchObject({ color: "#000000", points: [0, 0, 10, 10] });
+    removeStroke(stroke.id);
+    expect(strokesMap.size).toBe(0);
+  });
+
+  it("clears drawings but keeps tokens", () => {
+    paintCell(1, 1, "#ff0000");
+    addStroke("#000000", [0, 0, 10, 10]);
+    addToken("Goblin", IMAGE);
+    clearDrawings();
+    expect(cellsMap.size).toBe(0);
+    expect(strokesMap.size).toBe(0);
+    expect(tokensMap.size).toBe(1);
   });
 });
 

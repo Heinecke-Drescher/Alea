@@ -10,6 +10,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { ModalsProvider } from "@mantine/modals";
 import { Notifications } from "@mantine/notifications";
 import { MotionConfig } from "motion/react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -24,39 +25,41 @@ export function App() {
   return (
     <MantineProvider defaultColorScheme="auto">
       <Notifications />
-      <MotionConfig reducedMotion="user">
-        <AppShell
-          header={{ height: 60 }}
-          aside={{
-            width: 320,
-            breakpoint: "sm",
-            collapsed: { mobile: !asideOpened },
-          }}
-        >
-          <AppShell.Header>
-            <Group h="100%" px="md" justify="space-between">
-              <Title order={3}>Alea</Title>
-              <Burger
-                opened={asideOpened}
-                onClick={toggleAside}
-                hiddenFrom="sm"
-                size="sm"
-              />
-            </Group>
-          </AppShell.Header>
-          <AppShell.Main>
-            <ErrorBoundary FallbackComponent={MapError}>
-              <Board />
-            </ErrorBoundary>
-          </AppShell.Main>
-          <AppShell.Aside p="md">
-            <Stack>
-              <TokenPanel />
-              <DicePanel />
-            </Stack>
-          </AppShell.Aside>
-        </AppShell>
-      </MotionConfig>
+      <ModalsProvider>
+        <MotionConfig reducedMotion="user">
+          <AppShell
+            header={{ height: 60 }}
+            aside={{
+              width: 320,
+              breakpoint: "sm",
+              collapsed: { mobile: !asideOpened },
+            }}
+          >
+            <AppShell.Header>
+              <Group h="100%" px="md" justify="space-between">
+                <Title order={3}>Alea</Title>
+                <Burger
+                  opened={asideOpened}
+                  onClick={toggleAside}
+                  hiddenFrom="sm"
+                  size="sm"
+                />
+              </Group>
+            </AppShell.Header>
+            <AppShell.Main>
+              <ErrorBoundary FallbackComponent={MapError}>
+                <Board />
+              </ErrorBoundary>
+            </AppShell.Main>
+            <AppShell.Aside p="md">
+              <Stack>
+                <TokenPanel />
+                <DicePanel />
+              </Stack>
+            </AppShell.Aside>
+          </AppShell>
+        </MotionConfig>
+      </ModalsProvider>
     </MantineProvider>
   );
 }
