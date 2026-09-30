@@ -1,9 +1,19 @@
-import { AppShell, Burger, Button, Group, Stack, Title } from "@mantine/core";
+import {
+  AppShell,
+  Burger,
+  Button,
+  Center,
+  Group,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 import { useDisclosure, useLocalStorage } from "@mantine/hooks";
 import { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { useParams } from "react-router";
+import { Link, useParams } from "react-router";
 import * as Y from "yjs";
+import { isValidRoomId } from "../../../shared/roomId";
 import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
@@ -16,7 +26,22 @@ import { PlayerNameModal } from "./PlayerNameModal";
 export function RoomPage() {
   const { roomId } = useParams();
   if (!roomId) throw new Error("Room page without room id");
+  if (!isValidRoomId(roomId)) return <RoomNotFound />;
   return <RoomView key={roomId} roomId={roomId} />;
+}
+
+function RoomNotFound() {
+  return (
+    <Center h="100dvh">
+      <Stack align="center">
+        <Title order={2}>Room not found</Title>
+        <Text c="dimmed">Check the link you were given.</Text>
+        <Button component={Link} to="/">
+          Go to start page
+        </Button>
+      </Stack>
+    </Center>
+  );
 }
 
 function RoomView({ roomId }: { roomId: string }) {
