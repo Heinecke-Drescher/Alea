@@ -7,6 +7,13 @@ updates:
     groups:
       npm-dependencies:
         patterns: ["*"]
+    ignore:
+      # Types must match the minimum Node version in package.json "engines".
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # Move to a new TypeScript major together with the Vite template.
+      - dependency-name: "typescript"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
