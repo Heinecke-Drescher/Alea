@@ -34,6 +34,10 @@ export interface Roll {
 
 export type Room = ReturnType<typeof createRoom>;
 
+export function embeddedImage(value: string | undefined) {
+  return value?.startsWith("data:image/") ? value : null;
+}
+
 const MAX_ROLLS = 50;
 
 export function createRoom(doc: Y.Doc) {

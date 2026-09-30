@@ -6,6 +6,7 @@ import {
   Stack,
   TextInput,
 } from "@mantine/core";
+import { embeddedImage } from "../room/createRoom";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 
@@ -20,7 +21,7 @@ export function TokenList() {
     <Stack gap="xs">
       {tokens.map((token) => (
         <Group key={token.id} gap="xs" wrap="nowrap">
-          <Avatar src={images[token.imageId]} size="sm" />
+          <Avatar src={embeddedImage(images[token.imageId])} size="sm" />
           <TextInput
             value={token.name}
             onChange={(event) => room.renameToken(token.id, event.target.value)}

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { COLUMNS, ROWS } from "../board/grid";
-import { createRoom, type Room } from "./createRoom";
+import { createRoom, embeddedImage, type Room } from "./createRoom";
 
 const IMAGE = "data:image/webp;base64,AAAA";
 
@@ -131,6 +131,21 @@ describe("rolls", () => {
     expect(rolls).toHaveLength(50);
     expect(rolls[0]?.value).toBe(11);
     expect(rolls.at(-1)?.value).toBe(60);
+  });
+});
+
+describe("embeddedImage", () => {
+  it("accepts embedded images", () => {
+    expect(embeddedImage(IMAGE)).toBe(IMAGE);
+  });
+
+  it.each([
+    undefined,
+    "",
+    "https://tracker.example/pixel.png",
+    "data:text/html,x",
+  ])("rejects %j", (value) => {
+    expect(embeddedImage(value)).toBeNull();
   });
 });
 

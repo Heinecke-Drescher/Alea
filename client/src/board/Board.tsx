@@ -1,8 +1,9 @@
 import { Box, useComputedColorScheme, useMantineTheme } from "@mantine/core";
 import { clamp, useElementSize } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
+import type { Stage as StageNode } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Layer, Line, Stage } from "react-konva";
 import { useRoom } from "../room/RoomContext";
 import { CellLayer } from "./CellLayer";
@@ -19,6 +20,7 @@ const COLUMN_LINES = Array.from(
 const ROW_LINES = Array.from({ length: ROWS + 1 }, (_, i) => i * CELL_SIZE);
 
 const LEFT_MOUSE_BUTTON = 0;
+const MAP_START_X = 72;
 const ZOOM_STEP = 1.1;
 const MIN_ZOOM = 0.25;
 const MAX_ZOOM = 4;
@@ -80,6 +82,13 @@ export function Board() {
   const [color, setColor] = useState<PaintColor>("red");
   const [draftPoints, setDraftPoints] = useState<number[] | null>(null);
   const isPressed = useRef(false);
+  const stageRef = useRef<StageNode>(null);
+
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) throw new Error("Stage is not mounted");
+    stage.x(MAP_START_X);
+  }, []);
   const isSelecting = tool === "select";
   const colorValue = theme.colors[color][6];
 
@@ -130,6 +139,7 @@ export function Board() {
       <Stage
         width={width}
         height={height}
+        ref={stageRef}
         draggable={isSelecting}
         onWheel={zoomAtPointer}
         onMouseDown={handleMouseDown}

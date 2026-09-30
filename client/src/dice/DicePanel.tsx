@@ -20,6 +20,7 @@ export function DicePanel({ playerName }: DicePanelProps) {
           <Button
             key={sides}
             variant="default"
+            size="compact-md"
             onClick={() => room.addRoll(playerName, sides, rollDie(sides))}
           >
             d{sides}
