@@ -12,19 +12,19 @@ export interface Token {
   size: number;
 }
 
-export interface Cell {
+interface Cell {
   x: number;
   y: number;
   color: string;
 }
 
-export interface Stroke {
+interface Stroke {
   id: string;
   color: string;
   points: number[];
 }
 
-export interface Roll {
+interface Roll {
   id: string;
   player: string;
   sides: DieSides;
@@ -36,6 +36,10 @@ export type Room = ReturnType<typeof createRoom>;
 
 export function embeddedImage(value: string | undefined) {
   return value?.startsWith("data:image/") ? value : null;
+}
+
+function cellKey(x: number, y: number) {
+  return `${x},${y}`;
 }
 
 const MAX_ROLLS = 50;
@@ -56,13 +60,13 @@ export function createRoom(doc: Y.Doc) {
   }
 
   function paintCell(x: number, y: number, color: string) {
-    const key = `${x},${y}`;
+    const key = cellKey(x, y);
     if (cellsMap.get(key)?.color === color) return;
     cellsMap.set(key, { x, y, color });
   }
 
   function eraseCell(x: number, y: number) {
-    cellsMap.delete(`${x},${y}`);
+    cellsMap.delete(cellKey(x, y));
   }
 
   function addStroke(color: string, points: number[]) {
@@ -129,7 +133,7 @@ export function createRoom(doc: Y.Doc) {
     );
     for (let y = 0; y < ROWS; y++) {
       for (let x = 0; x < COLUMNS; x++) {
-        if (!occupied.has(`${x},${y}`)) return { x, y };
+        if (!occupied.has(cellKey(x, y))) return { x, y };
       }
     }
     throw new Error("No free cell left on the map");
@@ -160,7 +164,7 @@ function coveredCells(token: Token): string[] {
   const cells: string[] = [];
   for (let dy = 0; dy < token.size; dy++) {
     for (let dx = 0; dx < token.size; dx++) {
-      cells.push(`${token.x + dx},${token.y + dy}`);
+      cells.push(cellKey(token.x + dx, token.y + dy));
     }
   }
   return cells;

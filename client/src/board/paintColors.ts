@@ -1,3 +1,5 @@
+import type { MantineTheme } from "@mantine/core";
+
 export const PAINT_COLORS = [
   "red",
   "orange",
@@ -9,3 +11,7 @@ export const PAINT_COLORS = [
 ] as const;
 
 export type PaintColor = (typeof PAINT_COLORS)[number];
+
+export function paintColorValue(theme: MantineTheme, color: PaintColor) {
+  return theme.colors[color][6];
+}

@@ -19,7 +19,7 @@ import {
   type Icon,
 } from "@tabler/icons-react";
 import { useRoom } from "../room/RoomContext";
-import { PAINT_COLORS, type PaintColor } from "./paintColors";
+import { PAINT_COLORS, paintColorValue, type PaintColor } from "./paintColors";
 
 export type Tool = "select" | "paint" | "pen" | "eraser";
 
@@ -81,7 +81,7 @@ export function Toolbar({
           <ColorSwatch
             key={color}
             component="button"
-            color={theme.colors[color][6]}
+            color={paintColorValue(theme, color)}
             size={24}
             aria-label={`Use ${color}`}
             onClick={() => onColorChange(color)}

@@ -1,23 +1,18 @@
-import { Box, useComputedColorScheme, useMantineTheme } from "@mantine/core";
+import { Box, useMantineTheme } from "@mantine/core";
 import { clamp, useElementSize } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
-import { Layer, Line, Stage } from "react-konva";
+import { Stage } from "react-konva";
 import { useRoom } from "../room/RoomContext";
 import { CellLayer } from "./CellLayer";
+import { GridLayer } from "./GridLayer";
 import { StrokeLayer } from "./StrokeLayer";
-import { CELL_SIZE, COLUMNS, MAP_HEIGHT, MAP_WIDTH, ROWS } from "./grid";
+import { CELL_SIZE, COLUMNS, ROWS } from "./grid";
 import { TokenLayer } from "./TokenLayer";
-import type { PaintColor } from "./paintColors";
+import { paintColorValue, type PaintColor } from "./paintColors";
 import { Toolbar, type Tool } from "./Toolbar";
-
-const COLUMN_LINES = Array.from(
-  { length: COLUMNS + 1 },
-  (_, i) => i * CELL_SIZE,
-);
-const ROW_LINES = Array.from({ length: ROWS + 1 }, (_, i) => i * CELL_SIZE);
 
 const LEFT_MOUSE_BUTTON = 0;
 const MAP_START_X = 72;
@@ -75,9 +70,6 @@ export function Board() {
   const room = useRoom();
   const { ref, width, height } = useElementSize();
   const theme = useMantineTheme();
-  const colorScheme = useComputedColorScheme("light");
-  const lineColor =
-    colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[4];
   const [tool, setTool] = useState<Tool>("select");
   const [color, setColor] = useState<PaintColor>("red");
   const [draftPoints, setDraftPoints] = useState<number[] | null>(null);
@@ -90,7 +82,7 @@ export function Board() {
     stage.x(MAP_START_X);
   }, []);
   const isSelecting = tool === "select";
-  const colorValue = theme.colors[color][6];
+  const colorValue = paintColorValue(theme, color);
 
   function applyAtPointer(event: KonvaEventObject<MouseEvent>) {
     const cell = cellAt(pointerOnMap(event));
@@ -148,22 +140,7 @@ export function Board() {
         onMouseLeave={handleMouseUp}
       >
         <CellLayer />
-        <Layer listening={false}>
-          {COLUMN_LINES.map((x) => (
-            <Line
-              key={`column-${x}`}
-              points={[x, 0, x, MAP_HEIGHT]}
-              stroke={lineColor}
-            />
-          ))}
-          {ROW_LINES.map((y) => (
-            <Line
-              key={`row-${y}`}
-              points={[0, y, MAP_WIDTH, y]}
-              stroke={lineColor}
-            />
-          ))}
-        </Layer>
+        <GridLayer />
         <StrokeLayer
           draft={draftPoints && { color: colorValue, points: draftPoints }}
           listening={tool === "eraser"}
