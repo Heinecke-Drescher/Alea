@@ -1,10 +1,11 @@
 import { Layer, Rect } from "react-konva";
-import { cellsMap } from "../room/roomDoc";
+import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import { CELL_SIZE } from "./grid";
 
 export function CellLayer() {
-  const cells = Object.entries(useY(cellsMap));
+  const room = useRoom();
+  const cells = Object.entries(useY(room.cellsMap));
 
   return (
     <Layer listening={false}>

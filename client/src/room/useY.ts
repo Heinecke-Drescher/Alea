@@ -1,8 +1,10 @@
 import { useCallback, useRef, useSyncExternalStore } from "react";
-import type * as Y from "yjs";
+import * as Y from "yjs";
 
-export function useY<T>(yMap: Y.Map<T>): Record<string, T> {
-  const snapshot = useRef<Record<string, T> | null>(null);
+export function useY<T>(yType: Y.Map<T>): Record<string, T>;
+export function useY<T>(yType: Y.Array<T>): T[];
+export function useY<T>(yType: Y.Map<T> | Y.Array<T>) {
+  const snapshot = useRef<Record<string, T> | T[] | null>(null);
 
   const subscribe = useCallback(
     (onChange: () => void) => {
@@ -10,14 +12,17 @@ export function useY<T>(yMap: Y.Map<T>): Record<string, T> {
         snapshot.current = null;
         onChange();
       };
-      yMap.observeDeep(handleChange);
-      return () => yMap.unobserveDeep(handleChange);
+      yType.observeDeep(handleChange);
+      return () => yType.unobserveDeep(handleChange);
     },
-    [yMap],
+    [yType],
   );
 
   function getSnapshot() {
-    snapshot.current ??= Object.fromEntries(yMap.entries());
+    snapshot.current ??=
+      yType instanceof Y.Array
+        ? yType.toArray()
+        : Object.fromEntries(yType.entries());
     return snapshot.current;
   }
 

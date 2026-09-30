@@ -1,5 +1,5 @@
 import { Layer, Line } from "react-konva";
-import { strokesMap } from "../room/roomDoc";
+import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 
 const STROKE_WIDTH = 4;
@@ -32,7 +32,8 @@ function StrokeLine({ id, color, points }: StrokeLineProps) {
 }
 
 export function StrokeLayer({ draft, listening }: StrokeLayerProps) {
-  const strokes = Object.values(useY(strokesMap));
+  const room = useRoom();
+  const strokes = Object.values(useY(room.strokesMap));
 
   return (
     <Layer listening={listening}>

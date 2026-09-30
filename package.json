@@ -3,8 +3,13 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
-    "dev": "vite",
+    "dev": "concurrently --names web,sync npm:dev:web npm:dev:sync",
+    "dev:web": "vite",
+    "dev:sync": "node --watch server/index.ts",
     "build": "tsc -b && vite build",
     "typecheck": "tsc -b",
     "lint": "oxlint",
@@ -13,6 +18,8 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@hocuspocus/provider": "^4.7.0",
+    "@hocuspocus/server": "^4.7.0",
     "@mantine/core": "^9.6.3",
     "@mantine/dropzone": "^9.6.3",
     "@mantine/hooks": "^9.6.3",
@@ -27,13 +34,16 @@
     "react-dom": "^19.3.0",
     "react-error-boundary": "^6.1.6",
     "react-konva": "^19.3.0",
+    "react-router": "^8.4.0",
     "use-image": "^1.1.4",
     "yjs": "^13.6.33"
   },
   "devDependencies": {
+    "@types/node": "^24.19.0",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-react": "^6.1.1",
+    "concurrently": "^10.0.5",
     "oxlint": "^1.86.0",
     "prettier": "3.9.9",
     "typescript": "~6.0.3",

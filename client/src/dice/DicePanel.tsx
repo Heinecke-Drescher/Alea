@@ -1,31 +1,27 @@
 import { Button, Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import { motion } from "motion/react";
-import { nanoid } from "nanoid";
-import { useState } from "react";
-import { DIE_SIDES, rollDie, type DieSides } from "../../../shared/dice";
+import { DIE_SIDES, rollDie } from "../../../shared/dice";
+import { useRoom } from "../room/RoomContext";
+import { useY } from "../room/useY";
 
-const MAX_ROLLS = 20;
-
-interface Roll {
-  id: string;
-  sides: DieSides;
-  value: number;
+interface DicePanelProps {
+  playerName: string;
 }
 
-export function DicePanel() {
-  const [rolls, setRolls] = useState<Roll[]>([]);
+export function DicePanel({ playerName }: DicePanelProps) {
+  const room = useRoom();
+  const rolls = [...useY(room.rollsArray)].reverse();
   const [lastRoll, ...olderRolls] = rolls;
-
-  function roll(sides: DieSides) {
-    const newRoll = { id: nanoid(), sides, value: rollDie(sides) };
-    setRolls((previous) => [newRoll, ...previous].slice(0, MAX_ROLLS));
-  }
 
   return (
     <Stack>
       <SimpleGrid cols={4}>
         {DIE_SIDES.map((sides) => (
-          <Button key={sides} variant="default" onClick={() => roll(sides)}>
+          <Button
+            key={sides}
+            variant="default"
+            onClick={() => room.addRoll(playerName, sides, rollDie(sides))}
+          >
             d{sides}
           </Button>
         ))}
@@ -42,7 +38,9 @@ export function DicePanel() {
           transition={{ duration: 0.5 }}
         >
           <Stack gap={0} align="center">
-            <Text c="dimmed">d{lastRoll.sides}</Text>
+            <Text c="dimmed">
+              {lastRoll.player} · d{lastRoll.sides}
+            </Text>
             <Text fz={48} fw={700}>
               {lastRoll.value}
             </Text>
@@ -55,8 +53,10 @@ export function DicePanel() {
       )}
       <Stack gap={4}>
         {olderRolls.map((olderRoll) => (
-          <Group key={olderRoll.id} justify="space-between">
-            <Text c="dimmed">d{olderRoll.sides}</Text>
+          <Group key={olderRoll.id} justify="space-between" wrap="nowrap">
+            <Text c="dimmed" truncate>
+              {olderRoll.player} · d{olderRoll.sides}
+            </Text>
             <Text>{olderRoll.value}</Text>
           </Group>
         ))}

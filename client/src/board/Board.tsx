@@ -4,7 +4,7 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { Vector2d } from "konva/lib/types";
 import { useRef, useState } from "react";
 import { Layer, Line, Stage } from "react-konva";
-import { addStroke, eraseCell, paintCell, removeStroke } from "../room/roomDoc";
+import { useRoom } from "../room/RoomContext";
 import { CellLayer } from "./CellLayer";
 import { StrokeLayer } from "./StrokeLayer";
 import { CELL_SIZE, COLUMNS, MAP_HEIGHT, MAP_WIDTH, ROWS } from "./grid";
@@ -70,6 +70,7 @@ function cellAt(point: Vector2d) {
 }
 
 export function Board() {
+  const room = useRoom();
   const { ref, width, height } = useElementSize();
   const theme = useMantineTheme();
   const colorScheme = useComputedColorScheme("light");
@@ -84,11 +85,11 @@ export function Board() {
 
   function applyAtPointer(event: KonvaEventObject<MouseEvent>) {
     const cell = cellAt(pointerOnMap(event));
-    if (tool === "paint" && cell) paintCell(cell.x, cell.y, colorValue);
+    if (tool === "paint" && cell) room.paintCell(cell.x, cell.y, colorValue);
     if (tool === "eraser") {
-      if (cell) eraseCell(cell.x, cell.y);
+      if (cell) room.eraseCell(cell.x, cell.y);
       const strokeId = strokeIdAtPointer(event);
-      if (strokeId) removeStroke(strokeId);
+      if (strokeId) room.removeStroke(strokeId);
     }
   }
 
@@ -115,7 +116,7 @@ export function Board() {
   function handleMouseUp() {
     isPressed.current = false;
     if (draftPoints && draftPoints.length >= 4) {
-      addStroke(colorValue, draftPoints);
+      room.addStroke(colorValue, draftPoints);
     }
     setDraftPoints(null);
   }

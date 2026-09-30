@@ -1,7 +1,8 @@
 import { Stack, Text } from "@mantine/core";
 import { Dropzone } from "@mantine/dropzone";
 import { notifications } from "@mantine/notifications";
-import { addToken } from "../room/roomDoc";
+import type { Room } from "../room/createRoom";
+import { useRoom } from "../room/RoomContext";
 import { createTokenImage } from "./createTokenImage";
 import { TokenList } from "./TokenList";
 
@@ -14,11 +15,11 @@ const TOKEN_IMAGE_TYPES = [
   "image/avif",
 ];
 
-async function addTokenFromFile(file: File) {
+async function addTokenFromFile(room: Room, file: File) {
   try {
     const imageDataUrl = await createTokenImage(file);
     const name = file.name.replace(/\.[^.]+$/, "");
-    addToken(name, imageDataUrl);
+    room.addToken(name, imageDataUrl);
   } catch (error) {
     console.error(error);
     notifications.show({
@@ -30,12 +31,16 @@ async function addTokenFromFile(file: File) {
 }
 
 export function TokenPanel() {
+  const room = useRoom();
+
   return (
     <Stack>
       <Dropzone
         accept={TOKEN_IMAGE_TYPES}
         maxSize={MAX_FILE_SIZE}
-        onDrop={(files) => files.forEach((file) => void addTokenFromFile(file))}
+        onDrop={(files) =>
+          files.forEach((file) => void addTokenFromFile(room, file))
+        }
       >
         <Dropzone.Idle>
           <Text ta="center" c="dimmed">

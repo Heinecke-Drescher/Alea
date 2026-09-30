@@ -1,5 +1,5 @@
 import { Layer } from "react-konva";
-import { imagesMap, tokensMap } from "../room/roomDoc";
+import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import { TokenView } from "./TokenView";
 
@@ -8,8 +8,9 @@ interface TokenLayerProps {
 }
 
 export function TokenLayer({ listening }: TokenLayerProps) {
-  const tokens = Object.values(useY(tokensMap));
-  const images = useY(imagesMap);
+  const room = useRoom();
+  const tokens = Object.values(useY(room.tokensMap));
+  const images = useY(room.imagesMap);
 
   return (
     <Layer listening={listening}>

@@ -18,7 +18,7 @@ import {
   IconTrash,
   type Icon,
 } from "@tabler/icons-react";
-import { clearDrawings } from "../room/roomDoc";
+import { useRoom } from "../room/RoomContext";
 import { PAINT_COLORS, type PaintColor } from "./paintColors";
 
 export type Tool = "select" | "paint" | "pen" | "eraser";
@@ -30,7 +30,7 @@ const TOOLS: { tool: Tool; label: string; icon: Icon }[] = [
   { tool: "eraser", label: "Erase", icon: IconEraser },
 ];
 
-function confirmClearDrawings() {
+function confirmClearDrawings(clearDrawings: () => void) {
   modals.openConfirmModal({
     title: "Clear drawings",
     centered: true,
@@ -59,6 +59,7 @@ export function Toolbar({
   onColorChange,
 }: ToolbarProps) {
   const theme = useMantineTheme();
+  const room = useRoom();
 
   return (
     <Paper pos="absolute" top={12} left={12} p={4} shadow="sm" withBorder>
@@ -95,7 +96,7 @@ export function Toolbar({
             color="red"
             size="lg"
             aria-label="Clear drawings"
-            onClick={confirmClearDrawings}
+            onClick={() => confirmClearDrawings(room.clearDrawings)}
           >
             <IconTrash size={20} />
           </ActionIcon>
