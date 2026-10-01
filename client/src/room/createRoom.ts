@@ -1,7 +1,8 @@
 import { nanoid } from "nanoid";
 import * as Y from "yjs";
 import type { DieSides } from "../../../shared/dice";
-import { COLUMNS, ROWS } from "../board/grid";
+import { CELL_SIZE, COLUMNS, ROWS } from "../board/grid";
+import { splitStroke, type Area } from "./splitStroke";
 
 export interface Token {
   id: string;
@@ -89,6 +90,10 @@ export function createRoom(doc: Y.Doc) {
 
   function addStroke(color: string, points: number[]) {
     undoManager.stopCapturing();
+    putStroke(color, points);
+  }
+
+  function putStroke(color: string, points: number[]) {
     const id = nanoid();
     strokesMap.set(id, { id, color, points });
   }
@@ -151,6 +156,60 @@ export function createRoom(doc: Y.Doc) {
     tokensMap.set(id, change(token));
   }
 
+  function moveArea(area: Area, dx: number, dy: number) {
+    if (dx === 0 && dy === 0) return;
+    undoManager.stopCapturing();
+    doc.transact(() => {
+      moveCellsIn(area, dx, dy);
+      moveTokensIn(area, dx, dy);
+      moveStrokesIn(area, dx, dy);
+    });
+  }
+
+  function moveCellsIn(area: Area, dx: number, dy: number) {
+    const moved = Array.from(cellsMap.values()).filter((cell) =>
+      hasCenterIn(area, cell.x, cell.y, 1),
+    );
+    for (const cell of moved) cellsMap.delete(cellKey(cell.x, cell.y));
+    for (const cell of moved) {
+      const x = cell.x + dx;
+      const y = cell.y + dy;
+      if (x < 0 || y < 0 || x >= COLUMNS || y >= ROWS) {
+        throw new Error(
+          `Cannot move cell ${cellKey(cell.x, cell.y)} off the map`,
+        );
+      }
+      cellsMap.set(cellKey(x, y), { ...cell, x, y });
+    }
+  }
+
+  function moveTokensIn(area: Area, dx: number, dy: number) {
+    for (const token of tokensMap.values()) {
+      if (!hasCenterIn(area, token.x, token.y, token.size)) continue;
+      tokensMap.set(token.id, {
+        ...token,
+        x: Math.max(0, Math.min(token.x + dx, COLUMNS - token.size)),
+        y: Math.max(0, Math.min(token.y + dy, ROWS - token.size)),
+      });
+    }
+  }
+
+  function moveStrokesIn(area: Area, dx: number, dy: number) {
+    const shift = (points: number[]) =>
+      points.map((value, i) => value + (i % 2 === 0 ? dx : dy) * CELL_SIZE);
+    for (const stroke of Array.from(strokesMap.values())) {
+      const { inside, outside } = splitStroke(stroke.points, area);
+      if (inside.length === 0) continue;
+      if (outside.length === 0) {
+        strokesMap.set(stroke.id, { ...stroke, points: shift(stroke.points) });
+        continue;
+      }
+      strokesMap.delete(stroke.id);
+      for (const points of outside) putStroke(stroke.color, points);
+      for (const points of inside) putStroke(stroke.color, shift(points));
+    }
+  }
+
   function findFreeCell() {
     const occupied = new Set(
       Array.from(tokensMap.values(), coveredCells).flat(),
@@ -182,7 +241,19 @@ export function createRoom(doc: Y.Doc) {
     renameToken,
     resizeToken,
     removeToken,
+    moveArea,
   };
+}
+
+function hasCenterIn(area: Area, x: number, y: number, size: number) {
+  const centerX = (x + size / 2) * CELL_SIZE;
+  const centerY = (y + size / 2) * CELL_SIZE;
+  return (
+    centerX >= area.x &&
+    centerX <= area.x + area.width &&
+    centerY >= area.y &&
+    centerY <= area.y + area.height
+  );
 }
 
 function coveredCells(token: Token): string[] {

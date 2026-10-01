@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
-import { COLUMNS, ROWS } from "../board/grid";
+import { CELL_SIZE, COLUMNS, ROWS } from "../board/grid";
 import { createRoom, embeddedImage, type Room } from "./createRoom";
 
 const IMAGE = "data:image/webp;base64,AAAA";
@@ -131,6 +131,64 @@ describe("rolls", () => {
     expect(rolls).toHaveLength(50);
     expect(rolls[0]?.value).toBe(11);
     expect(rolls.at(-1)?.value).toBe(60);
+  });
+});
+
+describe("moveArea", () => {
+  const cellArea = (x: number, y: number, width: number, height: number) => ({
+    x: x * CELL_SIZE,
+    y: y * CELL_SIZE,
+    width: width * CELL_SIZE,
+    height: height * CELL_SIZE,
+  });
+
+  it("moves the cells whose center is inside the area", () => {
+    room.paintCell(1, 1, "#ff0000");
+    room.paintCell(5, 5, "#00ff00");
+    room.moveArea({ x: 40, y: 40, width: 40, height: 40 }, 2, 3);
+    expect(Object.keys(room.cellsMap.toJSON()).sort()).toEqual(["3,4", "5,5"]);
+  });
+
+  it("paints over cells at the destination", () => {
+    room.paintCell(1, 1, "#ff0000");
+    room.paintCell(2, 1, "#00ff00");
+    room.moveArea(cellArea(1, 1, 1, 1), 1, 0);
+    expect(room.cellsMap.toJSON()).toEqual({
+      "2,1": { x: 2, y: 1, color: "#ff0000" },
+    });
+  });
+
+  it("moves tokens whose center is inside and keeps them on the map", () => {
+    room.addToken("Dragon", IMAGE);
+    const { id } = onlyToken();
+    room.resizeToken(id, 3);
+    room.moveArea(cellArea(1, 1, 1, 1), COLUMNS, 2);
+    expect(onlyToken()).toMatchObject({ x: COLUMNS - 3, y: 2 });
+  });
+
+  it("moves strokes inside and cuts strokes crossing the edge", () => {
+    room.addStroke("#000000", [60, 60, 90, 90]);
+    const [inner] = room.strokesMap.keys();
+    if (!inner) throw new Error("Expected a stroke");
+    room.addStroke("#ff0000", [0, 75, 150, 75]);
+    room.moveArea(cellArea(1, 1, 1, 1), 1, 0);
+    expect(room.strokesMap.get(inner)?.points).toEqual([110, 60, 140, 90]);
+    const crossing = Array.from(room.strokesMap.values())
+      .filter((stroke) => stroke.color === "#ff0000")
+      .map((stroke) => stroke.points.join(","))
+      .sort();
+    expect(crossing).toEqual(["0,75,50,75", "100,75,150,75", "100,75,150,75"]);
+  });
+
+  it("is undone in a single step", () => {
+    room.paintCell(1, 1, "#ff0000");
+    room.addStroke("#000000", [0, 75, 150, 75]);
+    room.addToken("Goblin", IMAGE);
+    room.moveToken(onlyToken().id, 1, 1);
+    const before = room.doc.toJSON();
+    room.moveArea(cellArea(1, 1, 1, 1), 2, 2);
+    room.undoManager.undo();
+    expect(room.doc.toJSON()).toEqual(before);
   });
 });
 

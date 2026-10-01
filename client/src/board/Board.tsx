@@ -1,8 +1,8 @@
 import { Box, useMantineTheme } from "@mantine/core";
-import { clamp, useElementSize } from "@mantine/hooks";
+import { clamp, useElementSize, useHotkeys } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
-import type { Vector2d } from "konva/lib/types";
+import type { IRect, Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
 import { Stage } from "react-konva";
 import { useRoom } from "../room/RoomContext";
@@ -12,6 +12,8 @@ import { StrokeLayer } from "./StrokeLayer";
 import { CELL_SIZE, COLUMNS, ROWS } from "./grid";
 import { TokenLayer } from "./TokenLayer";
 import { paintColorValue, type PaintColor } from "./paintColors";
+import { boxBetween, clipToMap } from "./selection";
+import { SelectionLayer } from "./SelectionLayer";
 import { Toolbar, type Tool } from "./Toolbar";
 
 const LEFT_MOUSE_BUTTON = 0;
@@ -73,14 +75,24 @@ export function Board() {
   const [tool, setTool] = useState<Tool>("select");
   const [color, setColor] = useState<PaintColor>("red");
   const [draftPoints, setDraftPoints] = useState<number[] | null>(null);
+  const [area, setArea] = useState<IRect | null>(null);
+  const areaStart = useRef<Vector2d | null>(null);
   const isPressed = useRef(false);
   const stageRef = useRef<StageNode>(null);
+
+  useHotkeys([["Escape", clearSelection]]);
 
   useEffect(() => {
     const stage = stageRef.current;
     if (!stage) throw new Error("Stage is not mounted");
     stage.x(MAP_START_X);
   }, []);
+
+  useEffect(() => {
+    const clear = () => setArea(null);
+    room.undoManager.on("stack-item-popped", clear);
+    return () => room.undoManager.off("stack-item-popped", clear);
+  }, [room]);
   const isSelecting = tool === "select";
   const colorValue = paintColorValue(theme, color);
 
@@ -94,16 +106,40 @@ export function Board() {
     }
   }
 
-  function keepLeftButtonForTools(event: KonvaEventObject<DragEvent>) {
+  function moveArea(dx: number, dy: number) {
+    if (!area) throw new Error("Moved a selection that does not exist");
+    room.moveArea(area, dx, dy);
+    setArea({
+      ...area,
+      x: area.x + dx * CELL_SIZE,
+      y: area.y + dy * CELL_SIZE,
+    });
+  }
+
+  function clearSelection() {
+    setArea(null);
+  }
+
+  function changeTool(nextTool: Tool) {
+    setTool(nextTool);
+    clearSelection();
+  }
+
+  function panOnlyWithMiddleButton(event: KonvaEventObject<DragEvent>) {
     const stage = event.target;
     if (stage !== stageRef.current) return;
-    if (!isSelecting && event.evt.button === LEFT_MOUSE_BUTTON) {
-      stage.stopDrag();
-    }
+    if (event.evt.button === LEFT_MOUSE_BUTTON) stage.stopDrag();
+  }
+
+  function startArea(event: KonvaEventObject<MouseEvent>) {
+    if (event.target !== stageRef.current) return;
+    areaStart.current = pointerOnMap(event);
+    setArea(null);
   }
 
   function handleMouseDown(event: KonvaEventObject<MouseEvent>) {
     if (event.evt.button !== LEFT_MOUSE_BUTTON) return;
+    if (isSelecting) startArea(event);
     if (tool === "paint" || tool === "eraser") {
       room.undoManager.stopCapturing();
       isPressed.current = true;
@@ -116,6 +152,9 @@ export function Board() {
   }
 
   function handleMouseMove(event: KonvaEventObject<MouseEvent>) {
+    if (areaStart.current) {
+      setArea(clipToMap(boxBetween(areaStart.current, pointerOnMap(event))));
+    }
     if (isPressed.current) applyAtPointer(event);
     if (draftPoints) {
       const point = pointerOnMap(event);
@@ -124,6 +163,7 @@ export function Board() {
   }
 
   function handleMouseUp() {
+    areaStart.current = null;
     isPressed.current = false;
     if (draftPoints && draftPoints.length >= 4) {
       room.addStroke(colorValue, draftPoints);
@@ -142,7 +182,7 @@ export function Board() {
         height={height}
         ref={stageRef}
         draggable
-        onDragStart={keepLeftButtonForTools}
+        onDragStart={panOnlyWithMiddleButton}
         onWheel={zoomAtPointer}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
@@ -156,10 +196,11 @@ export function Board() {
           listening={tool === "eraser"}
         />
         <TokenLayer listening={isSelecting} />
+        <SelectionLayer area={area} onMove={moveArea} />
       </Stage>
       <Toolbar
         activeTool={tool}
-        onToolChange={setTool}
+        onToolChange={changeTool}
         activeColor={color}
         onColorChange={setColor}
       />
