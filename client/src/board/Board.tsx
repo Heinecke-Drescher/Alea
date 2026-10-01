@@ -94,6 +94,14 @@ export function Board() {
     }
   }
 
+  function keepLeftButtonForTools(event: KonvaEventObject<DragEvent>) {
+    const stage = event.target;
+    if (stage !== stageRef.current) return;
+    if (!isSelecting && event.evt.button === LEFT_MOUSE_BUTTON) {
+      stage.stopDrag();
+    }
+  }
+
   function handleMouseDown(event: KonvaEventObject<MouseEvent>) {
     if (event.evt.button !== LEFT_MOUSE_BUTTON) return;
     if (tool === "paint" || tool === "eraser") {
@@ -133,7 +141,8 @@ export function Board() {
         width={width}
         height={height}
         ref={stageRef}
-        draggable={isSelecting}
+        draggable
+        onDragStart={keepLeftButtonForTools}
         onWheel={zoomAtPointer}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
