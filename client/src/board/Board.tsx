@@ -97,6 +97,7 @@ export function Board() {
   function handleMouseDown(event: KonvaEventObject<MouseEvent>) {
     if (event.evt.button !== LEFT_MOUSE_BUTTON) return;
     if (tool === "paint" || tool === "eraser") {
+      room.undoManager.stopCapturing();
       isPressed.current = true;
       applyAtPointer(event);
     }

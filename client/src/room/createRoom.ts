@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import type * as Y from "yjs";
+import * as Y from "yjs";
 import type { DieSides } from "../../../shared/dice";
 import { COLUMNS, ROWS } from "../board/grid";
 
@@ -43,6 +43,7 @@ function cellKey(x: number, y: number) {
 }
 
 const MAX_ROLLS = 50;
+const CLEANUP = Symbol("cleanup");
 
 export function createRoom(doc: Y.Doc) {
   const tokensMap = doc.getMap<Token>("tokens");
@@ -50,6 +51,23 @@ export function createRoom(doc: Y.Doc) {
   const cellsMap = doc.getMap<Cell>("cells");
   const strokesMap = doc.getMap<Stroke>("strokes");
   const rollsArray = doc.getArray<Roll>("rolls");
+  // Tracks only local changes, so undo never reverts other players' work. Rolls stay final.
+  const undoManager = new Y.UndoManager([
+    tokensMap,
+    imagesMap,
+    cellsMap,
+    strokesMap,
+  ]);
+  // Undo can restore a token that another player deleted together with its image.
+  undoManager.on("stack-item-popped", removeTokensWithoutImage);
+
+  function removeTokensWithoutImage() {
+    doc.transact(() => {
+      for (const token of tokensMap.values()) {
+        if (!imagesMap.has(token.imageId)) tokensMap.delete(token.id);
+      }
+    }, CLEANUP);
+  }
 
   function addRoll(player: string, sides: DieSides, value: number) {
     doc.transact(() => {
@@ -70,6 +88,7 @@ export function createRoom(doc: Y.Doc) {
   }
 
   function addStroke(color: string, points: number[]) {
+    undoManager.stopCapturing();
     const id = nanoid();
     strokesMap.set(id, { id, color, points });
   }
@@ -79,6 +98,7 @@ export function createRoom(doc: Y.Doc) {
   }
 
   function clearDrawings() {
+    undoManager.stopCapturing();
     doc.transact(() => {
       cellsMap.clear();
       strokesMap.clear();
@@ -86,6 +106,7 @@ export function createRoom(doc: Y.Doc) {
   }
 
   function addToken(name: string, imageDataUrl: string) {
+    undoManager.stopCapturing();
     const id = nanoid();
     const imageId = nanoid();
     const { x, y } = findFreeCell();
@@ -96,6 +117,7 @@ export function createRoom(doc: Y.Doc) {
   }
 
   function moveToken(id: string, x: number, y: number) {
+    undoManager.stopCapturing();
     updateToken(id, (token) => ({ ...token, x, y }));
   }
 
@@ -104,6 +126,7 @@ export function createRoom(doc: Y.Doc) {
   }
 
   function resizeToken(id: string, size: number) {
+    undoManager.stopCapturing();
     updateToken(id, (token) => ({
       ...token,
       size,
@@ -113,6 +136,7 @@ export function createRoom(doc: Y.Doc) {
   }
 
   function removeToken(id: string) {
+    undoManager.stopCapturing();
     const token = tokensMap.get(id);
     if (!token) return;
     doc.transact(() => {
@@ -146,6 +170,7 @@ export function createRoom(doc: Y.Doc) {
     cellsMap,
     strokesMap,
     rollsArray,
+    undoManager,
     addRoll,
     paintCell,
     eraseCell,

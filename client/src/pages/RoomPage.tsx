@@ -8,7 +8,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { useDisclosure, useLocalStorage } from "@mantine/hooks";
+import { useDisclosure, useHotkeys, useLocalStorage } from "@mantine/hooks";
 import { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useParams } from "react-router";
@@ -57,6 +57,11 @@ function RoomView({ roomId }: { roomId: string }) {
   const needsName = playerName === "";
 
   useEffect(() => connectRoom(roomId, room.doc), [roomId, room]);
+  useHotkeys([
+    ["mod+Z", () => room.undoManager.undo()],
+    ["mod+Y", () => room.undoManager.redo()],
+    ["mod+shift+Z", () => room.undoManager.redo()],
+  ]);
 
   return (
     <RoomContext value={room}>
