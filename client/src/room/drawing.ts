@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { containsCell, type MapBounds } from "../board/grid";
+import { containsCell, type MapBounds } from "./grid";
 import { cellKey, type Cell, type RoomStore } from "./roomStore";
 
 export function shiftPoints(points: number[], dx: number, dy: number) {

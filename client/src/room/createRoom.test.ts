@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
-import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "../board/grid";
+import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
 import { embeddedImage } from "./tokens";
 

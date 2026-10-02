@@ -3,7 +3,7 @@ import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef, type RefObject } from "react";
 import type { Clip } from "../room/areaActions";
 import type { Room } from "../room/createRoom";
-import { CELL_SIZE, mapRect } from "./grid";
+import { CELL_SIZE, mapRect } from "../room/grid";
 import {
   cellOffset,
   linesBounds,

@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { CELL_SIZE } from "../board/grid";
+import { CELL_SIZE } from "./grid";
 import { putCell, shiftPoints } from "./drawing";
 import { placeToken, type MapActions } from "./map";
 import { cellKey, type Cell, type RoomStore } from "./roomStore";

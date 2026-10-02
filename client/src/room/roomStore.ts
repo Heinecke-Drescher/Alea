@@ -1,6 +1,6 @@
 import * as Y from "yjs";
 import type { DieSides } from "../../../shared/dice";
-import type { MapBounds } from "../board/grid";
+import type { MapBounds } from "./grid";
 
 export interface Token {
   id: string;

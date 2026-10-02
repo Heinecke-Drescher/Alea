@@ -1,7 +1,7 @@
 import { useComputedColorScheme, useMantineTheme } from "@mantine/core";
 import { Group, Line } from "react-konva";
 import { useMapBounds } from "../room/useMapBounds";
-import { CELL_SIZE, mapRect } from "./grid";
+import { CELL_SIZE, mapRect } from "../room/grid";
 
 function linePositions(start: number, count: number) {
   return Array.from({ length: count + 1 }, (_, i) => start + i * CELL_SIZE);

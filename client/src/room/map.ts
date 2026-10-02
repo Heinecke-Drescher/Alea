@@ -4,7 +4,7 @@ import {
   DEFAULT_MAP_BOUNDS,
   isValidMapBounds,
   type MapBounds,
-} from "../board/grid";
+} from "./grid";
 import type { RoomStore } from "./roomStore";
 
 export type MapActions = ReturnType<typeof createMapActions>;

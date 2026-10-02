@@ -1,7 +1,7 @@
 import type { Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
 import type { Room } from "../room/createRoom";
-import { CELL_SIZE } from "./grid";
+import { CELL_SIZE } from "../room/grid";
 import {
   areaSelection,
   boxBetween,

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CELL_SIZE, DEFAULT_MAP_BOUNDS, mapRect } from "./grid";
+import { CELL_SIZE, DEFAULT_MAP_BOUNDS, mapRect } from "../room/grid";
 import {
   areaSelection,
   boxBetween,

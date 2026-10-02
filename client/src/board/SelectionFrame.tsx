@@ -3,7 +3,7 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
 import { Group, Rect } from "react-konva";
 import { useRoom } from "../room/RoomContext";
-import { CELL_SIZE } from "./grid";
+import { CELL_SIZE } from "../room/grid";
 import { cellOffset } from "./selection";
 
 interface SelectionFrameProps {

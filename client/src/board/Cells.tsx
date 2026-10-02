@@ -1,7 +1,7 @@
 import { Group, Rect } from "react-konva";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
-import { CELL_SIZE } from "./grid";
+import { CELL_SIZE } from "../room/grid";
 
 export function Cells() {
   const room = useRoom();

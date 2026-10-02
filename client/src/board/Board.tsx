@@ -10,7 +10,7 @@ import { useRoom } from "../room/RoomContext";
 import { Cells } from "./Cells";
 import { Cursors } from "./Cursors";
 import { GridLines } from "./GridLines";
-import { CELL_SIZE, containsCell } from "./grid";
+import { CELL_SIZE, containsCell } from "../room/grid";
 import { Strokes } from "./Strokes";
 import { Tokens } from "./Tokens";
 import { paintColorValue, type PaintColor } from "./paintColors";

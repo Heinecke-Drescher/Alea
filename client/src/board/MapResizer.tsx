@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
 import { Rect, Transformer } from "react-konva";
 import { useRoom } from "../room/RoomContext";
 import { useMapBounds } from "../room/useMapBounds";
-import { mapRect, snapMapBounds, type MapBounds } from "./grid";
+import { mapRect, snapMapBounds, type MapBounds } from "../room/grid";
 
 export function MapResizer() {
   const room = useRoom();

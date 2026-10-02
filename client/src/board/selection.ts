@@ -1,6 +1,6 @@
 import { clamp } from "@mantine/hooks";
 import type { IRect, Vector2d } from "konva/lib/types";
-import { CELL_SIZE, mapRect, type MapBounds } from "./grid";
+import { CELL_SIZE, mapRect, type MapBounds } from "../room/grid";
 
 export type Selection =
   | { kind: "none" }
