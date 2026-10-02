@@ -13,8 +13,10 @@ import { rollDie } from "../../../shared/dice";
 import { droppedDie, isDieDrag } from "../dice/dieDrag";
 import { Layer, Stage } from "react-konva";
 import type { Awareness } from "../room/connectRoom";
+import type { PlayerColor } from "../room/playerColors";
 import { useRoom } from "../room/RoomContext";
 import { Cells } from "./Cells";
+import { cursorArrowCss } from "./cursorArrow";
 import { Cursors } from "./Cursors";
 import { GridLines } from "./GridLines";
 import { CELL_SIZE, clampToMap, containsCell } from "../room/grid";
@@ -88,10 +90,16 @@ function isAddKeyPressed(event: KonvaEventObject<MouseEvent>) {
 interface BoardProps {
   awareness: Awareness | null;
   playerName: string;
+  playerColor: PlayerColor;
   isSynced: boolean;
 }
 
-export function Board({ awareness, playerName, isSynced }: BoardProps) {
+export function Board({
+  awareness,
+  playerName,
+  playerColor,
+  isSynced,
+}: BoardProps) {
   const room = useRoom();
   const { ref: sizeRef, width, height } = useElementSize();
   const theme = useMantineTheme();
@@ -109,7 +117,7 @@ export function Board({ awareness, playerName, isSynced }: BoardProps) {
   });
   const isPressed = useRef(false);
   const stageRef = useRef<StageNode>(null);
-  const cursor = useCursorBroadcast(awareness, playerName);
+  const cursor = useCursorBroadcast(awareness, playerName, playerColor);
 
   // Keeps the browser's own copy and paste working, e.g. for text in the dice history.
   const keepDefault = { preventDefault: false };
@@ -232,7 +240,7 @@ export function Board({ awareness, playerName, isSynced }: BoardProps) {
     if (!point) throw new Error("Drop without stage pointer");
     const cell = cellAt(point);
     if (!containsCell(room.mapBounds(), cell.x, cell.y)) return;
-    room.addRoll(playerName, sides, rollDie(sides), point);
+    room.addRoll(playerName, playerColor, sides, rollDie(sides), point);
   }
 
   return (
@@ -240,6 +248,7 @@ export function Board({ awareness, playerName, isSynced }: BoardProps) {
       ref={sizeRef}
       pos="relative"
       h="calc(100dvh - var(--app-shell-header-height))"
+      style={{ cursor: cursorArrowCss(theme.colors[playerColor][6]) }}
       onDragOver={(event) => {
         if (isDieDrag(event.dataTransfer)) event.preventDefault();
       }}

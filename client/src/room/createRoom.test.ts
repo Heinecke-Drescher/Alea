@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
+import { rollColor } from "./rolls";
 import { embeddedImage } from "./tokens";
 
 const IMAGE = "data:image/webp;base64,AAAA";
@@ -122,22 +123,41 @@ describe("changing tokens", () => {
 
 describe("rolls", () => {
   it("records who rolled what and where", () => {
-    room.addRoll("Anna", 20, 17, SPOT);
+    room.addRoll("Anna", "teal", 20, 17, SPOT);
     expect(room.rollsArray.toArray()).toMatchObject([
-      { player: "Anna", sides: 20, value: 17, position: SPOT },
+      {
+        player: "Anna",
+        color: "teal",
+        sides: 20,
+        value: 17,
+        position: SPOT,
+      },
     ]);
   });
 
   it("records a clicked roll without a position", () => {
-    room.addRoll("Anna", 6, 4);
+    room.addRoll("Anna", "teal", 6, 4);
     const [roll] = room.rollsArray.toArray();
     expect(roll).toMatchObject({ player: "Anna", sides: 6, value: 4 });
     expect(roll).not.toHaveProperty("position");
   });
 
+  it("shows rolls without a valid color in gray", () => {
+    const roll = {
+      id: "r",
+      player: "Anna",
+      sides: 6,
+      value: 4,
+      at: 0,
+    } as const;
+    expect(rollColor({ ...roll, color: "teal" })).toBe("teal");
+    expect(rollColor(roll)).toBe("gray");
+    expect(rollColor({ ...roll, color: "#ff0000" as never })).toBe("gray");
+  });
+
   it("keeps only the latest 50 rolls", () => {
     for (let value = 1; value <= 60; value++)
-      room.addRoll("Anna", 100, value, SPOT);
+      room.addRoll("Anna", "teal", 100, value, SPOT);
     const rolls = room.rollsArray.toArray();
     expect(rolls).toHaveLength(50);
     expect(rolls[0]?.value).toBe(11);
@@ -435,7 +455,7 @@ describe("undo and redo", () => {
   });
 
   it("does not undo rolls", () => {
-    room.addRoll("Anna", 20, 17, SPOT);
+    room.addRoll("Anna", "teal", 20, 17, SPOT);
     room.undoManager.undo();
     expect(room.rollsArray.length).toBe(1);
   });

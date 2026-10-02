@@ -1,6 +1,7 @@
 import * as Y from "yjs";
 import type { DieSides } from "../../../shared/dice";
 import type { MapBounds } from "./grid";
+import type { PlayerColor } from "./playerColors";
 
 export interface Token {
   id: string;
@@ -26,6 +27,8 @@ export interface Stroke {
 export interface Roll {
   id: string;
   player: string;
+  // Rolls made before players had colors have none.
+  color?: PlayerColor;
   sides: DieSides;
   value: number;
   at: number;

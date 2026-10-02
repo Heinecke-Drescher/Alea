@@ -2,12 +2,14 @@ import { useThrottledCallback } from "@mantine/hooks";
 import type { Vector2d } from "konva/lib/types";
 import { useEffect } from "react";
 import type { Awareness } from "../room/connectRoom";
+import type { PlayerColor } from "../room/playerColors";
 
 const CURSOR_INTERVAL_MS = 50;
 
 export function useCursorBroadcast(
   awareness: Awareness | null,
   playerName: string,
+  playerColor: PlayerColor,
 ) {
   const send = useThrottledCallback(
     (cursor: Vector2d | null) =>
@@ -17,7 +19,8 @@ export function useCursorBroadcast(
 
   useEffect(() => {
     awareness?.setLocalStateField("name", playerName);
-  }, [awareness, playerName]);
+    awareness?.setLocalStateField("color", playerColor);
+  }, [awareness, playerName, playerColor]);
 
   return {
     move: (point: Vector2d) => send(point),

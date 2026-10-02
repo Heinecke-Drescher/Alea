@@ -16,6 +16,7 @@ import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
 import { RoomContext } from "../room/RoomContext";
+import { defaultPlayerColor, isPlayerColor } from "../room/playerColors";
 import { useRoomConnection } from "../room/useRoomConnection";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { PlayerNameModal } from "./PlayerNameModal";
@@ -51,6 +52,13 @@ function RoomView({ roomId }: { roomId: string }) {
     defaultValue: "",
     getInitialValueInEffect: false,
   });
+  const [storedColor, setStoredColor] = useLocalStorage({
+    key: "alea-player-color",
+    defaultValue: "",
+    getInitialValueInEffect: false,
+  });
+  const pickedColor = isPlayerColor(storedColor) ? storedColor : null;
+  const playerColor = pickedColor ?? defaultPlayerColor(playerName);
   const needsName = playerName === "";
 
   useHotkeys([
@@ -73,7 +81,7 @@ function RoomView({ roomId }: { roomId: string }) {
           <Group h="100%" px="md" justify="space-between">
             <Title order={3}>Alea</Title>
             <Group gap="xs">
-              <Button variant="subtle" onClick={editName}>
+              <Button variant="subtle" color={playerColor} onClick={editName}>
                 {playerName}
               </Button>
               <Burger
@@ -90,6 +98,7 @@ function RoomView({ roomId }: { roomId: string }) {
             <Board
               awareness={awareness}
               playerName={playerName}
+              playerColor={playerColor}
               isSynced={isSynced}
             />
           </ErrorBoundary>
@@ -97,15 +106,17 @@ function RoomView({ roomId }: { roomId: string }) {
         <AppShell.Aside p="md">
           <Stack>
             <TokenPanel />
-            <DicePanel playerName={playerName} />
+            <DicePanel playerName={playerName} playerColor={playerColor} />
           </Stack>
         </AppShell.Aside>
       </AppShell>
       <PlayerNameModal
         opened={needsName || isEditingName}
         currentName={playerName}
-        onSave={(name) => {
+        currentColor={pickedColor}
+        onSave={(name, color) => {
           setPlayerName(name);
+          setStoredColor(color);
           stopEditingName();
         }}
         onCancel={needsName ? null : stopEditingName}

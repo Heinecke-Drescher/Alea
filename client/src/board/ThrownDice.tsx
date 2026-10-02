@@ -7,10 +7,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Group, Line, Text } from "react-konva";
 import { rollDie, type DieSides } from "../../../shared/dice";
 import { dieShape } from "../dice/dieShapes";
+import { rollColor } from "../room/rolls";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 
-const DIE_RADIUS = 28;
+const DIE_RADIUS = 42;
 const ROLL_SECONDS = 1;
 const FADE_SECONDS = 0.5;
 const VISIBLE_MS = 3000;
@@ -20,6 +21,7 @@ interface ThrownDieProps {
   id: string;
   sides: DieSides;
   value: number;
+  color: ReturnType<typeof rollColor>;
   position: Vector2d | undefined;
   viewCenter: () => Vector2d;
   onDone: (id: string) => void;
@@ -29,6 +31,7 @@ function ThrownDie({
   id,
   sides,
   value,
+  color,
   position,
   viewCenter,
   onDone,
@@ -98,7 +101,7 @@ function ThrownDie({
       <Line
         points={dieShape(sides, DIE_RADIUS)}
         closed
-        fill={theme.colors.dark[6]}
+        fill={theme.colors[color][6]}
         stroke="white"
         strokeWidth={2}
         lineJoin="round"
@@ -111,7 +114,7 @@ function ThrownDie({
         height={DIE_RADIUS * 2}
         align="center"
         verticalAlign="middle"
-        fontSize={sides === 100 ? 16 : 20}
+        fontSize={DIE_RADIUS * (sides === 100 ? 0.55 : 0.7)}
         fontStyle="bold"
         fill="white"
       />
@@ -136,14 +139,15 @@ export function ThrownDice({ viewCenter }: { viewCenter: () => Vector2d }) {
 
   return (
     <Group listening={false}>
-      {rolls.map(({ id, sides, value, position }) =>
-        !earlierRollIds.has(id) && !doneRollIds.has(id) ? (
+      {rolls.map((roll) =>
+        !earlierRollIds.has(roll.id) && !doneRollIds.has(roll.id) ? (
           <ThrownDie
-            key={id}
-            id={id}
-            sides={sides}
-            value={value}
-            position={position}
+            key={roll.id}
+            id={roll.id}
+            sides={roll.sides}
+            value={roll.value}
+            color={rollColor(roll)}
+            position={roll.position}
             viewCenter={viewCenter}
             onDone={markDone}
           />

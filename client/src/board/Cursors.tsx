@@ -4,9 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { Group, Label, Line, Tag, Text } from "react-konva";
 import type { Awareness } from "../room/connectRoom";
 import { useCursors } from "../room/useCursors";
-import { PAINT_COLORS, paintColorValue } from "./paintColors";
-
-const ARROW = [0, 0, 0, 18, 5, 13, 13, 13];
+import { CURSOR_ARROW } from "./cursorArrow";
 
 interface CursorsProps {
   awareness: Awareness | null;
@@ -30,13 +28,11 @@ export function Cursors({ awareness }: CursorsProps) {
 
   return (
     <Group ref={groupRef} listening={false}>
-      {cursors.map(({ clientId, name, x, y }) => {
-        const colorName = PAINT_COLORS[clientId % PAINT_COLORS.length];
-        if (!colorName) throw new Error(`No cursor color for ${clientId}`);
-        const color = paintColorValue(theme, colorName);
+      {cursors.map(({ clientId, name, color: colorName, x, y }) => {
+        const color = theme.colors[colorName][6];
         return (
           <Group key={clientId} x={x} y={y} scaleX={1 / zoom} scaleY={1 / zoom}>
-            <Line points={ARROW} closed fill={color} stroke="white" />
+            <Line points={CURSOR_ARROW} closed fill={color} stroke="white" />
             <Label x={14} y={16}>
               <Tag fill={color} cornerRadius={4} />
               <Text text={name} fill="white" fontSize={12} padding={4} />

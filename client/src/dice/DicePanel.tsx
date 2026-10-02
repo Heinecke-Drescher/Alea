@@ -1,21 +1,33 @@
 import { Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import { motion } from "motion/react";
 import { DIE_SIDES, rollDie, type DieSides } from "../../../shared/dice";
+import type { PlayerColor } from "../room/playerColors";
+import { rollColor } from "../room/rolls";
+import type { Roll } from "../room/roomStore";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import { DieButton } from "./DieButton";
 
-interface DicePanelProps {
-  playerName: string;
+function RollPlayer({ roll }: { roll: Roll }) {
+  return (
+    <Text span c={rollColor(roll)} fw={600}>
+      {roll.player}
+    </Text>
+  );
 }
 
-export function DicePanel({ playerName }: DicePanelProps) {
+interface DicePanelProps {
+  playerName: string;
+  playerColor: PlayerColor;
+}
+
+export function DicePanel({ playerName, playerColor }: DicePanelProps) {
   const room = useRoom();
   const rolls = [...useY(room.rollsArray)].reverse();
   const [lastRoll, ...olderRolls] = rolls;
 
   function roll(sides: DieSides) {
-    room.addRoll(playerName, sides, rollDie(sides));
+    room.addRoll(playerName, playerColor, sides, rollDie(sides));
   }
 
   return (
@@ -41,7 +53,7 @@ export function DicePanel({ playerName }: DicePanelProps) {
         >
           <Stack gap={0} align="center">
             <Text c="dimmed">
-              {lastRoll.player} · d{lastRoll.sides}
+              <RollPlayer roll={lastRoll} /> · d{lastRoll.sides}
             </Text>
             <Text fz={48} fw={700}>
               {lastRoll.value}
@@ -53,7 +65,7 @@ export function DicePanel({ playerName }: DicePanelProps) {
         {olderRolls.map((olderRoll) => (
           <Group key={olderRoll.id} justify="space-between" wrap="nowrap">
             <Text c="dimmed" truncate>
-              {olderRoll.player} · d{olderRoll.sides}
+              <RollPlayer roll={olderRoll} /> · d{olderRoll.sides}
             </Text>
             <Text>{olderRoll.value}</Text>
           </Group>
