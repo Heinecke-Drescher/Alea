@@ -1,26 +1,10 @@
-import {
-  Button,
-  CloseButton,
-  Group,
-  Paper,
-  SimpleGrid,
-  Stack,
-  Text,
-} from "@mantine/core";
-import { useListState } from "@mantine/hooks";
+import { Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import { motion } from "motion/react";
-import { nanoid } from "nanoid";
 import { DIE_SIDES, rollDie, type DieSides } from "../../../shared/dice";
 import { mapCenter } from "../room/grid";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
-import { startDieDrag } from "./dieDrag";
-import { DieIcon } from "./DieIcon";
-
-interface HandDie {
-  id: string;
-  sides: DieSides;
-}
+import { DieButton } from "./DieButton";
 
 interface DicePanelProps {
   playerName: string;
@@ -30,7 +14,6 @@ export function DicePanel({ playerName }: DicePanelProps) {
   const room = useRoom();
   const rolls = [...useY(room.rollsArray)].reverse();
   const [lastRoll, ...olderRolls] = rolls;
-  const [hand, handlers] = useListState<HandDie>([]);
 
   function roll(sides: DieSides) {
     room.addRoll(
@@ -45,55 +28,12 @@ export function DicePanel({ playerName }: DicePanelProps) {
     <Stack>
       <SimpleGrid cols={4}>
         {DIE_SIDES.map((sides) => (
-          <Button
-            key={sides}
-            variant="default"
-            size="compact-md"
-            onClick={() => handlers.append({ id: nanoid(), sides })}
-          >
-            d{sides}
-          </Button>
+          <DieButton key={sides} sides={sides} onRoll={() => roll(sides)} />
         ))}
       </SimpleGrid>
-      {hand.length > 0 ? (
-        <Group gap="xs">
-          {hand.map((die) => (
-            <Paper
-              key={die.id}
-              withBorder
-              px="xs"
-              py={4}
-              draggable
-              onDragStart={(event) =>
-                startDieDrag(event.dataTransfer, die.sides)
-              }
-              style={{ cursor: "grab" }}
-            >
-              <Group gap={4} wrap="nowrap">
-                <Group
-                  gap={4}
-                  wrap="nowrap"
-                  onDoubleClick={() => roll(die.sides)}
-                >
-                  <DieIcon sides={die.sides} />
-                  <Text fw={700}>d{die.sides}</Text>
-                </Group>
-                <CloseButton
-                  size="xs"
-                  aria-label={`Remove d${die.sides}`}
-                  onClick={() =>
-                    handlers.filter((other) => other.id !== die.id)
-                  }
-                />
-              </Group>
-            </Paper>
-          ))}
-        </Group>
-      ) : (
-        <Text c="dimmed" ta="center" size="sm">
-          Add dice to your hand, then drag one onto the map to roll it
-        </Text>
-      )}
+      <Text c="dimmed" ta="center" size="sm">
+        Drag a die onto the map to roll it there, or click to roll
+      </Text>
       {lastRoll && (
         <motion.div
           key={lastRoll.id}

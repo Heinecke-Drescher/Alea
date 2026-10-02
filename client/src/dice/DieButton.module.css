@@ -1,0 +1,37 @@
+.button {
+  display: block;
+  cursor: grab;
+}
+
+.die {
+  display: block;
+  width: 100%;
+  max-width: 60px;
+  margin: 0 auto;
+  overflow: visible;
+}
+
+.shape {
+  fill: light-dark(var(--mantine-color-gray-1), var(--mantine-color-dark-5));
+  stroke: light-dark(var(--mantine-color-gray-5), var(--mantine-color-dark-2));
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+  transition:
+    fill 120ms,
+    stroke 120ms;
+}
+
+.label {
+  fill: var(--mantine-color-text);
+  font-weight: 700;
+}
+
+.button:hover .shape {
+  fill: light-dark(var(--mantine-color-blue-1), var(--mantine-color-dark-4));
+  stroke: var(--mantine-color-blue-6);
+}
+
+.button:focus-visible .shape {
+  stroke: var(--mantine-color-blue-6);
+  stroke-width: 2.5;
+}
