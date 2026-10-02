@@ -1,6 +1,7 @@
 import { useMantineTheme } from "@mantine/core";
 import type { Group as GroupNode } from "konva/lib/Group";
 import type { Text as TextNode } from "konva/lib/shapes/Text";
+import type { Vector2d } from "konva/lib/types";
 import { Easings, Tween } from "konva/lib/Tween";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Group, Line, Text } from "react-konva";
@@ -19,13 +20,22 @@ interface ThrownDieProps {
   id: string;
   sides: DieSides;
   value: number;
-  x: number;
-  y: number;
+  position: Vector2d | undefined;
+  viewCenter: () => Vector2d;
   onDone: (id: string) => void;
 }
 
-function ThrownDie({ id, sides, value, x, y, onDone }: ThrownDieProps) {
+function ThrownDie({
+  id,
+  sides,
+  value,
+  position,
+  viewCenter,
+  onDone,
+}: ThrownDieProps) {
   const theme = useMantineTheme();
+  // Clicked dice have no position; each viewer throws them into their own view, fixed when they appear.
+  const [{ x, y }] = useState(() => position ?? viewCenter());
   const groupRef = useRef<GroupNode>(null);
   const textRef = useRef<TextNode>(null);
 
@@ -110,7 +120,7 @@ function ThrownDie({ id, sides, value, x, y, onDone }: ThrownDieProps) {
 }
 
 // Mounted once the room is synced, so rolls loaded from the server are not thrown again.
-export function ThrownDice() {
+export function ThrownDice({ viewCenter }: { viewCenter: () => Vector2d }) {
   const room = useRoom();
   const rolls = useY(room.rollsArray);
   const [earlierRollIds] = useState(
@@ -127,14 +137,14 @@ export function ThrownDice() {
   return (
     <Group listening={false}>
       {rolls.map(({ id, sides, value, position }) =>
-        position && !earlierRollIds.has(id) && !doneRollIds.has(id) ? (
+        !earlierRollIds.has(id) && !doneRollIds.has(id) ? (
           <ThrownDie
             key={id}
             id={id}
             sides={sides}
             value={value}
-            x={position.x}
-            y={position.y}
+            position={position}
+            viewCenter={viewCenter}
             onDone={markDone}
           />
         ) : null,

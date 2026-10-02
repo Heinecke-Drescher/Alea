@@ -9,11 +9,18 @@ export function createRolls({ doc, rollsArray }: RoomStore) {
     player: string,
     sides: DieSides,
     value: number,
-    position: NonNullable<Roll["position"]>,
+    position?: Roll["position"],
   ) {
     doc.transact(() => {
       rollsArray.push([
-        { id: nanoid(), player, sides, value, at: Date.now(), position },
+        {
+          id: nanoid(),
+          player,
+          sides,
+          value,
+          at: Date.now(),
+          ...(position && { position }),
+        },
       ]);
       const excess = rollsArray.length - MAX_ROLLS;
       if (excess > 0) rollsArray.delete(0, excess);

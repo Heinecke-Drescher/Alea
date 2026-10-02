@@ -17,7 +17,7 @@ import { useRoom } from "../room/RoomContext";
 import { Cells } from "./Cells";
 import { Cursors } from "./Cursors";
 import { GridLines } from "./GridLines";
-import { CELL_SIZE, containsCell } from "../room/grid";
+import { CELL_SIZE, clampToMap, containsCell } from "../room/grid";
 import { Strokes } from "./Strokes";
 import { ThrownDice } from "./ThrownDice";
 import { Tokens } from "./Tokens";
@@ -93,7 +93,7 @@ interface BoardProps {
 
 export function Board({ awareness, playerName, isSynced }: BoardProps) {
   const room = useRoom();
-  const { ref, width, height } = useElementSize();
+  const { ref: sizeRef, width, height } = useElementSize();
   const theme = useMantineTheme();
   const [tool, setTool] = useState<Tool>("select");
   const [color, setColor] = useState<PaintColor>("red");
@@ -126,6 +126,17 @@ export function Board({ awareness, playerName, isSynced }: BoardProps) {
     if (!stage) throw new Error("Stage is not mounted");
     stage.x(MAP_START_X);
   }, []);
+
+  function viewCenter() {
+    const stage = stageRef.current;
+    if (!stage) throw new Error("Stage is not mounted");
+    const center = stage
+      .getAbsoluteTransform()
+      .copy()
+      .invert()
+      .point({ x: stage.width() / 2, y: stage.height() / 2 });
+    return clampToMap(center, room.mapBounds());
+  }
 
   const isSelecting = tool === "select";
   const colorValue = paintColorValue(theme, color);
@@ -226,7 +237,7 @@ export function Board({ awareness, playerName, isSynced }: BoardProps) {
 
   return (
     <Box
-      ref={ref}
+      ref={sizeRef}
       pos="relative"
       h="calc(100dvh - var(--app-shell-header-height))"
       onDragOver={(event) => {
@@ -266,7 +277,7 @@ export function Board({ awareness, playerName, isSynced }: BoardProps) {
         <Layer>
           {isSelecting && <MapResizer />}
           <SelectionFrame area={area} onMove={selection.moveArea} />
-          {isSynced && <ThrownDice />}
+          {isSynced && <ThrownDice viewCenter={viewCenter} />}
           <Cursors awareness={awareness} />
         </Layer>
       </Stage>

@@ -1,7 +1,6 @@
 import { Group, SimpleGrid, Stack, Text } from "@mantine/core";
 import { motion } from "motion/react";
 import { DIE_SIDES, rollDie, type DieSides } from "../../../shared/dice";
-import { mapCenter } from "../room/grid";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import { DieButton } from "./DieButton";
@@ -16,12 +15,7 @@ export function DicePanel({ playerName }: DicePanelProps) {
   const [lastRoll, ...olderRolls] = rolls;
 
   function roll(sides: DieSides) {
-    room.addRoll(
-      playerName,
-      sides,
-      rollDie(sides),
-      mapCenter(room.mapBounds()),
-    );
+    room.addRoll(playerName, sides, rollDie(sides));
   }
 
   return (

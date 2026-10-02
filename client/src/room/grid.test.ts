@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CELL_SIZE,
-  mapCenter,
+  clampToMap,
   MAX_MAP_CELLS,
   MIN_MAP_CELLS,
   snapMapBounds,
@@ -14,11 +14,17 @@ const box = (x: number, y: number, width: number, height: number) => ({
   height: height * CELL_SIZE,
 });
 
-describe("mapCenter", () => {
-  it("is the middle of the map in pixels", () => {
-    expect(mapCenter({ x: -2, y: 0, columns: 10, rows: 4 })).toEqual({
-      x: 3 * CELL_SIZE,
-      y: 2 * CELL_SIZE,
+describe("clampToMap", () => {
+  const map = { x: -2, y: 0, columns: 10, rows: 4 };
+
+  it("keeps points on the map as they are", () => {
+    expect(clampToMap({ x: 10, y: 20 }, map)).toEqual({ x: 10, y: 20 });
+  });
+
+  it("moves points beside the map to its nearest edge", () => {
+    expect(clampToMap({ x: -1000, y: 1000 }, map)).toEqual({
+      x: -2 * CELL_SIZE,
+      y: 4 * CELL_SIZE,
     });
   });
 });

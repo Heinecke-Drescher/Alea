@@ -1,5 +1,5 @@
 import { clamp } from "@mantine/hooks";
-import type { IRect } from "konva/lib/types";
+import type { IRect, Vector2d } from "konva/lib/types";
 
 export const CELL_SIZE = 50;
 
@@ -29,9 +29,12 @@ export function mapRect({ x, y, columns, rows }: MapBounds): IRect {
   };
 }
 
-export function mapCenter(bounds: MapBounds) {
+export function clampToMap(point: Vector2d, bounds: MapBounds): Vector2d {
   const { x, y, width, height } = mapRect(bounds);
-  return { x: x + width / 2, y: y + height / 2 };
+  return {
+    x: clamp(point.x, x, x + width),
+    y: clamp(point.y, y, y + height),
+  };
 }
 
 export function containsCell(bounds: MapBounds, x: number, y: number) {

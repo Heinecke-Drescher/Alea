@@ -29,7 +29,7 @@ export interface Roll {
   sides: DieSides;
   value: number;
   at: number;
-  // Where the die landed on the map, in pixels. Rolls made before dice were thrown onto the map have none.
+  // Where a die dragged onto the map landed, in pixels. Clicked dice have none and land in each viewer's view.
   position?: { x: number; y: number };
 }
 

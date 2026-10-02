@@ -128,6 +128,13 @@ describe("rolls", () => {
     ]);
   });
 
+  it("records a clicked roll without a position", () => {
+    room.addRoll("Anna", 6, 4);
+    const [roll] = room.rollsArray.toArray();
+    expect(roll).toMatchObject({ player: "Anna", sides: 6, value: 4 });
+    expect(roll).not.toHaveProperty("position");
+  });
+
   it("keeps only the latest 50 rolls", () => {
     for (let value = 1; value <= 60; value++)
       room.addRoll("Anna", 100, value, SPOT);
