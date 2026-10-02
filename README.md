@@ -3,9 +3,11 @@
 A shared map and dice roller for tabletop groups. Create a room, send the link
 to your players and play together in real time.
 
-- Grid map with zoom and pan
+- Grid map with zoom and pan; resize it by dragging its edges
 - Tokens with your own images: drag them around, rename, resize, remove
 - Paint cells, draw freehand lines, erase, clear the map
+- Select, move, copy and paste parts of the map, with undo and redo
+- See where the other players point
 - Dice from d4 to d100 with a shared roll history
 - Rooms are saved to disk and survive restarts
 
@@ -69,13 +71,11 @@ cloudflared tunnel --url http://localhost:3000
 It prints a public `https://….trycloudflare.com` address. Anyone who knows that
 address can open the site while the tunnel runs, so stop it when you are done.
 
-## Data and limits
+## Data
 
 - Each room is stored as one file in `data/rooms/<room-id>.ydoc`.
 - To back up or move all rooms, copy the `data` folder.
 - To delete a room, delete its file while the server is stopped.
-- A single message to the server may be at most 10 MB. Rooms stay far below
-  that, since token images are shrunk to 128 × 128 pixels.
 
 ## Project structure
 
