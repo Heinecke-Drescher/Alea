@@ -1,11 +1,11 @@
 import { useMantineTheme } from "@mantine/core";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
-import { Layer, Rect } from "react-konva";
+import { Group, Rect } from "react-konva";
 import { CELL_SIZE } from "./grid";
 import { cellOffset } from "./selection";
 
-interface SelectionLayerProps {
+interface SelectionFrameProps {
   area: IRect | null;
   onMove: (dx: number, dy: number) => void;
 }
@@ -16,7 +16,7 @@ function setCursor(event: KonvaEventObject<MouseEvent>, cursor: string) {
   stage.container().style.cursor = cursor;
 }
 
-export function SelectionLayer({ area, onMove }: SelectionLayerProps) {
+export function SelectionFrame({ area, onMove }: SelectionFrameProps) {
   const theme = useMantineTheme();
   const color = theme.colors.blue[6];
 
@@ -28,7 +28,7 @@ export function SelectionLayer({ area, onMove }: SelectionLayerProps) {
   }
 
   return (
-    <Layer>
+    <Group>
       {area && (
         <Rect
           {...area}
@@ -48,6 +48,6 @@ export function SelectionLayer({ area, onMove }: SelectionLayerProps) {
           }}
         />
       )}
-    </Layer>
+    </Group>
   );
 }

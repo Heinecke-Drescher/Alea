@@ -9,16 +9,16 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
-import { Stage } from "react-konva";
+import { Layer, Stage } from "react-konva";
 import type { Awareness } from "../room/connectRoom";
 import type { Clip } from "../room/createRoom";
 import { useRoom } from "../room/RoomContext";
-import { CellLayer } from "./CellLayer";
-import { CursorLayer } from "./CursorLayer";
-import { GridLayer } from "./GridLayer";
-import { StrokeLayer } from "./StrokeLayer";
+import { Cells } from "./Cells";
+import { Cursors } from "./Cursors";
+import { GridLines } from "./GridLines";
 import { CELL_SIZE, COLUMNS, ROWS } from "./grid";
-import { TokenLayer } from "./TokenLayer";
+import { Strokes } from "./Strokes";
+import { Tokens } from "./Tokens";
 import { paintColorValue, type PaintColor } from "./paintColors";
 import {
   boxBetween,
@@ -27,7 +27,7 @@ import {
   linesBounds,
   pixelOffset,
 } from "./selection";
-import { SelectionLayer } from "./SelectionLayer";
+import { SelectionFrame } from "./SelectionFrame";
 import { Toolbar, type Tool } from "./Toolbar";
 
 interface Clipboard {
@@ -322,21 +322,27 @@ export function Board({ awareness, playerName }: BoardProps) {
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
       >
-        <CellLayer />
-        <GridLayer />
-        <StrokeLayer
-          draft={draftPoints && { color: colorValue, points: draftPoints }}
-          selection={area}
-          selectedIds={selectedStrokeIds}
-          listening={tool === "eraser" || isSelecting}
-          draggable={isSelecting}
-          onStrokePress={pressStroke}
-          onStrokeClick={clickStroke}
-          onStrokesMove={room.moveStrokes}
-        />
-        <TokenLayer listening={isSelecting} />
-        <SelectionLayer area={area} onMove={moveArea} />
-        <CursorLayer awareness={awareness} />
+        <Layer listening={false}>
+          <Cells />
+          <GridLines />
+        </Layer>
+        <Layer>
+          <Strokes
+            draft={draftPoints && { color: colorValue, points: draftPoints }}
+            selection={area}
+            selectedIds={selectedStrokeIds}
+            listening={tool === "eraser" || isSelecting}
+            draggable={isSelecting}
+            onStrokePress={pressStroke}
+            onStrokeClick={clickStroke}
+            onStrokesMove={room.moveStrokes}
+          />
+          <Tokens listening={isSelecting} />
+        </Layer>
+        <Layer>
+          <SelectionFrame area={area} onMove={moveArea} />
+          <Cursors awareness={awareness} />
+        </Layer>
       </Stage>
       <Toolbar
         activeTool={tool}

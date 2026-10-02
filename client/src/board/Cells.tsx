@@ -1,14 +1,14 @@
-import { Layer, Rect } from "react-konva";
+import { Group, Rect } from "react-konva";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import { CELL_SIZE } from "./grid";
 
-export function CellLayer() {
+export function Cells() {
   const room = useRoom();
   const cells = Object.entries(useY(room.cellsMap));
 
   return (
-    <Layer listening={false}>
+    <Group listening={false}>
       {cells.map(([key, cell]) => (
         <Rect
           key={key}
@@ -19,6 +19,6 @@ export function CellLayer() {
           fill={cell.color}
         />
       ))}
-    </Layer>
+    </Group>
   );
 }

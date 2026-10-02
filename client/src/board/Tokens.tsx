@@ -1,20 +1,20 @@
-import { Layer } from "react-konva";
+import { Group } from "react-konva";
 import { embeddedImage } from "../room/createRoom";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import { TokenView } from "./TokenView";
 
-interface TokenLayerProps {
+interface TokensProps {
   listening: boolean;
 }
 
-export function TokenLayer({ listening }: TokenLayerProps) {
+export function Tokens({ listening }: TokensProps) {
   const room = useRoom();
   const tokens = Object.values(useY(room.tokensMap));
   const images = useY(room.imagesMap);
 
   return (
-    <Layer listening={listening}>
+    <Group listening={listening}>
       {tokens.map((token) => {
         // A move racing a remove can bring a token back without its image, and
         // only embedded images are shown so no one can inject third-party URLs.
@@ -24,6 +24,6 @@ export function TokenLayer({ listening }: TokenLayerProps) {
           <TokenView key={token.id} token={token} imageDataUrl={imageDataUrl} />
         );
       })}
-    </Layer>
+    </Group>
   );
 }

@@ -1,5 +1,5 @@
 import { useComputedColorScheme, useMantineTheme } from "@mantine/core";
-import { Layer, Line } from "react-konva";
+import { Group, Line } from "react-konva";
 import { CELL_SIZE, COLUMNS, MAP_HEIGHT, MAP_WIDTH, ROWS } from "./grid";
 
 const COLUMN_LINES = Array.from(
@@ -8,14 +8,14 @@ const COLUMN_LINES = Array.from(
 );
 const ROW_LINES = Array.from({ length: ROWS + 1 }, (_, i) => i * CELL_SIZE);
 
-export function GridLayer() {
+export function GridLines() {
   const theme = useMantineTheme();
   const colorScheme = useComputedColorScheme("light");
   const lineColor =
     colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[4];
 
   return (
-    <Layer listening={false}>
+    <Group listening={false}>
       {COLUMN_LINES.map((x) => (
         <Line
           key={`column-${x}`}
@@ -30,6 +30,6 @@ export function GridLayer() {
           stroke={lineColor}
         />
       ))}
-    </Layer>
+    </Group>
   );
 }

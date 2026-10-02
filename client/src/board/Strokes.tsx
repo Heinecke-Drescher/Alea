@@ -1,8 +1,9 @@
 import { useMantineTheme } from "@mantine/core";
 import type { KonvaEventObject, Node } from "konva/lib/Node";
+import type { Group as GroupNode } from "konva/lib/Group";
 import type { IRect } from "konva/lib/types";
 import { useRef } from "react";
-import { Layer, Line } from "react-konva";
+import { Group, Line } from "react-konva";
 import { useRoom } from "../room/RoomContext";
 import { strokeTouches } from "../room/strokeTouches";
 import { useY } from "../room/useY";
@@ -23,7 +24,7 @@ interface StrokeLineProps {
   draggable?: boolean;
 }
 
-interface StrokeLayerProps {
+interface StrokesProps {
   draft: StrokeLineProps | null;
   selection: IRect | null;
   selectedIds: string[];
@@ -48,7 +49,7 @@ function StrokeLine({ id, color, points, draggable }: StrokeLineProps) {
   );
 }
 
-export function StrokeLayer({
+export function Strokes({
   draft,
   selection,
   selectedIds,
@@ -57,7 +58,7 @@ export function StrokeLayer({
   onStrokePress,
   onStrokeClick,
   onStrokesMove,
-}: StrokeLayerProps) {
+}: StrokesProps) {
   const room = useRoom();
   const theme = useMantineTheme();
   const strokes = Object.values(useY(room.strokesMap));
@@ -67,19 +68,21 @@ export function StrokeLayer({
       (selection && strokeTouches(stroke.points, selection)),
   );
   const draggedIds = useRef<string[]>([]);
+  const groupRef = useRef<GroupNode>(null);
 
   // Moves the other dragged strokes and their highlights in Konva only, so React does not re-render during the drag.
-  function draggedNodes(event: KonvaEventObject<DragEvent>) {
-    const layer = event.target.getLayer();
-    if (!layer) throw new Error("Dragged stroke is not on a layer");
+  function draggedNodes() {
+    const group = groupRef.current;
+    if (!group) throw new Error("Strokes are not mounted");
     const ids = new Set(draggedIds.current);
-    return layer.find(
+    return group.find(
       (node: Node) => ids.has(node.id()) || ids.has(node.name()),
     );
   }
 
   return (
-    <Layer
+    <Group
+      ref={groupRef}
       listening={listening}
       onMouseDown={(event) => {
         const id = event.target.id();
@@ -95,11 +98,11 @@ export function StrokeLayer({
       }}
       onDragMove={(event) => {
         const position = event.target.position();
-        for (const node of draggedNodes(event)) node.position(position);
+        for (const node of draggedNodes()) node.position(position);
       }}
       onDragEnd={(event) => {
         const { x, y } = event.target.position();
-        for (const node of draggedNodes(event)) node.position({ x: 0, y: 0 });
+        for (const node of draggedNodes()) node.position({ x: 0, y: 0 });
         onStrokesMove(draggedIds.current, x, y);
       }}
     >
@@ -125,6 +128,6 @@ export function StrokeLayer({
         />
       ))}
       {draft && <StrokeLine color={draft.color} points={draft.points} />}
-    </Layer>
+    </Group>
   );
 }

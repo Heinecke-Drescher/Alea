@@ -1,26 +1,26 @@
 import { useMantineTheme } from "@mantine/core";
-import type { Layer as LayerNode } from "konva/lib/Layer";
+import type { Group as GroupNode } from "konva/lib/Group";
 import { useEffect, useRef, useState } from "react";
-import { Group, Label, Layer, Line, Tag, Text } from "react-konva";
+import { Group, Label, Line, Tag, Text } from "react-konva";
 import type { Awareness } from "../room/connectRoom";
 import { useCursors } from "../room/useCursors";
 import { PAINT_COLORS, paintColorValue } from "./paintColors";
 
 const ARROW = [0, 0, 0, 18, 5, 13, 13, 13];
 
-interface CursorLayerProps {
+interface CursorsProps {
   awareness: Awareness | null;
 }
 
-export function CursorLayer({ awareness }: CursorLayerProps) {
+export function Cursors({ awareness }: CursorsProps) {
   const theme = useMantineTheme();
   const cursors = useCursors(awareness);
-  const layerRef = useRef<LayerNode>(null);
+  const groupRef = useRef<GroupNode>(null);
   const [zoom, setZoom] = useState(1);
 
   useEffect(() => {
-    const stage = layerRef.current?.getStage();
-    if (!stage) throw new Error("Cursor layer is not on a stage");
+    const stage = groupRef.current?.getStage();
+    if (!stage) throw new Error("Cursors are not on a stage");
     const updateZoom = () => setZoom(stage.scaleX());
     stage.on("scaleXChange", updateZoom);
     return () => {
@@ -29,7 +29,7 @@ export function CursorLayer({ awareness }: CursorLayerProps) {
   }, []);
 
   return (
-    <Layer ref={layerRef} listening={false}>
+    <Group ref={groupRef} listening={false}>
       {cursors.map(({ clientId, name, x, y }) => {
         const colorName = PAINT_COLORS[clientId % PAINT_COLORS.length];
         if (!colorName) throw new Error(`No cursor color for ${clientId}`);
@@ -44,6 +44,6 @@ export function CursorLayer({ awareness }: CursorLayerProps) {
           </Group>
         );
       })}
-    </Layer>
+    </Group>
   );
 }
