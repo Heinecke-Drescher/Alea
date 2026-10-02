@@ -68,6 +68,10 @@ function cellAt(point: Vector2d) {
   return isOnMap ? { x, y } : null;
 }
 
+function isAddKeyPressed(event: KonvaEventObject<MouseEvent>) {
+  return event.evt.ctrlKey || event.evt.metaKey;
+}
+
 export function Board() {
   const room = useRoom();
   const { ref, width, height } = useElementSize();
@@ -76,6 +80,8 @@ export function Board() {
   const [color, setColor] = useState<PaintColor>("red");
   const [draftPoints, setDraftPoints] = useState<number[] | null>(null);
   const [area, setArea] = useState<IRect | null>(null);
+  const [selectedStrokeIds, setSelectedStrokeIds] = useState<string[]>([]);
+  const addedOnPress = useRef<string | null>(null);
   const areaStart = useRef<Vector2d | null>(null);
   const isPressed = useRef(false);
   const stageRef = useRef<StageNode>(null);
@@ -89,7 +95,10 @@ export function Board() {
   }, []);
 
   useEffect(() => {
-    const clear = () => setArea(null);
+    const clear = () => {
+      setArea(null);
+      setSelectedStrokeIds([]);
+    };
     room.undoManager.on("stack-item-popped", clear);
     return () => room.undoManager.off("stack-item-popped", clear);
   }, [room]);
@@ -118,6 +127,27 @@ export function Board() {
 
   function clearSelection() {
     setArea(null);
+    setSelectedStrokeIds([]);
+  }
+
+  function pressStroke(id: string, event: KonvaEventObject<MouseEvent>) {
+    if (!isSelecting || event.evt.button !== LEFT_MOUSE_BUTTON) return;
+    setArea(null);
+    addedOnPress.current = null;
+    if (selectedStrokeIds.includes(id)) return;
+    if (isAddKeyPressed(event)) {
+      addedOnPress.current = id;
+      setSelectedStrokeIds([...selectedStrokeIds, id]);
+    } else {
+      setSelectedStrokeIds([id]);
+    }
+  }
+
+  // Removing waits for the click, so Ctrl+drag on a selected stroke still drags the whole selection.
+  function clickStroke(id: string, event: KonvaEventObject<MouseEvent>) {
+    if (!isSelecting || event.evt.button !== LEFT_MOUSE_BUTTON) return;
+    if (!isAddKeyPressed(event) || addedOnPress.current === id) return;
+    setSelectedStrokeIds(selectedStrokeIds.filter((other) => other !== id));
   }
 
   function changeTool(nextTool: Tool) {
@@ -133,8 +163,9 @@ export function Board() {
 
   function startArea(event: KonvaEventObject<MouseEvent>) {
     if (event.target !== stageRef.current) return;
+    if (isAddKeyPressed(event)) return;
     areaStart.current = pointerOnMap(event);
-    setArea(null);
+    clearSelection();
   }
 
   function handleMouseDown(event: KonvaEventObject<MouseEvent>) {
@@ -194,7 +225,12 @@ export function Board() {
         <StrokeLayer
           draft={draftPoints && { color: colorValue, points: draftPoints }}
           selection={area}
-          listening={tool === "eraser"}
+          selectedIds={selectedStrokeIds}
+          listening={tool === "eraser" || isSelecting}
+          draggable={isSelecting}
+          onStrokePress={pressStroke}
+          onStrokeClick={clickStroke}
+          onStrokesMove={room.moveStrokes}
         />
         <TokenLayer listening={isSelecting} />
         <SelectionLayer area={area} onMove={moveArea} />

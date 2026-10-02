@@ -190,6 +190,36 @@ describe("moveArea", () => {
   });
 });
 
+describe("moveStrokes", () => {
+  it("moves only the given strokes by pixels", () => {
+    room.addStroke("#000000", [10, 10, 20, 20]);
+    room.addStroke("#ff0000", [30, 30, 40, 40]);
+    const [first, second] = room.strokesMap.keys();
+    if (!first || !second) throw new Error("Expected two strokes");
+    room.moveStrokes([first], 5, -3);
+    expect(room.strokesMap.get(first)?.points).toEqual([15, 7, 25, 17]);
+    expect(room.strokesMap.get(second)?.points).toEqual([30, 30, 40, 40]);
+  });
+
+  it("is undone in a single step", () => {
+    room.addStroke("#000000", [10, 10, 20, 20]);
+    room.addStroke("#ff0000", [30, 30, 40, 40]);
+    const before = room.doc.toJSON();
+    room.moveStrokes(Array.from(room.strokesMap.keys()), 5, 5);
+    room.undoManager.undo();
+    expect(room.doc.toJSON()).toEqual(before);
+  });
+
+  it("skips strokes that were removed in the meantime", () => {
+    room.addStroke("#000000", [10, 10, 20, 20]);
+    const [id] = room.strokesMap.keys();
+    if (!id) throw new Error("Expected a stroke");
+    room.moveStrokes([id, "gone"], 5, 5);
+    expect(room.strokesMap.size).toBe(1);
+    expect(room.strokesMap.get(id)?.points).toEqual([15, 15, 25, 25]);
+  });
+});
+
 describe("undo and redo", () => {
   it("undoes and redoes a painted cell", () => {
     room.paintCell(2, 3, "#ff0000");
