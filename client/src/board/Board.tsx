@@ -5,6 +5,7 @@ import type { Stage as StageNode } from "konva/lib/Stage";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
 import { Stage } from "react-konva";
+import type { Clip } from "../room/createRoom";
 import { useRoom } from "../room/RoomContext";
 import { CellLayer } from "./CellLayer";
 import { GridLayer } from "./GridLayer";
@@ -12,9 +13,21 @@ import { StrokeLayer } from "./StrokeLayer";
 import { CELL_SIZE, COLUMNS, ROWS } from "./grid";
 import { TokenLayer } from "./TokenLayer";
 import { paintColorValue, type PaintColor } from "./paintColors";
-import { boxBetween, clipToMap } from "./selection";
+import {
+  boxBetween,
+  cellOffset,
+  clipToMap,
+  linesBounds,
+  pixelOffset,
+} from "./selection";
 import { SelectionLayer } from "./SelectionLayer";
 import { Toolbar, type Tool } from "./Toolbar";
+
+interface Clipboard {
+  clip: Clip;
+  bounds: IRect;
+  snapsToCells: boolean;
+}
 
 const LEFT_MOUSE_BUTTON = 0;
 const MAP_START_X = 72;
@@ -81,12 +94,22 @@ export function Board() {
   const [draftPoints, setDraftPoints] = useState<number[] | null>(null);
   const [area, setArea] = useState<IRect | null>(null);
   const [selectedStrokeIds, setSelectedStrokeIds] = useState<string[]>([]);
+  const clipboard = useRef<Clipboard | null>(null);
+  const lastPointer = useRef<Vector2d | null>(null);
   const addedOnPress = useRef<string | null>(null);
   const areaStart = useRef<Vector2d | null>(null);
   const isPressed = useRef(false);
   const stageRef = useRef<StageNode>(null);
 
-  useHotkeys([["Escape", clearSelection]]);
+  // Keeps the browser's own copy and paste working, e.g. for text in the dice history.
+  const keepDefault = { preventDefault: false };
+  useHotkeys([
+    ["Escape", clearSelection],
+    ["mod+C", copySelection, keepDefault],
+    ["mod+X", cutSelection, keepDefault],
+    ["mod+V", pasteClipboard, keepDefault],
+    ["Delete", deleteSelection, keepDefault],
+  ]);
 
   useEffect(() => {
     const stage = stageRef.current;
@@ -128,6 +151,56 @@ export function Board() {
   function clearSelection() {
     setArea(null);
     setSelectedStrokeIds([]);
+  }
+
+  function copySelection() {
+    if (area) {
+      clipboard.current = {
+        clip: room.copyArea(area),
+        bounds: area,
+        snapsToCells: true,
+      };
+      return;
+    }
+    const clip = room.copyStrokes(selectedStrokeIds);
+    if (clip.strokes.length === 0) return;
+    clipboard.current = {
+      clip,
+      bounds: linesBounds(clip.strokes.map((stroke) => stroke.points)),
+      snapsToCells: false,
+    };
+  }
+
+  function cutSelection() {
+    copySelection();
+    deleteSelection();
+  }
+
+  function deleteSelection() {
+    if (area) {
+      room.deleteArea(area);
+    } else if (selectedStrokeIds.length > 0) {
+      room.deleteStrokes(selectedStrokeIds);
+    }
+    clearSelection();
+  }
+
+  function pasteClipboard() {
+    if (!clipboard.current) return;
+    const { clip, bounds, snapsToCells } = clipboard.current;
+    // Before the mouse has been over the map, paste where the copy came from.
+    const target = lastPointer.current ?? bounds;
+    setTool("select");
+    setArea(null);
+    if (snapsToCells) {
+      const { dx, dy } = cellOffset(bounds, target);
+      room.paste(clip, dx * CELL_SIZE, dy * CELL_SIZE);
+      // A frame around the paste would also catch what was there before.
+      setSelectedStrokeIds([]);
+    } else {
+      const { dx, dy } = pixelOffset(bounds, target);
+      setSelectedStrokeIds(room.paste(clip, dx, dy));
+    }
   }
 
   function pressStroke(id: string, event: KonvaEventObject<MouseEvent>) {
@@ -183,6 +256,7 @@ export function Board() {
   }
 
   function handleMouseMove(event: KonvaEventObject<MouseEvent>) {
+    lastPointer.current = pointerOnMap(event);
     if (areaStart.current) {
       setArea(clipToMap(boxBetween(areaStart.current, pointerOnMap(event))));
     }

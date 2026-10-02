@@ -220,6 +220,85 @@ describe("moveStrokes", () => {
   });
 });
 
+describe("copy, paste and delete", () => {
+  const firstCell = { x: 0, y: 0, width: CELL_SIZE, height: CELL_SIZE };
+
+  function fillFirstCell() {
+    room.paintCell(0, 0, "#ff0000");
+    room.addToken("Goblin", IMAGE);
+    room.addStroke("#000000", [10, 10, 20, 20]);
+  }
+
+  it("pastes a copied area as new objects and keeps the original", () => {
+    fillFirstCell();
+    const original = onlyToken();
+    const clip = room.copyArea(firstCell);
+    const strokeIds = room.paste(clip, 2 * CELL_SIZE, CELL_SIZE);
+
+    expect(room.cellsMap.get("2,1")).toEqual({ x: 2, y: 1, color: "#ff0000" });
+    const copy = Array.from(room.tokensMap.values()).find(
+      (token) => token.id !== original.id,
+    );
+    if (!copy) throw new Error("Expected a pasted token");
+    expect(copy).toMatchObject({ name: "Goblin", x: 2, y: 1 });
+    expect(copy.imageId).not.toBe(original.imageId);
+    expect(room.imagesMap.get(copy.imageId)).toBe(IMAGE);
+    const [strokeId, ...rest] = strokeIds;
+    if (!strokeId) throw new Error("Expected a pasted stroke");
+    expect(rest).toEqual([]);
+    expect(room.strokesMap.get(strokeId)?.points).toEqual([110, 60, 120, 70]);
+    expect(room.cellsMap.size).toBe(2);
+    expect(room.tokensMap.size).toBe(2);
+    expect(room.strokesMap.size).toBe(2);
+  });
+
+  it("pastes copied strokes by pixels", () => {
+    room.addStroke("#000000", [10, 10, 20, 20]);
+    const [id] = room.strokesMap.keys();
+    if (!id) throw new Error("Expected a stroke");
+    const [copyId] = room.paste(room.copyStrokes([id]), 7, 3);
+    if (!copyId) throw new Error("Expected a pasted stroke");
+    expect(copyId).not.toBe(id);
+    expect(room.strokesMap.get(copyId)?.points).toEqual([17, 13, 27, 23]);
+  });
+
+  it("refuses to paste cells off the grid", () => {
+    room.paintCell(0, 0, "#ff0000");
+    const clip = room.copyArea(firstCell);
+    expect(() => room.paste(clip, 7, 0)).toThrow();
+  });
+
+  it("pastes in a single undo step", () => {
+    fillFirstCell();
+    const before = room.doc.toJSON();
+    room.paste(room.copyArea(firstCell), CELL_SIZE, 0);
+    room.undoManager.undo();
+    expect(room.doc.toJSON()).toEqual(before);
+  });
+
+  it("deletes everything in an area in a single undo step", () => {
+    fillFirstCell();
+    const before = room.doc.toJSON();
+    room.deleteArea(firstCell);
+    expect(room.cellsMap.size).toBe(0);
+    expect(room.tokensMap.size).toBe(0);
+    expect(room.imagesMap.size).toBe(0);
+    expect(room.strokesMap.size).toBe(0);
+    room.undoManager.undo();
+    expect(room.doc.toJSON()).toEqual(before);
+  });
+
+  it("deletes only the given strokes", () => {
+    room.addStroke("#000000", [10, 10, 20, 20]);
+    room.addStroke("#ff0000", [30, 30, 40, 40]);
+    const [first] = room.strokesMap.keys();
+    if (!first) throw new Error("Expected a stroke");
+    room.deleteStrokes([first]);
+    expect(room.strokesMap.size).toBe(1);
+    expect(room.strokesMap.has(first)).toBe(false);
+  });
+});
+
 describe("undo and redo", () => {
   it("undoes and redoes a painted cell", () => {
     room.paintCell(2, 3, "#ff0000");
