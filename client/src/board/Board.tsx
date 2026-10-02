@@ -193,6 +193,7 @@ export function Board() {
         <GridLayer />
         <StrokeLayer
           draft={draftPoints && { color: colorValue, points: draftPoints }}
+          selection={area}
           listening={tool === "eraser"}
         />
         <TokenLayer listening={isSelecting} />

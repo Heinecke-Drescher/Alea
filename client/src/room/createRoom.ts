@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import * as Y from "yjs";
 import type { DieSides } from "../../../shared/dice";
 import { CELL_SIZE, COLUMNS, ROWS } from "../board/grid";
-import { splitStroke, type Area } from "./splitStroke";
+import { strokeTouches, type Area } from "./strokeTouches";
 
 export interface Token {
   id: string;
@@ -90,10 +90,6 @@ export function createRoom(doc: Y.Doc) {
 
   function addStroke(color: string, points: number[]) {
     undoManager.stopCapturing();
-    putStroke(color, points);
-  }
-
-  function putStroke(color: string, points: number[]) {
     const id = nanoid();
     strokesMap.set(id, { id, color, points });
   }
@@ -195,18 +191,14 @@ export function createRoom(doc: Y.Doc) {
   }
 
   function moveStrokesIn(area: Area, dx: number, dy: number) {
-    const shift = (points: number[]) =>
-      points.map((value, i) => value + (i % 2 === 0 ? dx : dy) * CELL_SIZE);
-    for (const stroke of Array.from(strokesMap.values())) {
-      const { inside, outside } = splitStroke(stroke.points, area);
-      if (inside.length === 0) continue;
-      if (outside.length === 0) {
-        strokesMap.set(stroke.id, { ...stroke, points: shift(stroke.points) });
-        continue;
-      }
-      strokesMap.delete(stroke.id);
-      for (const points of outside) putStroke(stroke.color, points);
-      for (const points of inside) putStroke(stroke.color, shift(points));
+    for (const stroke of strokesMap.values()) {
+      if (!strokeTouches(stroke.points, area)) continue;
+      strokesMap.set(stroke.id, {
+        ...stroke,
+        points: stroke.points.map(
+          (value, i) => value + (i % 2 === 0 ? dx : dy) * CELL_SIZE,
+        ),
+      });
     }
   }
 

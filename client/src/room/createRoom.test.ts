@@ -166,18 +166,16 @@ describe("moveArea", () => {
     expect(onlyToken()).toMatchObject({ x: COLUMNS - 3, y: 2 });
   });
 
-  it("moves strokes inside and cuts strokes crossing the edge", () => {
+  it("moves every stroke that touches the area", () => {
     room.addStroke("#000000", [60, 60, 90, 90]);
-    const [inner] = room.strokesMap.keys();
-    if (!inner) throw new Error("Expected a stroke");
     room.addStroke("#ff0000", [0, 75, 150, 75]);
+    room.addStroke("#00ff00", [200, 200, 250, 250]);
+    const [inner, crossing, outer] = room.strokesMap.keys();
+    if (!inner || !crossing || !outer) throw new Error("Expected 3 strokes");
     room.moveArea(cellArea(1, 1, 1, 1), 1, 0);
     expect(room.strokesMap.get(inner)?.points).toEqual([110, 60, 140, 90]);
-    const crossing = Array.from(room.strokesMap.values())
-      .filter((stroke) => stroke.color === "#ff0000")
-      .map((stroke) => stroke.points.join(","))
-      .sort();
-    expect(crossing).toEqual(["0,75,50,75", "100,75,150,75", "100,75,150,75"]);
+    expect(room.strokesMap.get(crossing)?.points).toEqual([50, 75, 200, 75]);
+    expect(room.strokesMap.get(outer)?.points).toEqual([200, 200, 250, 250]);
   });
 
   it("is undone in a single step", () => {
