@@ -17,7 +17,7 @@ import { isValidRoomId } from "../../../shared/roomId";
 import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
-import { connectRoom } from "../room/connectRoom";
+import { connectRoom, type Awareness } from "../room/connectRoom";
 import { createRoom } from "../room/createRoom";
 import { RoomContext } from "../room/RoomContext";
 import { TokenPanel } from "../tokens/TokenPanel";
@@ -46,6 +46,7 @@ function RoomNotFound() {
 
 function RoomView({ roomId }: { roomId: string }) {
   const [room] = useState(() => createRoom(new Y.Doc()));
+  const [awareness, setAwareness] = useState<Awareness | null>(null);
   const [asideOpened, { toggle: toggleAside }] = useDisclosure();
   const [isEditingName, { open: editName, close: stopEditingName }] =
     useDisclosure();
@@ -56,7 +57,12 @@ function RoomView({ roomId }: { roomId: string }) {
   });
   const needsName = playerName === "";
 
-  useEffect(() => connectRoom(roomId, room.doc), [roomId, room]);
+  useEffect(() => {
+    const connection = connectRoom(roomId, room.doc);
+    // oxlint-disable-next-line react/set-state-in-effect -- the awareness only exists once the provider connects
+    setAwareness(connection.awareness);
+    return connection.disconnect;
+  }, [roomId, room]);
   useHotkeys([
     ["mod+Z", () => room.undoManager.undo()],
     ["mod+Y", () => room.undoManager.redo()],
@@ -91,7 +97,7 @@ function RoomView({ roomId }: { roomId: string }) {
         </AppShell.Header>
         <AppShell.Main>
           <ErrorBoundary FallbackComponent={MapError}>
-            <Board />
+            <Board awareness={awareness} playerName={playerName} />
           </ErrorBoundary>
         </AppShell.Main>
         <AppShell.Aside p="md">

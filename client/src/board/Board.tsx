@@ -1,13 +1,20 @@
 import { Box, useMantineTheme } from "@mantine/core";
-import { clamp, useElementSize, useHotkeys } from "@mantine/hooks";
+import {
+  clamp,
+  useElementSize,
+  useHotkeys,
+  useThrottledCallback,
+} from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
 import { Stage } from "react-konva";
+import type { Awareness } from "../room/connectRoom";
 import type { Clip } from "../room/createRoom";
 import { useRoom } from "../room/RoomContext";
 import { CellLayer } from "./CellLayer";
+import { CursorLayer } from "./CursorLayer";
 import { GridLayer } from "./GridLayer";
 import { StrokeLayer } from "./StrokeLayer";
 import { CELL_SIZE, COLUMNS, ROWS } from "./grid";
@@ -30,6 +37,7 @@ interface Clipboard {
 }
 
 const LEFT_MOUSE_BUTTON = 0;
+const CURSOR_INTERVAL_MS = 50;
 const MAP_START_X = 72;
 const ZOOM_STEP = 1.1;
 const MIN_ZOOM = 0.25;
@@ -85,7 +93,12 @@ function isAddKeyPressed(event: KonvaEventObject<MouseEvent>) {
   return event.evt.ctrlKey || event.evt.metaKey;
 }
 
-export function Board() {
+interface BoardProps {
+  awareness: Awareness | null;
+  playerName: string;
+}
+
+export function Board({ awareness, playerName }: BoardProps) {
   const room = useRoom();
   const { ref, width, height } = useElementSize();
   const theme = useMantineTheme();
@@ -100,6 +113,11 @@ export function Board() {
   const areaStart = useRef<Vector2d | null>(null);
   const isPressed = useRef(false);
   const stageRef = useRef<StageNode>(null);
+  const sendCursor = useThrottledCallback(
+    (cursor: Vector2d | null) =>
+      awareness?.setLocalStateField("cursor", cursor),
+    CURSOR_INTERVAL_MS,
+  );
 
   // Keeps the browser's own copy and paste working, e.g. for text in the dice history.
   const keepDefault = { preventDefault: false };
@@ -125,6 +143,10 @@ export function Board() {
     room.undoManager.on("stack-item-popped", clear);
     return () => room.undoManager.off("stack-item-popped", clear);
   }, [room]);
+
+  useEffect(() => {
+    awareness?.setLocalStateField("name", playerName);
+  }, [awareness, playerName]);
   const isSelecting = tool === "select";
   const colorValue = paintColorValue(theme, color);
 
@@ -257,6 +279,7 @@ export function Board() {
 
   function handleMouseMove(event: KonvaEventObject<MouseEvent>) {
     lastPointer.current = pointerOnMap(event);
+    sendCursor(lastPointer.current);
     if (areaStart.current) {
       setArea(clipToMap(boxBetween(areaStart.current, pointerOnMap(event))));
     }
@@ -276,6 +299,11 @@ export function Board() {
     setDraftPoints(null);
   }
 
+  function handleMouseLeave() {
+    sendCursor(null);
+    handleMouseUp();
+  }
+
   return (
     <Box
       ref={ref}
@@ -292,7 +320,7 @@ export function Board() {
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseLeave={handleMouseLeave}
       >
         <CellLayer />
         <GridLayer />
@@ -308,6 +336,7 @@ export function Board() {
         />
         <TokenLayer listening={isSelecting} />
         <SelectionLayer area={area} onMove={moveArea} />
+        <CursorLayer awareness={awareness} />
       </Stage>
       <Toolbar
         activeTool={tool}
