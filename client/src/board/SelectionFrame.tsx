@@ -2,6 +2,7 @@ import { useMantineTheme } from "@mantine/core";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
 import { Group, Rect } from "react-konva";
+import { useRoom } from "../room/RoomContext";
 import { CELL_SIZE } from "./grid";
 import { cellOffset } from "./selection";
 
@@ -17,12 +18,13 @@ function setCursor(event: KonvaEventObject<MouseEvent>, cursor: string) {
 }
 
 export function SelectionFrame({ area, onMove }: SelectionFrameProps) {
+  const room = useRoom();
   const theme = useMantineTheme();
   const color = theme.colors.blue[6];
 
   function snapToCells(event: KonvaEventObject<DragEvent>, frame: IRect) {
     const node = event.target;
-    const { dx, dy } = cellOffset(frame, node.position());
+    const { dx, dy } = cellOffset(frame, node.position(), room.mapBounds());
     node.position({ x: frame.x + dx * CELL_SIZE, y: frame.y + dy * CELL_SIZE });
     return { dx, dy };
   }

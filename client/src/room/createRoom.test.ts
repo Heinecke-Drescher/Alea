@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
-import { CELL_SIZE, COLUMNS, ROWS } from "../board/grid";
+import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "../board/grid";
 import { createRoom, embeddedImage, type Room } from "./createRoom";
 
 const IMAGE = "data:image/webp;base64,AAAA";
+const { columns, rows } = DEFAULT_MAP_BOUNDS;
 
 let room: Room;
 
@@ -79,7 +80,7 @@ describe("addToken", () => {
   });
 
   it("fails when the map is full", () => {
-    for (let i = 0; i < COLUMNS * ROWS; i++) room.addToken("Crowd", IMAGE);
+    for (let i = 0; i < columns * rows; i++) room.addToken("Crowd", IMAGE);
     expect(() => room.addToken("One too many", IMAGE)).toThrow();
   });
 });
@@ -94,12 +95,12 @@ describe("changing tokens", () => {
   it("keeps a resized token inside the map", () => {
     room.addToken("Dragon", IMAGE);
     const { id } = onlyToken();
-    room.moveToken(id, COLUMNS - 1, ROWS - 1);
+    room.moveToken(id, columns - 1, rows - 1);
     room.resizeToken(id, 3);
     expect(onlyToken()).toMatchObject({
       size: 3,
-      x: COLUMNS - 3,
-      y: ROWS - 3,
+      x: columns - 3,
+      y: rows - 3,
     });
   });
 
@@ -162,8 +163,8 @@ describe("moveArea", () => {
     room.addToken("Dragon", IMAGE);
     const { id } = onlyToken();
     room.resizeToken(id, 3);
-    room.moveArea(cellArea(1, 1, 1, 1), COLUMNS, 2);
-    expect(onlyToken()).toMatchObject({ x: COLUMNS - 3, y: 2 });
+    room.moveArea(cellArea(1, 1, 1, 1), columns, 2);
+    expect(onlyToken()).toMatchObject({ x: columns - 3, y: 2 });
   });
 
   it("moves every stroke that touches the area", () => {
@@ -296,6 +297,78 @@ describe("copy, paste and delete", () => {
     room.deleteStrokes([first]);
     expect(room.strokesMap.size).toBe(1);
     expect(room.strokesMap.has(first)).toBe(false);
+  });
+});
+
+describe("map bounds", () => {
+  const bounds = (x: number, y: number, columns: number, rows: number) => ({
+    x,
+    y,
+    columns,
+    rows,
+  });
+
+  it("starts with the default bounds", () => {
+    expect(room.mapBounds()).toEqual(DEFAULT_MAP_BOUNDS);
+  });
+
+  it("grows and shrinks when nothing would end up outside", () => {
+    expect(room.resize(bounds(0, 0, 60, 40))).toBe(true);
+    expect(room.mapBounds()).toEqual(bounds(0, 0, 60, 40));
+    expect(room.resize(bounds(0, 0, 10, 8))).toBe(true);
+    expect(room.mapBounds()).toEqual(bounds(0, 0, 10, 8));
+  });
+
+  it("grows to the left and top without moving anything", () => {
+    room.paintCell(0, 0, "#ff0000");
+    expect(room.resize(bounds(-5, -3, 35, 23))).toBe(true);
+    expect(room.cellsMap.get("0,0")).toEqual({ x: 0, y: 0, color: "#ff0000" });
+    room.paintCell(-5, -3, "#00ff00");
+    expect(room.cellsMap.get("-5,-3")).toMatchObject({ color: "#00ff00" });
+  });
+
+  it("refuses to shrink below cells or tokens", () => {
+    room.paintCell(9, 0, "#ff0000");
+    expect(room.resize(bounds(0, 0, 9, 20))).toBe(false);
+    expect(room.resize(bounds(10, 0, 20, 20))).toBe(false);
+    room.eraseCell(9, 0);
+
+    room.addToken("Ogre", IMAGE);
+    room.moveToken(onlyToken().id, 0, 6);
+    room.resizeToken(onlyToken().id, 3);
+    expect(room.resize(bounds(0, 0, 30, 8))).toBe(false);
+    expect(room.resize(bounds(0, 7, 30, 13))).toBe(false);
+    expect(room.mapBounds()).toEqual(DEFAULT_MAP_BOUNDS);
+  });
+
+  it("lets strokes stick out of the map", () => {
+    room.addStroke("#000000", [-40, 0, 10 * CELL_SIZE + 1, 0]);
+    expect(room.resize(bounds(0, 0, 40, 20))).toBe(true);
+    expect(room.resize(bounds(1, 0, 9, 20))).toBe(true);
+  });
+
+  it("rejects bounds outside the limits", () => {
+    expect(() => room.resize(bounds(0, 0, 4, 20))).toThrow();
+    expect(() => room.resize(bounds(0, 0, 30, 101))).toThrow();
+    expect(() => room.resize(bounds(0, 0, 30.5, 20))).toThrow();
+    expect(() => room.resize(bounds(0.5, 0, 30, 20))).toThrow();
+  });
+
+  it("keeps tokens inside the stored bounds", () => {
+    room.resize(bounds(-10, 0, 40, 20));
+    room.addToken("Ogre", IMAGE);
+    expect(onlyToken()).toMatchObject({ x: -10, y: 0 });
+    room.moveToken(onlyToken().id, 29, 0);
+    room.resizeToken(onlyToken().id, 2);
+    expect(onlyToken()).toMatchObject({ x: 28, y: 0 });
+  });
+
+  it("is not undone, so others' new content cannot end up off the map", () => {
+    room.paintCell(0, 0, "#ff0000");
+    room.resize(bounds(-5, 0, 60, 40));
+    room.undoManager.undo();
+    expect(room.mapBounds()).toEqual(bounds(-5, 0, 60, 40));
+    expect(room.cellsMap.size).toBe(0);
   });
 });
 

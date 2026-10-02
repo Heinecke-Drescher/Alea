@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CELL_SIZE, MAP_HEIGHT, MAP_WIDTH } from "./grid";
+import { CELL_SIZE, DEFAULT_MAP_BOUNDS, mapRect } from "./grid";
 import {
   areaSelection,
   boxBetween,
@@ -14,6 +14,9 @@ import {
   withoutStroke,
   withPressedStroke,
 } from "./selection";
+
+const defaultMap = DEFAULT_MAP_BOUNDS;
+const { width: mapWidth, height: mapHeight } = mapRect(defaultMap);
 
 describe("boxBetween", () => {
   it("spans from the start to the end point", () => {
@@ -92,18 +95,21 @@ describe("linesBounds", () => {
 describe("clipToMap", () => {
   it("keeps a box inside the map unchanged", () => {
     const box = { x: 10, y: 20, width: 30, height: 40 };
-    expect(clipToMap(box)).toEqual(box);
+    expect(clipToMap(box, defaultMap)).toEqual(box);
   });
 
   it("cuts off the parts outside the map", () => {
     expect(
-      clipToMap({ x: -10, y: MAP_HEIGHT - 20, width: 50, height: 100 }),
-    ).toEqual({ x: 0, y: MAP_HEIGHT - 20, width: 40, height: 20 });
+      clipToMap(
+        { x: -10, y: mapHeight - 20, width: 50, height: 100 },
+        defaultMap,
+      ),
+    ).toEqual({ x: 0, y: mapHeight - 20, width: 40, height: 20 });
   });
 
   it("returns null for a box completely outside the map", () => {
     expect(
-      clipToMap({ x: MAP_WIDTH + 1, y: 0, width: 10, height: 10 }),
+      clipToMap({ x: mapWidth + 1, y: 0, width: 10, height: 10 }, defaultMap),
     ).toBeNull();
   });
 });
@@ -112,13 +118,48 @@ describe("pixelOffset", () => {
   const bounds = { x: 60, y: 60, width: 80, height: 80 };
 
   it("moves the top left corner to the position", () => {
-    expect(pixelOffset(bounds, { x: 75, y: 33 })).toEqual({ dx: 15, dy: -27 });
+    expect(pixelOffset(bounds, { x: 75, y: 33 }, defaultMap)).toEqual({
+      dx: 15,
+      dy: -27,
+    });
   });
 
   it("keeps the bounds on the map", () => {
-    expect(pixelOffset(bounds, { x: -1000, y: MAP_HEIGHT })).toEqual({
-      dx: -60,
-      dy: MAP_HEIGHT - 140,
+    expect(pixelOffset(bounds, { x: -1000, y: mapHeight }, defaultMap)).toEqual(
+      {
+        dx: -60,
+        dy: mapHeight - 140,
+      },
+    );
+  });
+
+  it("puts lines larger than the map at the position", () => {
+    const wide = { x: 0, y: 60, width: mapWidth + 100, height: 80 };
+    expect(pixelOffset(wide, { x: 300, y: -1000 }, defaultMap)).toEqual({
+      dx: 300,
+      dy: -60,
+    });
+  });
+});
+
+describe("maps that do not start at zero", () => {
+  const map = { x: -4, y: -2, columns: 10, rows: 10 };
+
+  it("clips a box to the map's left and top edge", () => {
+    expect(
+      clipToMap({ x: -500, y: -500, width: 1000, height: 1000 }, map),
+    ).toEqual({ x: -200, y: -100, width: 500, height: 500 });
+  });
+
+  it("lets areas and lines move into negative coordinates", () => {
+    const area = { x: 0, y: 0, width: 50, height: 50 };
+    expect(cellOffset(area, { x: -1000, y: -1000 }, map)).toEqual({
+      dx: -4,
+      dy: -2,
+    });
+    expect(pixelOffset(area, { x: -1000, y: -1000 }, map)).toEqual({
+      dx: -200,
+      dy: -100,
     });
   });
 });
@@ -128,7 +169,11 @@ describe("cellOffset", () => {
 
   it("rounds the dragged position to whole cells", () => {
     expect(
-      cellOffset(area, { x: 60 + 1.4 * CELL_SIZE, y: 60 - 0.6 * CELL_SIZE }),
+      cellOffset(
+        area,
+        { x: 60 + 1.4 * CELL_SIZE, y: 60 - 0.6 * CELL_SIZE },
+        defaultMap,
+      ),
     ).toEqual({
       dx: 1,
       dy: -1,
@@ -136,12 +181,14 @@ describe("cellOffset", () => {
   });
 
   it("keeps the area on the map", () => {
-    expect(cellOffset(area, { x: -1000, y: MAP_HEIGHT + 1000 })).toEqual({
+    expect(
+      cellOffset(area, { x: -1000, y: mapHeight + 1000 }, defaultMap),
+    ).toEqual({
       dx: -1,
-      dy: Math.floor((MAP_HEIGHT - 140) / CELL_SIZE),
+      dy: Math.floor((mapHeight - 140) / CELL_SIZE),
     });
-    expect(cellOffset(area, { x: MAP_WIDTH, y: -1000 }).dx).toBe(
-      Math.floor((MAP_WIDTH - 140) / CELL_SIZE),
+    expect(cellOffset(area, { x: mapWidth, y: -1000 }, defaultMap).dx).toBe(
+      Math.floor((mapWidth - 140) / CELL_SIZE),
     );
   });
 });

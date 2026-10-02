@@ -1,7 +1,14 @@
+import { clamp } from "@mantine/hooks";
 import { nanoid } from "nanoid";
 import * as Y from "yjs";
 import type { DieSides } from "../../../shared/dice";
-import { CELL_SIZE, COLUMNS, ROWS } from "../board/grid";
+import {
+  CELL_SIZE,
+  containsCell,
+  DEFAULT_MAP_BOUNDS,
+  isValidMapBounds,
+  type MapBounds,
+} from "../board/grid";
 import { strokeTouches, type Area } from "./strokeTouches";
 
 export interface Token {
@@ -58,7 +65,9 @@ export function createRoom(doc: Y.Doc) {
   const cellsMap = doc.getMap<Cell>("cells");
   const strokesMap = doc.getMap<Stroke>("strokes");
   const rollsArray = doc.getArray<Roll>("rolls");
-  // Tracks only local changes, so undo never reverts other players' work. Rolls stay final.
+  const settingsMap = doc.getMap<MapBounds>("settings");
+  // Tracks only local changes, so undo never reverts other players' work. Rolls stay final,
+  // and so do map bounds: undoing a resize could push others' new content off the map.
   const undoManager = new Y.UndoManager([
     tokensMap,
     imagesMap,
@@ -137,8 +146,7 @@ export function createRoom(doc: Y.Doc) {
     updateToken(id, (token) => ({
       ...token,
       size,
-      x: Math.min(token.x, COLUMNS - size),
-      y: Math.min(token.y, ROWS - size),
+      ...placeToken({ ...token, size }, 0, 0),
     }));
   }
 
@@ -210,7 +218,7 @@ export function createRoom(doc: Y.Doc) {
   function putCell(cell: Cell, dx: number, dy: number) {
     const x = cell.x + dx;
     const y = cell.y + dy;
-    if (x < 0 || y < 0 || x >= COLUMNS || y >= ROWS) {
+    if (!containsCell(mapBounds(), x, y)) {
       throw new Error(`Cannot put cell ${cellKey(cell.x, cell.y)} off the map`);
     }
     cellsMap.set(cellKey(x, y), { ...cell, x, y });
@@ -303,16 +311,61 @@ export function createRoom(doc: Y.Doc) {
     });
   }
 
+  // Rooms created before maps could be resized have no stored bounds.
+  function mapBounds() {
+    return settingsMap.get("bounds") ?? DEFAULT_MAP_BOUNDS;
+  }
+
+  function resize(bounds: MapBounds) {
+    if (!isValidMapBounds(bounds)) {
+      throw new Error(`Invalid map bounds ${JSON.stringify(bounds)}`);
+    }
+    if (!fitsInto(bounds)) return false;
+    settingsMap.set("bounds", bounds);
+    return true;
+  }
+
+  // Strokes may stick out of the map, so only cells and tokens limit its bounds.
+  function fitsInto(bounds: MapBounds) {
+    return (
+      Array.from(cellsMap.values()).every((cell) =>
+        containsCell(bounds, cell.x, cell.y),
+      ) &&
+      Array.from(tokensMap.values()).every(
+        (token) =>
+          containsCell(bounds, token.x, token.y) &&
+          containsCell(
+            bounds,
+            token.x + token.size - 1,
+            token.y + token.size - 1,
+          ),
+      )
+    );
+  }
+
   function findFreeCell() {
     const occupied = new Set(
       Array.from(tokensMap.values(), coveredCells).flat(),
     );
-    for (let y = 0; y < ROWS; y++) {
-      for (let x = 0; x < COLUMNS; x++) {
+    const { x: left, y: top, columns, rows } = mapBounds();
+    for (let y = top; y < top + rows; y++) {
+      for (let x = left; x < left + columns; x++) {
         if (!occupied.has(cellKey(x, y))) return { x, y };
       }
     }
     throw new Error("No free cell left on the map");
+  }
+
+  function placeToken(
+    token: { x: number; y: number; size: number },
+    dx: number,
+    dy: number,
+  ) {
+    const { x, y, columns, rows } = mapBounds();
+    return {
+      x: clamp(token.x + dx, x, x + columns - token.size),
+      y: clamp(token.y + dy, y, y + rows - token.size),
+    };
   }
 
   return {
@@ -322,7 +375,10 @@ export function createRoom(doc: Y.Doc) {
     cellsMap,
     strokesMap,
     rollsArray,
+    settingsMap,
     undoManager,
+    mapBounds,
+    resize,
     addRoll,
     paintCell,
     eraseCell,
@@ -346,17 +402,6 @@ export function createRoom(doc: Y.Doc) {
 
 function shiftPoints(points: number[], dx: number, dy: number) {
   return points.map((value, i) => value + (i % 2 === 0 ? dx : dy));
-}
-
-function placeToken(
-  token: { x: number; y: number; size: number },
-  dx: number,
-  dy: number,
-) {
-  return {
-    x: Math.max(0, Math.min(token.x + dx, COLUMNS - token.size)),
-    y: Math.max(0, Math.min(token.y + dy, ROWS - token.size)),
-  };
 }
 
 function hasCenterIn(area: Area, x: number, y: number, size: number) {

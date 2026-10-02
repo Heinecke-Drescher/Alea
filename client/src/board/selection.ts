@@ -1,6 +1,6 @@
 import { clamp } from "@mantine/hooks";
 import type { IRect, Vector2d } from "konva/lib/types";
-import { CELL_SIZE, MAP_HEIGHT, MAP_WIDTH } from "./grid";
+import { CELL_SIZE, mapRect, type MapBounds } from "./grid";
 
 export type Selection =
   | { kind: "none" }
@@ -70,39 +70,51 @@ export function linesBounds(lines: number[][]): IRect {
   return { x: left, y: top, width: right - left, height: bottom - top };
 }
 
-export function clipToMap(box: IRect): IRect | null {
-  const left = Math.max(box.x, 0);
-  const top = Math.max(box.y, 0);
-  const right = Math.min(box.x + box.width, MAP_WIDTH);
-  const bottom = Math.min(box.y + box.height, MAP_HEIGHT);
+export function clipToMap(box: IRect, map: MapBounds): IRect | null {
+  const rect = mapRect(map);
+  const left = Math.max(box.x, rect.x);
+  const top = Math.max(box.y, rect.y);
+  const right = Math.min(box.x + box.width, rect.x + rect.width);
+  const bottom = Math.min(box.y + box.height, rect.y + rect.height);
   if (right <= left || bottom <= top) return null;
   return { x: left, y: top, width: right - left, height: bottom - top };
 }
 
-export function pixelOffset(bounds: IRect, position: Vector2d) {
+export function pixelOffset(bounds: IRect, position: Vector2d, map: MapBounds) {
+  const rect = mapRect(map);
+  // Strokes may stick out of the map, so a side that does not fit is not kept on it.
+  const offset = (
+    from: number,
+    to: number,
+    length: number,
+    start: number,
+    mapLength: number,
+  ) =>
+    length > mapLength
+      ? to - from
+      : clamp(to - from, start - from, start + mapLength - from - length);
   return {
-    dx: clamp(
-      position.x - bounds.x,
-      -bounds.x,
-      MAP_WIDTH - bounds.x - bounds.width,
-    ),
-    dy: clamp(
-      position.y - bounds.y,
-      -bounds.y,
-      MAP_HEIGHT - bounds.y - bounds.height,
-    ),
+    dx: offset(bounds.x, position.x, bounds.width, rect.x, rect.width),
+    dy: offset(bounds.y, position.y, bounds.height, rect.y, rect.height),
   };
 }
 
-export function cellOffset(area: IRect, position: Vector2d) {
-  const offset = (from: number, to: number, size: number, mapSize: number) =>
+export function cellOffset(area: IRect, position: Vector2d, map: MapBounds) {
+  const rect = mapRect(map);
+  const offset = (
+    from: number,
+    to: number,
+    length: number,
+    start: number,
+    end: number,
+  ) =>
     clamp(
       Math.round((to - from) / CELL_SIZE),
-      Math.ceil(-from / CELL_SIZE),
-      Math.floor((mapSize - from - size) / CELL_SIZE),
+      Math.ceil((start - from) / CELL_SIZE),
+      Math.floor((end - from - length) / CELL_SIZE),
     );
   return {
-    dx: offset(area.x, position.x, area.width, MAP_WIDTH),
-    dy: offset(area.y, position.y, area.height, MAP_HEIGHT),
+    dx: offset(area.x, position.x, area.width, rect.x, rect.x + rect.width),
+    dy: offset(area.y, position.y, area.height, rect.y, rect.y + rect.height),
   };
 }

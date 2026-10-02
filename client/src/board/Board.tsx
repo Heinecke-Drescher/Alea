@@ -10,10 +10,11 @@ import { useRoom } from "../room/RoomContext";
 import { Cells } from "./Cells";
 import { Cursors } from "./Cursors";
 import { GridLines } from "./GridLines";
-import { CELL_SIZE, COLUMNS, ROWS } from "./grid";
+import { CELL_SIZE, containsCell } from "./grid";
 import { Strokes } from "./Strokes";
 import { Tokens } from "./Tokens";
 import { paintColorValue, type PaintColor } from "./paintColors";
+import { MapResizer } from "./MapResizer";
 import { SelectionFrame } from "./SelectionFrame";
 import { Toolbar, type Tool } from "./Toolbar";
 import { useClipboard } from "./useClipboard";
@@ -66,10 +67,10 @@ function strokeIdAtPointer(event: KonvaEventObject<MouseEvent>) {
 }
 
 function cellAt(point: Vector2d) {
-  const x = Math.floor(point.x / CELL_SIZE);
-  const y = Math.floor(point.y / CELL_SIZE);
-  const isOnMap = x >= 0 && y >= 0 && x < COLUMNS && y < ROWS;
-  return isOnMap ? { x, y } : null;
+  return {
+    x: Math.floor(point.x / CELL_SIZE),
+    y: Math.floor(point.y / CELL_SIZE),
+  };
 }
 
 function isAddKeyPressed(event: KonvaEventObject<MouseEvent>) {
@@ -122,9 +123,13 @@ export function Board({ awareness, playerName }: BoardProps) {
 
   function applyAtPointer(event: KonvaEventObject<MouseEvent>) {
     const cell = cellAt(pointerOnMap(event));
-    if (tool === "paint" && cell) room.paintCell(cell.x, cell.y, colorValue);
+    const isOnMap = containsCell(room.mapBounds(), cell.x, cell.y);
+    if (tool === "paint" && isOnMap) {
+      room.paintCell(cell.x, cell.y, colorValue);
+    }
     if (tool === "eraser") {
-      if (cell) room.eraseCell(cell.x, cell.y);
+      // Also off the map, to clean up cells left there by players resizing at the same time.
+      room.eraseCell(cell.x, cell.y);
       const strokeId = strokeIdAtPointer(event);
       if (strokeId) room.removeStroke(strokeId);
     }
@@ -232,6 +237,7 @@ export function Board({ awareness, playerName }: BoardProps) {
           <Tokens listening={isSelecting} />
         </Layer>
         <Layer>
+          {isSelecting && <MapResizer />}
           <SelectionFrame area={area} onMove={selection.moveArea} />
           <Cursors awareness={awareness} />
         </Layer>

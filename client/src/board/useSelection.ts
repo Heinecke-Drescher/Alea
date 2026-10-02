@@ -41,7 +41,9 @@ export function useSelection(room: Room) {
   function extendArea(point: Vector2d) {
     if (!areaStart.current) return;
     setSelection(
-      areaSelection(clipToMap(boxBetween(areaStart.current, point))),
+      areaSelection(
+        clipToMap(boxBetween(areaStart.current, point), room.mapBounds()),
+      ),
     );
   }
 

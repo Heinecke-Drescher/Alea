@@ -1,32 +1,33 @@
 import { useComputedColorScheme, useMantineTheme } from "@mantine/core";
 import { Group, Line } from "react-konva";
-import { CELL_SIZE, COLUMNS, MAP_HEIGHT, MAP_WIDTH, ROWS } from "./grid";
+import { useMapBounds } from "../room/useMapBounds";
+import { CELL_SIZE, mapRect } from "./grid";
 
-const COLUMN_LINES = Array.from(
-  { length: COLUMNS + 1 },
-  (_, i) => i * CELL_SIZE,
-);
-const ROW_LINES = Array.from({ length: ROWS + 1 }, (_, i) => i * CELL_SIZE);
+function linePositions(start: number, count: number) {
+  return Array.from({ length: count + 1 }, (_, i) => start + i * CELL_SIZE);
+}
 
 export function GridLines() {
   const theme = useMantineTheme();
   const colorScheme = useComputedColorScheme("light");
+  const bounds = useMapBounds();
+  const { x, y, width, height } = mapRect(bounds);
   const lineColor =
     colorScheme === "dark" ? theme.colors.dark[4] : theme.colors.gray[4];
 
   return (
     <Group listening={false}>
-      {COLUMN_LINES.map((x) => (
+      {linePositions(x, bounds.columns).map((lineX) => (
         <Line
-          key={`column-${x}`}
-          points={[x, 0, x, MAP_HEIGHT]}
+          key={`column-${lineX}`}
+          points={[lineX, y, lineX, y + height]}
           stroke={lineColor}
         />
       ))}
-      {ROW_LINES.map((y) => (
+      {linePositions(y, bounds.rows).map((lineY) => (
         <Line
-          key={`row-${y}`}
-          points={[0, y, MAP_WIDTH, y]}
+          key={`row-${lineY}`}
+          points={[x, lineY, x + width, lineY]}
           stroke={lineColor}
         />
       ))}

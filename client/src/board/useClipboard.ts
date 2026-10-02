@@ -1,7 +1,8 @@
+import { notifications } from "@mantine/notifications";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef, type RefObject } from "react";
 import type { Clip, Room } from "../room/createRoom";
-import { CELL_SIZE } from "./grid";
+import { CELL_SIZE, mapRect } from "./grid";
 import {
   cellOffset,
   linesBounds,
@@ -69,14 +70,25 @@ export function useClipboard({
     const { clip, bounds, snapsToCells } = clipboard.current;
     // Before the mouse has been over the map, paste where the copy came from.
     const target = pointer.current ?? bounds;
+    const map = mapRect(room.mapBounds());
+    if (
+      snapsToCells &&
+      (bounds.width > map.width || bounds.height > map.height)
+    ) {
+      notifications.show({
+        color: "red",
+        message: "The copied area is larger than the map.",
+      });
+      return;
+    }
     onPaste();
     if (snapsToCells) {
-      const { dx, dy } = cellOffset(bounds, target);
+      const { dx, dy } = cellOffset(bounds, target, room.mapBounds());
       room.paste(clip, dx * CELL_SIZE, dy * CELL_SIZE);
       // A frame around the paste would also catch what was there before.
       selection.clear();
     } else {
-      const { dx, dy } = pixelOffset(bounds, target);
+      const { dx, dy } = pixelOffset(bounds, target, room.mapBounds());
       selection.set(strokesSelection(room.paste(clip, dx, dy)));
     }
   }
