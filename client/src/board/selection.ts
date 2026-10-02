@@ -2,6 +2,45 @@ import { clamp } from "@mantine/hooks";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { CELL_SIZE, MAP_HEIGHT, MAP_WIDTH } from "./grid";
 
+export type Selection =
+  | { kind: "none" }
+  | { kind: "area"; area: IRect }
+  | { kind: "strokes"; ids: string[] };
+
+export const NO_SELECTION: Selection = { kind: "none" };
+
+export function areaSelection(area: IRect | null): Selection {
+  return area ? { kind: "area", area } : NO_SELECTION;
+}
+
+export function strokesSelection(ids: string[]): Selection {
+  return ids.length > 0 ? { kind: "strokes", ids } : NO_SELECTION;
+}
+
+export function selectedArea(selection: Selection) {
+  return selection.kind === "area" ? selection.area : null;
+}
+
+export function selectedStrokeIds(selection: Selection) {
+  return selection.kind === "strokes" ? selection.ids : [];
+}
+
+export function withPressedStroke(
+  selection: Selection,
+  id: string,
+  isAdding: boolean,
+): Selection {
+  const ids = selectedStrokeIds(selection);
+  if (ids.includes(id)) return selection;
+  return strokesSelection(isAdding ? [...ids, id] : [id]);
+}
+
+export function withoutStroke(selection: Selection, id: string): Selection {
+  return strokesSelection(
+    selectedStrokeIds(selection).filter((other) => other !== id),
+  );
+}
+
 export function boxBetween(start: Vector2d, end: Vector2d): IRect {
   return {
     x: Math.min(start.x, end.x),

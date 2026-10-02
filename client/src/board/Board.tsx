@@ -1,17 +1,11 @@
 import { Box, useMantineTheme } from "@mantine/core";
-import {
-  clamp,
-  useElementSize,
-  useHotkeys,
-  useThrottledCallback,
-} from "@mantine/hooks";
+import { clamp, useElementSize, useHotkeys } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
-import type { IRect, Vector2d } from "konva/lib/types";
+import type { Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
 import { Layer, Stage } from "react-konva";
 import type { Awareness } from "../room/connectRoom";
-import type { Clip } from "../room/createRoom";
 import { useRoom } from "../room/RoomContext";
 import { Cells } from "./Cells";
 import { Cursors } from "./Cursors";
@@ -20,24 +14,13 @@ import { CELL_SIZE, COLUMNS, ROWS } from "./grid";
 import { Strokes } from "./Strokes";
 import { Tokens } from "./Tokens";
 import { paintColorValue, type PaintColor } from "./paintColors";
-import {
-  boxBetween,
-  cellOffset,
-  clipToMap,
-  linesBounds,
-  pixelOffset,
-} from "./selection";
 import { SelectionFrame } from "./SelectionFrame";
 import { Toolbar, type Tool } from "./Toolbar";
-
-interface Clipboard {
-  clip: Clip;
-  bounds: IRect;
-  snapsToCells: boolean;
-}
+import { useClipboard } from "./useClipboard";
+import { useCursorBroadcast } from "./useCursorBroadcast";
+import { useSelection } from "./useSelection";
 
 const LEFT_MOUSE_BUTTON = 0;
-const CURSOR_INTERVAL_MS = 50;
 const MAP_START_X = 72;
 const ZOOM_STEP = 1.1;
 const MIN_ZOOM = 0.25;
@@ -105,28 +88,27 @@ export function Board({ awareness, playerName }: BoardProps) {
   const [tool, setTool] = useState<Tool>("select");
   const [color, setColor] = useState<PaintColor>("red");
   const [draftPoints, setDraftPoints] = useState<number[] | null>(null);
-  const [area, setArea] = useState<IRect | null>(null);
-  const [selectedStrokeIds, setSelectedStrokeIds] = useState<string[]>([]);
-  const clipboard = useRef<Clipboard | null>(null);
+  const selection = useSelection(room);
+  const { area, strokeIds: selectedStrokeIds } = selection;
   const lastPointer = useRef<Vector2d | null>(null);
-  const addedOnPress = useRef<string | null>(null);
-  const areaStart = useRef<Vector2d | null>(null);
+  const clipboard = useClipboard({
+    room,
+    selection,
+    pointer: lastPointer,
+    onPaste: () => setTool("select"),
+  });
   const isPressed = useRef(false);
   const stageRef = useRef<StageNode>(null);
-  const sendCursor = useThrottledCallback(
-    (cursor: Vector2d | null) =>
-      awareness?.setLocalStateField("cursor", cursor),
-    CURSOR_INTERVAL_MS,
-  );
+  const cursor = useCursorBroadcast(awareness, playerName);
 
   // Keeps the browser's own copy and paste working, e.g. for text in the dice history.
   const keepDefault = { preventDefault: false };
   useHotkeys([
-    ["Escape", clearSelection],
-    ["mod+C", copySelection, keepDefault],
-    ["mod+X", cutSelection, keepDefault],
-    ["mod+V", pasteClipboard, keepDefault],
-    ["Delete", deleteSelection, keepDefault],
+    ["Escape", selection.clear],
+    ["mod+C", clipboard.copy, keepDefault],
+    ["mod+X", clipboard.cut, keepDefault],
+    ["mod+V", clipboard.paste, keepDefault],
+    ["Delete", clipboard.remove, keepDefault],
   ]);
 
   useEffect(() => {
@@ -135,18 +117,6 @@ export function Board({ awareness, playerName }: BoardProps) {
     stage.x(MAP_START_X);
   }, []);
 
-  useEffect(() => {
-    const clear = () => {
-      setArea(null);
-      setSelectedStrokeIds([]);
-    };
-    room.undoManager.on("stack-item-popped", clear);
-    return () => room.undoManager.off("stack-item-popped", clear);
-  }, [room]);
-
-  useEffect(() => {
-    awareness?.setLocalStateField("name", playerName);
-  }, [awareness, playerName]);
   const isSelecting = tool === "select";
   const colorValue = paintColorValue(theme, color);
 
@@ -160,94 +130,19 @@ export function Board({ awareness, playerName }: BoardProps) {
     }
   }
 
-  function moveArea(dx: number, dy: number) {
-    if (!area) throw new Error("Moved a selection that does not exist");
-    room.moveArea(area, dx, dy);
-    setArea({
-      ...area,
-      x: area.x + dx * CELL_SIZE,
-      y: area.y + dy * CELL_SIZE,
-    });
-  }
-
-  function clearSelection() {
-    setArea(null);
-    setSelectedStrokeIds([]);
-  }
-
-  function copySelection() {
-    if (area) {
-      clipboard.current = {
-        clip: room.copyArea(area),
-        bounds: area,
-        snapsToCells: true,
-      };
-      return;
-    }
-    const clip = room.copyStrokes(selectedStrokeIds);
-    if (clip.strokes.length === 0) return;
-    clipboard.current = {
-      clip,
-      bounds: linesBounds(clip.strokes.map((stroke) => stroke.points)),
-      snapsToCells: false,
-    };
-  }
-
-  function cutSelection() {
-    copySelection();
-    deleteSelection();
-  }
-
-  function deleteSelection() {
-    if (area) {
-      room.deleteArea(area);
-    } else if (selectedStrokeIds.length > 0) {
-      room.deleteStrokes(selectedStrokeIds);
-    }
-    clearSelection();
-  }
-
-  function pasteClipboard() {
-    if (!clipboard.current) return;
-    const { clip, bounds, snapsToCells } = clipboard.current;
-    // Before the mouse has been over the map, paste where the copy came from.
-    const target = lastPointer.current ?? bounds;
-    setTool("select");
-    setArea(null);
-    if (snapsToCells) {
-      const { dx, dy } = cellOffset(bounds, target);
-      room.paste(clip, dx * CELL_SIZE, dy * CELL_SIZE);
-      // A frame around the paste would also catch what was there before.
-      setSelectedStrokeIds([]);
-    } else {
-      const { dx, dy } = pixelOffset(bounds, target);
-      setSelectedStrokeIds(room.paste(clip, dx, dy));
-    }
-  }
-
   function pressStroke(id: string, event: KonvaEventObject<MouseEvent>) {
     if (!isSelecting || event.evt.button !== LEFT_MOUSE_BUTTON) return;
-    setArea(null);
-    addedOnPress.current = null;
-    if (selectedStrokeIds.includes(id)) return;
-    if (isAddKeyPressed(event)) {
-      addedOnPress.current = id;
-      setSelectedStrokeIds([...selectedStrokeIds, id]);
-    } else {
-      setSelectedStrokeIds([id]);
-    }
+    selection.pressStroke(id, isAddKeyPressed(event));
   }
 
-  // Removing waits for the click, so Ctrl+drag on a selected stroke still drags the whole selection.
   function clickStroke(id: string, event: KonvaEventObject<MouseEvent>) {
     if (!isSelecting || event.evt.button !== LEFT_MOUSE_BUTTON) return;
-    if (!isAddKeyPressed(event) || addedOnPress.current === id) return;
-    setSelectedStrokeIds(selectedStrokeIds.filter((other) => other !== id));
+    selection.clickStroke(id, isAddKeyPressed(event));
   }
 
   function changeTool(nextTool: Tool) {
     setTool(nextTool);
-    clearSelection();
+    selection.clear();
   }
 
   function panOnlyWithMiddleButton(event: KonvaEventObject<DragEvent>) {
@@ -259,8 +154,7 @@ export function Board({ awareness, playerName }: BoardProps) {
   function startArea(event: KonvaEventObject<MouseEvent>) {
     if (event.target !== stageRef.current) return;
     if (isAddKeyPressed(event)) return;
-    areaStart.current = pointerOnMap(event);
-    clearSelection();
+    selection.beginArea(pointerOnMap(event));
   }
 
   function handleMouseDown(event: KonvaEventObject<MouseEvent>) {
@@ -279,10 +173,8 @@ export function Board({ awareness, playerName }: BoardProps) {
 
   function handleMouseMove(event: KonvaEventObject<MouseEvent>) {
     lastPointer.current = pointerOnMap(event);
-    sendCursor(lastPointer.current);
-    if (areaStart.current) {
-      setArea(clipToMap(boxBetween(areaStart.current, pointerOnMap(event))));
-    }
+    cursor.move(lastPointer.current);
+    selection.extendArea(lastPointer.current);
     if (isPressed.current) applyAtPointer(event);
     if (draftPoints) {
       const point = pointerOnMap(event);
@@ -291,7 +183,7 @@ export function Board({ awareness, playerName }: BoardProps) {
   }
 
   function handleMouseUp() {
-    areaStart.current = null;
+    selection.endArea();
     isPressed.current = false;
     if (draftPoints && draftPoints.length >= 4) {
       room.addStroke(colorValue, draftPoints);
@@ -300,7 +192,7 @@ export function Board({ awareness, playerName }: BoardProps) {
   }
 
   function handleMouseLeave() {
-    sendCursor(null);
+    cursor.leave();
     handleMouseUp();
   }
 
@@ -340,7 +232,7 @@ export function Board({ awareness, playerName }: BoardProps) {
           <Tokens listening={isSelecting} />
         </Layer>
         <Layer>
-          <SelectionFrame area={area} onMove={moveArea} />
+          <SelectionFrame area={area} onMove={selection.moveArea} />
           <Cursors awareness={awareness} />
         </Layer>
       </Stage>

@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { CELL_SIZE, MAP_HEIGHT, MAP_WIDTH } from "./grid";
 import {
+  areaSelection,
   boxBetween,
   cellOffset,
   clipToMap,
   linesBounds,
+  NO_SELECTION,
   pixelOffset,
+  selectedArea,
+  selectedStrokeIds,
+  strokesSelection,
+  withoutStroke,
+  withPressedStroke,
 } from "./selection";
 
 describe("boxBetween", () => {
@@ -25,6 +32,45 @@ describe("boxBetween", () => {
       width: 30,
       height: 40,
     });
+  });
+});
+
+describe("stroke selection rules", () => {
+  const area = areaSelection({ x: 0, y: 0, width: 10, height: 10 });
+
+  it("selects only the pressed stroke", () => {
+    expect(withPressedStroke(strokesSelection(["a"]), "b", false)).toEqual(
+      strokesSelection(["b"]),
+    );
+  });
+
+  it("adds the pressed stroke while the add key is held", () => {
+    expect(withPressedStroke(strokesSelection(["a"]), "b", true)).toEqual(
+      strokesSelection(["a", "b"]),
+    );
+  });
+
+  it("keeps the selection when pressing a selected stroke", () => {
+    const selection = strokesSelection(["a", "b"]);
+    expect(withPressedStroke(selection, "b", false)).toBe(selection);
+    expect(withPressedStroke(selection, "b", true)).toBe(selection);
+  });
+
+  it("replaces an area with the pressed stroke", () => {
+    expect(withPressedStroke(area, "a", true)).toEqual(strokesSelection(["a"]));
+  });
+
+  it("removes a stroke and ends up with no selection when empty", () => {
+    expect(withoutStroke(strokesSelection(["a", "b"]), "a")).toEqual(
+      strokesSelection(["b"]),
+    );
+    expect(withoutStroke(strokesSelection(["a"]), "a")).toBe(NO_SELECTION);
+  });
+
+  it("reads area and strokes only from the matching kind", () => {
+    expect(selectedArea(area)).toEqual({ x: 0, y: 0, width: 10, height: 10 });
+    expect(selectedStrokeIds(area)).toEqual([]);
+    expect(selectedArea(strokesSelection(["a"]))).toBeNull();
   });
 });
 
