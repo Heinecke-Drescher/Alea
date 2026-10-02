@@ -2,7 +2,7 @@ import { clamp } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import { Group, Image } from "react-konva";
 import useImage from "use-image";
-import type { Token } from "../room/createRoom";
+import type { Token } from "../room/roomStore";
 import { useRoom } from "../room/RoomContext";
 import { CELL_SIZE, type MapBounds } from "./grid";
 

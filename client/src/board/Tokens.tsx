@@ -1,5 +1,5 @@
 import { Group } from "react-konva";
-import { embeddedImage } from "../room/createRoom";
+import { embeddedImage } from "../room/tokens";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import { TokenView } from "./TokenView";

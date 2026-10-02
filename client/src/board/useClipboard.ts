@@ -1,7 +1,8 @@
 import { notifications } from "@mantine/notifications";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef, type RefObject } from "react";
-import type { Clip, Room } from "../room/createRoom";
+import type { Clip } from "../room/areaActions";
+import type { Room } from "../room/createRoom";
 import { CELL_SIZE, mapRect } from "./grid";
 import {
   cellOffset,

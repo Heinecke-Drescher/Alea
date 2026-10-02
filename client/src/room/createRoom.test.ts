@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "../board/grid";
-import { createRoom, embeddedImage, type Room } from "./createRoom";
+import { createRoom, type Room } from "./createRoom";
+import { embeddedImage } from "./tokens";
 
 const IMAGE = "data:image/webp;base64,AAAA";
 const { columns, rows } = DEFAULT_MAP_BOUNDS;

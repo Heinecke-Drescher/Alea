@@ -6,7 +6,7 @@ import {
   Stack,
   TextInput,
 } from "@mantine/core";
-import { embeddedImage } from "../room/createRoom";
+import { embeddedImage } from "../room/tokens";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 
