@@ -3,12 +3,17 @@ import type * as Y from "yjs";
 
 export type Awareness = NonNullable<HocuspocusProvider["awareness"]>;
 
-export function connectRoom(roomId: string, doc: Y.Doc) {
+export function connectRoom(
+  roomId: string,
+  doc: Y.Doc,
+  onSynced: (isSynced: boolean) => void,
+) {
   const protocol = location.protocol === "https:" ? "wss" : "ws";
   const provider = new HocuspocusProvider({
     url: `${protocol}://${location.host}/sync`,
     name: roomId,
     document: doc,
+    onSynced: ({ state }) => onSynced(state),
   });
   const { awareness } = provider;
   if (!awareness) throw new Error("Provider has no awareness");

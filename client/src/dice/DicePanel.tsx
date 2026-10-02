@@ -1,8 +1,26 @@
-import { Button, Group, SimpleGrid, Stack, Text } from "@mantine/core";
+import {
+  Button,
+  CloseButton,
+  Group,
+  Paper,
+  SimpleGrid,
+  Stack,
+  Text,
+} from "@mantine/core";
+import { useListState } from "@mantine/hooks";
 import { motion } from "motion/react";
-import { DIE_SIDES, rollDie } from "../../../shared/dice";
+import { nanoid } from "nanoid";
+import { DIE_SIDES, rollDie, type DieSides } from "../../../shared/dice";
+import { mapCenter } from "../room/grid";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
+import { startDieDrag } from "./dieDrag";
+import { DieIcon } from "./DieIcon";
+
+interface HandDie {
+  id: string;
+  sides: DieSides;
+}
 
 interface DicePanelProps {
   playerName: string;
@@ -12,6 +30,16 @@ export function DicePanel({ playerName }: DicePanelProps) {
   const room = useRoom();
   const rolls = [...useY(room.rollsArray)].reverse();
   const [lastRoll, ...olderRolls] = rolls;
+  const [hand, handlers] = useListState<HandDie>([]);
+
+  function roll(sides: DieSides) {
+    room.addRoll(
+      playerName,
+      sides,
+      rollDie(sides),
+      mapCenter(room.mapBounds()),
+    );
+  }
 
   return (
     <Stack>
@@ -21,13 +49,52 @@ export function DicePanel({ playerName }: DicePanelProps) {
             key={sides}
             variant="default"
             size="compact-md"
-            onClick={() => room.addRoll(playerName, sides, rollDie(sides))}
+            onClick={() => handlers.append({ id: nanoid(), sides })}
           >
             d{sides}
           </Button>
         ))}
       </SimpleGrid>
-      {lastRoll ? (
+      {hand.length > 0 ? (
+        <Group gap="xs">
+          {hand.map((die) => (
+            <Paper
+              key={die.id}
+              withBorder
+              px="xs"
+              py={4}
+              draggable
+              onDragStart={(event) =>
+                startDieDrag(event.dataTransfer, die.sides)
+              }
+              style={{ cursor: "grab" }}
+            >
+              <Group gap={4} wrap="nowrap">
+                <Group
+                  gap={4}
+                  wrap="nowrap"
+                  onDoubleClick={() => roll(die.sides)}
+                >
+                  <DieIcon sides={die.sides} />
+                  <Text fw={700}>d{die.sides}</Text>
+                </Group>
+                <CloseButton
+                  size="xs"
+                  aria-label={`Remove d${die.sides}`}
+                  onClick={() =>
+                    handlers.filter((other) => other.id !== die.id)
+                  }
+                />
+              </Group>
+            </Paper>
+          ))}
+        </Group>
+      ) : (
+        <Text c="dimmed" ta="center" size="sm">
+          Add dice to your hand, then drag one onto the map to roll it
+        </Text>
+      )}
+      {lastRoll && (
         <motion.div
           key={lastRoll.id}
           initial={{ opacity: 0 }}
@@ -47,10 +114,6 @@ export function DicePanel({ playerName }: DicePanelProps) {
             </Text>
           </Stack>
         </motion.div>
-      ) : (
-        <Text c="dimmed" ta="center">
-          Click a die to roll
-        </Text>
       )}
       <Stack gap={4}>
         {olderRolls.map((olderRoll) => (

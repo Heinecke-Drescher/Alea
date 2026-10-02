@@ -29,6 +29,8 @@ export interface Roll {
   sides: DieSides;
   value: number;
   at: number;
+  // Where the die landed on the map, in pixels. Rolls made before dice were thrown onto the map have none.
+  position?: { x: number; y: number };
 }
 
 export type RoomStore = ReturnType<typeof createRoomStore>;

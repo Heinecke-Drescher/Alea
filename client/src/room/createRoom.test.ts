@@ -5,6 +5,7 @@ import { createRoom, type Room } from "./createRoom";
 import { embeddedImage } from "./tokens";
 
 const IMAGE = "data:image/webp;base64,AAAA";
+const SPOT = { x: 120, y: 80 };
 const { columns, rows } = DEFAULT_MAP_BOUNDS;
 
 let room: Room;
@@ -120,15 +121,16 @@ describe("changing tokens", () => {
 });
 
 describe("rolls", () => {
-  it("records who rolled what", () => {
-    room.addRoll("Anna", 20, 17);
+  it("records who rolled what and where", () => {
+    room.addRoll("Anna", 20, 17, SPOT);
     expect(room.rollsArray.toArray()).toMatchObject([
-      { player: "Anna", sides: 20, value: 17 },
+      { player: "Anna", sides: 20, value: 17, position: SPOT },
     ]);
   });
 
   it("keeps only the latest 50 rolls", () => {
-    for (let value = 1; value <= 60; value++) room.addRoll("Anna", 100, value);
+    for (let value = 1; value <= 60; value++)
+      room.addRoll("Anna", 100, value, SPOT);
     const rolls = room.rollsArray.toArray();
     expect(rolls).toHaveLength(50);
     expect(rolls[0]?.value).toBe(11);
@@ -426,7 +428,7 @@ describe("undo and redo", () => {
   });
 
   it("does not undo rolls", () => {
-    room.addRoll("Anna", 20, 17);
+    room.addRoll("Anna", 20, 17, SPOT);
     room.undoManager.undo();
     expect(room.rollsArray.length).toBe(1);
   });

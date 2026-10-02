@@ -29,6 +29,11 @@ export function mapRect({ x, y, columns, rows }: MapBounds): IRect {
   };
 }
 
+export function mapCenter(bounds: MapBounds) {
+  const { x, y, width, height } = mapRect(bounds);
+  return { x: x + width / 2, y: y + height / 2 };
+}
+
 export function containsCell(bounds: MapBounds, x: number, y: number) {
   return (
     x >= bounds.x &&

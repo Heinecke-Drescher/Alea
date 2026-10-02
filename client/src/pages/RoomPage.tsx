@@ -9,17 +9,14 @@ import {
   Title,
 } from "@mantine/core";
 import { useDisclosure, useHotkeys, useLocalStorage } from "@mantine/hooks";
-import { useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useParams } from "react-router";
-import * as Y from "yjs";
 import { isValidRoomId } from "../../../shared/roomId";
 import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
-import { connectRoom, type Awareness } from "../room/connectRoom";
-import { createRoom } from "../room/createRoom";
 import { RoomContext } from "../room/RoomContext";
+import { useRoomConnection } from "../room/useRoomConnection";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { PlayerNameModal } from "./PlayerNameModal";
 
@@ -45,8 +42,7 @@ function RoomNotFound() {
 }
 
 function RoomView({ roomId }: { roomId: string }) {
-  const [room] = useState(() => createRoom(new Y.Doc()));
-  const [awareness, setAwareness] = useState<Awareness | null>(null);
+  const { room, awareness, isSynced } = useRoomConnection(roomId);
   const [asideOpened, { toggle: toggleAside }] = useDisclosure();
   const [isEditingName, { open: editName, close: stopEditingName }] =
     useDisclosure();
@@ -57,12 +53,6 @@ function RoomView({ roomId }: { roomId: string }) {
   });
   const needsName = playerName === "";
 
-  useEffect(() => {
-    const connection = connectRoom(roomId, room.doc);
-    // oxlint-disable-next-line react/set-state-in-effect -- the awareness only exists once the provider connects
-    setAwareness(connection.awareness);
-    return connection.disconnect;
-  }, [roomId, room]);
   useHotkeys([
     ["mod+Z", () => room.undoManager.undo()],
     ["mod+Y", () => room.undoManager.redo()],
@@ -97,7 +87,11 @@ function RoomView({ roomId }: { roomId: string }) {
         </AppShell.Header>
         <AppShell.Main>
           <ErrorBoundary FallbackComponent={MapError}>
-            <Board awareness={awareness} playerName={playerName} />
+            <Board
+              awareness={awareness}
+              playerName={playerName}
+              isSynced={isSynced}
+            />
           </ErrorBoundary>
         </AppShell.Main>
         <AppShell.Aside p="md">

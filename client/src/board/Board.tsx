@@ -3,7 +3,14 @@ import { clamp, useElementSize, useHotkeys } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
-import { useEffect, useRef, useState } from "react";
+import {
+  useEffect,
+  useRef,
+  useState,
+  type DragEvent as ReactDragEvent,
+} from "react";
+import { rollDie } from "../../../shared/dice";
+import { droppedDie, isDieDrag } from "../dice/dieDrag";
 import { Layer, Stage } from "react-konva";
 import type { Awareness } from "../room/connectRoom";
 import { useRoom } from "../room/RoomContext";
@@ -12,6 +19,7 @@ import { Cursors } from "./Cursors";
 import { GridLines } from "./GridLines";
 import { CELL_SIZE, containsCell } from "../room/grid";
 import { Strokes } from "./Strokes";
+import { ThrownDice } from "./ThrownDice";
 import { Tokens } from "./Tokens";
 import { paintColorValue, type PaintColor } from "./paintColors";
 import { MapResizer } from "./MapResizer";
@@ -80,9 +88,10 @@ function isAddKeyPressed(event: KonvaEventObject<MouseEvent>) {
 interface BoardProps {
   awareness: Awareness | null;
   playerName: string;
+  isSynced: boolean;
 }
 
-export function Board({ awareness, playerName }: BoardProps) {
+export function Board({ awareness, playerName, isSynced }: BoardProps) {
   const room = useRoom();
   const { ref, width, height } = useElementSize();
   const theme = useMantineTheme();
@@ -201,11 +210,29 @@ export function Board({ awareness, playerName }: BoardProps) {
     handleMouseUp();
   }
 
+  function rollDroppedDie(event: ReactDragEvent<HTMLDivElement>) {
+    const sides = droppedDie(event.dataTransfer);
+    if (!sides) return;
+    event.preventDefault();
+    const stage = stageRef.current;
+    if (!stage) throw new Error("Stage is not mounted");
+    stage.setPointersPositions(event.nativeEvent);
+    const point = stage.getRelativePointerPosition();
+    if (!point) throw new Error("Drop without stage pointer");
+    const cell = cellAt(point);
+    if (!containsCell(room.mapBounds(), cell.x, cell.y)) return;
+    room.addRoll(playerName, sides, rollDie(sides), point);
+  }
+
   return (
     <Box
       ref={ref}
       pos="relative"
       h="calc(100dvh - var(--app-shell-header-height))"
+      onDragOver={(event) => {
+        if (isDieDrag(event.dataTransfer)) event.preventDefault();
+      }}
+      onDrop={rollDroppedDie}
     >
       <Stage
         width={width}
@@ -239,6 +266,7 @@ export function Board({ awareness, playerName }: BoardProps) {
         <Layer>
           {isSelecting && <MapResizer />}
           <SelectionFrame area={area} onMove={selection.moveArea} />
+          {isSynced && <ThrownDice />}
           <Cursors awareness={awareness} />
         </Layer>
       </Stage>

@@ -1,11 +1,26 @@
 import { describe, expect, it } from "vitest";
-import { CELL_SIZE, MAX_MAP_CELLS, MIN_MAP_CELLS, snapMapBounds } from "./grid";
+import {
+  CELL_SIZE,
+  mapCenter,
+  MAX_MAP_CELLS,
+  MIN_MAP_CELLS,
+  snapMapBounds,
+} from "./grid";
 
 const box = (x: number, y: number, width: number, height: number) => ({
   x: x * CELL_SIZE,
   y: y * CELL_SIZE,
   width: width * CELL_SIZE,
   height: height * CELL_SIZE,
+});
+
+describe("mapCenter", () => {
+  it("is the middle of the map in pixels", () => {
+    expect(mapCenter({ x: -2, y: 0, columns: 10, rows: 4 })).toEqual({
+      x: 3 * CELL_SIZE,
+      y: 2 * CELL_SIZE,
+    });
+  });
 });
 
 describe("snapMapBounds", () => {
