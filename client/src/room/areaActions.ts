@@ -11,7 +11,7 @@ export interface Clip {
   strokes: { color: string; points: number[] }[];
 }
 
-function hasCenterIn(area: Area, x: number, y: number, size: number) {
+export function hasCenterIn(area: Area, x: number, y: number, size: number) {
   const center = squareCenter(x, y, size);
   return (
     center.x >= area.x &&

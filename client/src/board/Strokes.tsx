@@ -7,6 +7,7 @@ import { Group, Line } from "react-konva";
 import { useRoom } from "../room/RoomContext";
 import { strokeTouches } from "../room/strokeTouches";
 import { useY } from "../room/useY";
+import { HIGHLIGHT_OPACITY, highlightColor } from "./highlight";
 
 const STROKE_WIDTH = 4;
 const HIT_WIDTH = 16;
@@ -112,9 +113,9 @@ export function Strokes({
           key={`highlight-${stroke.id}`}
           name={stroke.id}
           points={stroke.points}
-          stroke={theme.colors.blue[6]}
+          stroke={highlightColor(theme)}
           strokeWidth={HIGHLIGHT_WIDTH}
-          opacity={0.4}
+          opacity={HIGHLIGHT_OPACITY}
           listening={false}
         />
       ))}

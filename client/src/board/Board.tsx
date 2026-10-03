@@ -305,7 +305,7 @@ export function Board({
         onMouseLeave={handleMouseLeave}
       >
         <Layer listening={false}>
-          <Cells />
+          <Cells selection={area} />
           <GridLines />
         </Layer>
         <Layer>
@@ -319,7 +319,7 @@ export function Board({
             onStrokeClick={clickStroke}
             onStrokesMove={room.moveStrokes}
           />
-          <Tokens listening={isSelecting} />
+          <Tokens listening={isSelecting} selection={area} />
         </Layer>
         <Layer>
           {isSelecting && <MapResizer />}
