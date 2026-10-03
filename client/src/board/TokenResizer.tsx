@@ -1,4 +1,5 @@
 import { useMantineTheme } from "@mantine/core";
+import type { KonvaEventObject } from "konva/lib/Node";
 import type { Transformer as TransformerNode } from "konva/lib/shapes/Transformer";
 import { useEffect, useRef } from "react";
 import { Transformer } from "react-konva";
@@ -7,6 +8,11 @@ import type { Token } from "../room/roomStore";
 import { useRoom } from "../room/RoomContext";
 
 const CORNERS = ["top-left", "top-right", "bottom-left", "bottom-right"];
+
+// Konva drags the transformer along with its token, which must not reach the item drag.
+function stopBubble(event: KonvaEventObject<DragEvent>) {
+  event.cancelBubble = true;
+}
 
 interface TokenResizerProps {
   token: Token;
@@ -70,6 +76,9 @@ export function TokenResizer({ token }: TokenResizerProps) {
       flipEnabled={false}
       borderStroke={theme.colors.blue[6]}
       anchorStroke={theme.colors.blue[6]}
+      onDragStart={stopBubble}
+      onDragMove={stopBubble}
+      onDragEnd={stopBubble}
       // Converts Konva's scaling into whole cells while dragging.
       onTransform={() => showSquare(snappedSquare())}
       onTransformEnd={() => {
