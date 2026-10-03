@@ -19,6 +19,7 @@ import { Strokes } from "./Strokes";
 import { ThrownDice } from "./ThrownDice";
 import { Tokens } from "./Tokens";
 import { paintColorValue, type PaintColor } from "./paintColors";
+import { MapBackground } from "./MapBackground";
 import { MapResizer } from "./MapResizer";
 import { resizableTokenId } from "./selection";
 import { SelectionFrame } from "./SelectionFrame";
@@ -253,6 +254,7 @@ export function Board({
         onMouseLeave={handleMouseLeave}
       >
         <Layer listening={false}>
+          <MapBackground />
           <Cells selection={area} />
           <GridLines />
         </Layer>

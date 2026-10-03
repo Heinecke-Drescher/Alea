@@ -12,6 +12,7 @@ import { useDisclosure, useHotkeys, useLocalStorage } from "@mantine/hooks";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useParams } from "react-router";
 import { isValidRoomId } from "../../../shared/roomId";
+import { BackgroundPanel } from "../background/BackgroundPanel";
 import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
@@ -107,6 +108,7 @@ function RoomView({ roomId }: { roomId: string }) {
         </AppShell.Main>
         <AppShell.Aside p="md">
           <Stack>
+            <BackgroundPanel />
             <TokenPanel />
             <DicePanel playerName={playerName} playerColor={playerColor} />
           </Stack>

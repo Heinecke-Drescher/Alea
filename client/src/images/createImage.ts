@@ -1,18 +1,22 @@
 import Compressor from "compressorjs";
 
-const TOKEN_IMAGE_SIZE = 128;
+export type ImageSize = Pick<
+  Compressor.Options,
+  "width" | "height" | "maxWidth" | "maxHeight" | "resize"
+>;
 
-export async function createTokenImage(file: File): Promise<string> {
-  const shrunk = await shrink(file);
+export async function createImage(
+  file: File,
+  size: ImageSize,
+): Promise<string> {
+  const shrunk = await shrink(file, size);
   return readAsDataUrl(shrunk);
 }
 
-function shrink(file: File): Promise<Blob> {
+function shrink(file: File, size: ImageSize): Promise<Blob> {
   return new Promise((resolve, reject) => {
     new Compressor(file, {
-      width: TOKEN_IMAGE_SIZE,
-      height: TOKEN_IMAGE_SIZE,
-      resize: "cover",
+      ...size,
       mimeType: "image/webp",
       success: resolve,
       error: reject,

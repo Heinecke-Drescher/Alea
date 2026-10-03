@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
+import { BACKGROUND_IMAGE_ID } from "./background";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
 import { rollColor, rollPath } from "./rolls";
@@ -137,6 +138,27 @@ describe("changing tokens", () => {
   it("ignores changes to tokens that no longer exist", () => {
     room.removeToken("gone");
     expect(room.tokensMap.size).toBe(0);
+  });
+});
+
+describe("background", () => {
+  it("sets, replaces and removes the map background", () => {
+    room.setBackground(IMAGE);
+    room.setBackground("data:image/webp;base64,BBBB");
+    expect(room.imagesMap.get(BACKGROUND_IMAGE_ID)).toBe(
+      "data:image/webp;base64,BBBB",
+    );
+    room.removeBackground();
+    expect(room.imagesMap.has(BACKGROUND_IMAGE_ID)).toBe(false);
+  });
+
+  it("undoes each change in its own step", () => {
+    room.setBackground(IMAGE);
+    room.removeBackground();
+    room.undoManager.undo();
+    expect(room.imagesMap.get(BACKGROUND_IMAGE_ID)).toBe(IMAGE);
+    room.undoManager.undo();
+    expect(room.imagesMap.has(BACKGROUND_IMAGE_ID)).toBe(false);
   });
 });
 
