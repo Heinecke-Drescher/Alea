@@ -78,12 +78,17 @@ function rollAlong(
   const layer = group.getLayer();
   if (!layer) throw new Error("Thrown die is not on a layer");
   const length = pathLength(path);
+  // Rolling turns a die by its distance over its radius; rounding to whole turns
+  // makes it stop upright, so the number is easy to read.
+  const turns =
+    length === 0
+      ? 0
+      : Math.max(1, Math.round(length / DIE_RADIUS / (2 * Math.PI)));
   const animation = new Animation((frame) => {
     const progress = Math.min(frame.time / (ROLL_SECONDS * 1000), 1);
     const travelled = easeOut(progress) * length;
     group.position(pointAlong(path, travelled));
-    // A die rolling without slipping turns by its travelled distance over its radius.
-    group.rotation(((travelled / DIE_RADIUS) * 180) / Math.PI);
+    group.rotation(easeOut(progress) * turns * 360);
     onTravelled(travelled);
     if (progress === 1) {
       animation.stop();
