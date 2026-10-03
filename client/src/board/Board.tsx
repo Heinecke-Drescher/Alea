@@ -5,7 +5,6 @@ import type { Stage as StageNode } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
 import { useDieDrop } from "../dice/useDieDrop";
-import { useTokenDrop } from "../tokens/useTokenDrop";
 import { Layer, Stage } from "react-konva";
 import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connectRoom";
@@ -28,6 +27,7 @@ import { SelectionFrame } from "./SelectionFrame";
 import { Toolbar, type Tool } from "./Toolbar";
 import { useClipboard } from "./useClipboard";
 import { useCursorBroadcast } from "./useCursorBroadcast";
+import { useImageDrop } from "./useImageDrop";
 import { useItemDrag } from "./useItemDrag";
 import { useSelection } from "./useSelection";
 
@@ -113,7 +113,7 @@ export function Board({
   const stageRef = useRef<StageNode>(null);
   const cursor = useCursorBroadcast(awareness, playerName, playerColor);
   const dieDrop = useDieDrop({ stageRef, playerName, playerColor });
-  const tokenDrop = useTokenDrop(stageRef);
+  const imageDrop = useImageDrop(stageRef);
   const backgroundImage = useBackgroundImage();
 
   // Keeps the browser's own copy and paste working, e.g. for text in the dice history.
@@ -249,11 +249,11 @@ export function Board({
       }}
       onDragOver={(event) => {
         dieDrop.onDragOver(event);
-        tokenDrop.onDragOver(event);
+        imageDrop.onDragOver(event);
       }}
       onDrop={(event) => {
         dieDrop.onDrop(event);
-        tokenDrop.onDrop(event);
+        imageDrop.onDrop(event);
       }}
     >
       <Stage
