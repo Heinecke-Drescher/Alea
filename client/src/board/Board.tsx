@@ -10,6 +10,7 @@ import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connectRoom";
 import type { PlayerColor } from "../room/playerColors";
 import { useRoom } from "../room/RoomContext";
+import { useBackgroundImage } from "../room/useBackgroundImage";
 import { Cells } from "./Cells";
 import { cursorArrowCss } from "./cursorArrow";
 import { Cursors } from "./Cursors";
@@ -19,7 +20,7 @@ import { Strokes } from "./Strokes";
 import { ThrownDice } from "./ThrownDice";
 import { Tokens } from "./Tokens";
 import { paintColorValue, type PaintColor } from "./paintColors";
-import { MapBackground } from "./MapBackground";
+import { MapFill } from "./MapFill";
 import { MapResizer } from "./MapResizer";
 import { resizableTokenId } from "./selection";
 import { SelectionFrame } from "./SelectionFrame";
@@ -111,6 +112,7 @@ export function Board({
   const stageRef = useRef<StageNode>(null);
   const cursor = useCursorBroadcast(awareness, playerName, playerColor);
   const dieDrop = useDieDrop({ stageRef, playerName, playerColor });
+  const backgroundImage = useBackgroundImage();
 
   // Keeps the browser's own copy and paste working, e.g. for text in the dice history.
   const keepDefault = { preventDefault: false };
@@ -237,7 +239,12 @@ export function Board({
       ref={sizeRef}
       pos="relative"
       h="calc(100dvh - var(--app-shell-header-height))"
-      style={{ cursor: cursorArrowCss(theme.colors[playerColor][6]) }}
+      style={{
+        cursor: cursorArrowCss(theme.colors[playerColor][6]),
+        backgroundImage: backgroundImage ? `url("${backgroundImage}")` : "none",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
       onDragOver={dieDrop.onDragOver}
       onDrop={dieDrop.onDrop}
     >
@@ -254,7 +261,7 @@ export function Board({
         onMouseLeave={handleMouseLeave}
       >
         <Layer listening={false}>
-          <MapBackground />
+          <MapFill />
           <Cells selection={area} />
           <GridLines />
         </Layer>

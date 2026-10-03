@@ -1,16 +1,15 @@
 import { Button, Stack } from "@mantine/core";
 import { createImage } from "../images/createImage";
 import { ImageDropzone } from "../images/ImageDropzone";
-import { BACKGROUND_IMAGE_ID } from "../room/background";
 import { useRoom } from "../room/RoomContext";
-import { useY } from "../room/useY";
+import { useBackgroundImage } from "../room/useBackgroundImage";
 
-// Large enough for a sharp battle map, small enough to sync quickly to every player.
+// Large enough to look sharp on big screens, small enough to sync quickly to every player.
 const BACKGROUND_IMAGE_SIZE = { maxWidth: 2500, maxHeight: 2500 };
 
 export function BackgroundPanel() {
   const room = useRoom();
-  const hasBackground = BACKGROUND_IMAGE_ID in useY(room.imagesMap);
+  const hasBackground = useBackgroundImage() !== null;
 
   async function setBackground(file: File) {
     room.setBackground(await createImage(file, BACKGROUND_IMAGE_SIZE));
