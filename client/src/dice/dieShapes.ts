@@ -14,12 +14,6 @@ function polygon(
   }).flat();
 }
 
-function kite(radius: number) {
-  const side = radius * 0.85;
-  const shoulder = -radius * 0.1;
-  return [0, -radius, side, shoulder, 0, radius, -side, shoulder];
-}
-
 // Flat outlines centred on 0,0 as [x1, y1, x2, y2, …], so the kinds of dice are told apart at a glance.
 export function dieShape(sides: DieSides, radius: number): number[] {
   switch (sides) {
@@ -31,7 +25,8 @@ export function dieShape(sides: DieSides, radius: number): number[] {
       return polygon(4, radius, POINT_UP, 1.2);
     case 10:
     case 100:
-      return kite(radius);
+      // Lying flat and wider than tall, so it is not mistaken for the upright d20.
+      return polygon(6, radius, 0, 0.82);
     case 12:
       return polygon(5, radius);
     case 20:
