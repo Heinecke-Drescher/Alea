@@ -49,6 +49,13 @@ export function clampToMap(point: Vector2d, bounds: MapBounds): Vector2d {
   };
 }
 
+export function cellAt(point: Vector2d) {
+  return {
+    x: Math.floor(point.x / CELL_SIZE),
+    y: Math.floor(point.y / CELL_SIZE),
+  };
+}
+
 export function containsCell(bounds: MapBounds, x: number, y: number) {
   return (
     x >= bounds.x &&
