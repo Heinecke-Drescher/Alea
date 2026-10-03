@@ -19,6 +19,7 @@ import { RoomContext } from "../room/RoomContext";
 import { defaultPlayerColor, isPlayerColor } from "../room/playerColors";
 import { useRoomConnection } from "../room/useRoomConnection";
 import { TokenPanel } from "../tokens/TokenPanel";
+import { ColorSchemeToggle } from "./ColorSchemeToggle";
 import { PlayerNameModal } from "./PlayerNameModal";
 
 export function RoomPage() {
@@ -81,6 +82,7 @@ function RoomView({ roomId }: { roomId: string }) {
           <Group h="100%" px="md" justify="space-between">
             <Title order={3}>Alea</Title>
             <Group gap="xs">
+              <ColorSchemeToggle />
               <Button variant="subtle" color={playerColor} onClick={editName}>
                 {playerName}
               </Button>
