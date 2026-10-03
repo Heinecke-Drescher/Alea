@@ -50,6 +50,16 @@ describe("dragVelocity", () => {
     ).toEqual({ x: 400, y: 200 });
   });
 
+  it("loses the swing when the die is held still before letting go", () => {
+    expect(
+      dragVelocity([
+        { x: 0, y: 0, time: 0 },
+        { x: 100, y: 0, time: 50 },
+        { x: 100, y: 0, time: 250 },
+      ]),
+    ).toEqual({ x: 0, y: 0 });
+  });
+
   it("has no swing without movement over time", () => {
     expect(dragVelocity([])).toEqual({ x: 0, y: 0 });
     expect(dragVelocity([{ x: 5, y: 5, time: 10 }])).toEqual({ x: 0, y: 0 });
@@ -59,8 +69,8 @@ describe("dragVelocity", () => {
 describe("throwPath", () => {
   it("rolls straight on in the direction of the throw", () => {
     expect(
-      rounded(throwPath({ x: 100, y: 100 }, { x: 400, y: 0 }, map)),
-    ).toEqual([100, 100, 200, 100]);
+      rounded(throwPath({ x: 100, y: 100 }, { x: 100, y: 0 }, map)),
+    ).toEqual([100, 100, 300, 100]);
   });
 
   it("stays where the die was dropped without any swing", () => {
@@ -71,8 +81,8 @@ describe("throwPath", () => {
 
   it("bounces off an edge and loses some swing", () => {
     expect(
-      rounded(throwPath({ x: 450, y: 100 }, { x: 600, y: 0 }, map)),
-    ).toEqual([450, 100, 500, 100, 440, 100]);
+      rounded(throwPath({ x: 450, y: 100 }, { x: 150, y: 0 }, map)),
+    ).toEqual([450, 100, 500, 100, 350, 100]);
   });
 
   it("bounces back from a corner", () => {

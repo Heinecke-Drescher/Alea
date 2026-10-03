@@ -262,7 +262,10 @@ export function Board({
     if (!sides) return;
     event.preventDefault();
     const point = dragPointOnMap(event);
-    const velocity = dragVelocity(dragSamples.current);
+    const velocity = dragVelocity([
+      ...dragSamples.current,
+      { ...point, time: event.timeStamp },
+    ]);
     dragSamples.current = [];
     const bounds = room.mapBounds();
     const cell = cellAt(point);

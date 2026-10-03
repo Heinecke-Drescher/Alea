@@ -7,9 +7,9 @@ export interface DragSample {
   time: number;
 }
 
-export const MAX_THROW_DISTANCE = 4 * CELL_SIZE;
+export const MAX_THROW_DISTANCE = 32 * CELL_SIZE;
 export const SWING_WINDOW_MS = 100;
-const SECONDS_OF_ROLLING = 0.25;
+const SECONDS_OF_ROLLING = 2;
 const KEPT_AFTER_BOUNCE = 0.6;
 const MAX_BOUNCES = 6;
 
