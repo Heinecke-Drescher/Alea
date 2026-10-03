@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { MAX_TOKEN_SIZE, type Square } from "./grid";
 import { placeToken, type MapActions } from "./map";
 import { cellKey, type RoomStore, type Token } from "./roomStore";
 
@@ -35,12 +36,16 @@ export function createTokens(
     updateToken(id, (token) => ({ ...token, name }));
   }
 
-  function resizeToken(id: string, size: number) {
+  function resizeToken(id: string, square: Square) {
+    const { size } = square;
+    if (!Number.isInteger(size) || size < 1 || size > MAX_TOKEN_SIZE) {
+      throw new Error(`Invalid token size ${size}`);
+    }
     undoManager.stopCapturing();
     updateToken(id, (token) => ({
       ...token,
       size,
-      ...placeToken(mapBounds(), { ...token, size }, 0, 0),
+      ...placeToken(mapBounds(), square, 0, 0),
     }));
   }
 

@@ -32,6 +32,7 @@ import { ThrownDice } from "./ThrownDice";
 import { Tokens } from "./Tokens";
 import { paintColorValue, type PaintColor } from "./paintColors";
 import { MapResizer } from "./MapResizer";
+import { resizableTokenId } from "./selection";
 import { SelectionFrame } from "./SelectionFrame";
 import { Toolbar, type Tool } from "./Toolbar";
 import { useClipboard } from "./useClipboard";
@@ -339,6 +340,7 @@ export function Board({
             listening={isSelecting}
             selection={area}
             selectedIds={items.tokens}
+            resizableId={resizableTokenId(items)}
             onTokenPress={pressItem("tokens")}
             onTokenClick={clickItem("tokens")}
           />

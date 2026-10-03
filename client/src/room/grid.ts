@@ -11,6 +11,13 @@ export interface MapBounds {
   rows: number;
 }
 
+// A token's place in cells.
+export interface Square {
+  x: number;
+  y: number;
+  size: number;
+}
+
 export const DEFAULT_MAP_BOUNDS: MapBounds = {
   x: 0,
   y: 0,
@@ -18,6 +25,7 @@ export const DEFAULT_MAP_BOUNDS: MapBounds = {
   rows: 20,
 };
 export const MIN_MAP_CELLS = 5;
+export const MAX_TOKEN_SIZE = 3;
 export const MAX_MAP_CELLS = 100;
 
 export function mapRect({ x, y, columns, rows }: MapBounds): IRect {
@@ -50,10 +58,30 @@ export function containsCell(bounds: MapBounds, x: number, y: number) {
   );
 }
 
+export function snapMapBounds(box: IRect, anchor: string) {
+  return snapToCells(box, anchor, MIN_MAP_CELLS, MAX_MAP_CELLS);
+}
+
+// Tokens keep their aspect ratio while resized, so the width alone gives their size.
+export function snapTokenSquare(box: IRect, anchor: string): Square {
+  const { x, y, columns } = snapToCells(
+    { ...box, height: box.width },
+    anchor,
+    1,
+    MAX_TOKEN_SIZE,
+  );
+  return { x, y, size: columns };
+}
+
 // Keeps the edge opposite to the dragged anchor in place when the size hits its limits.
-export function snapMapBounds(box: IRect, anchor: string): MapBounds {
+function snapToCells(
+  box: IRect,
+  anchor: string,
+  min: number,
+  max: number,
+): MapBounds {
   const toCells = (pixels: number) => Math.round(pixels / CELL_SIZE);
-  const limit = (cells: number) => clamp(cells, MIN_MAP_CELLS, MAX_MAP_CELLS);
+  const limit = (cells: number) => clamp(cells, min, max);
   const left = toCells(box.x);
   const top = toCells(box.y);
   const right = toCells(box.x + box.width);

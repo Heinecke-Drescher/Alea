@@ -1,16 +1,7 @@
-import {
-  Avatar,
-  CloseButton,
-  Group,
-  SegmentedControl,
-  Stack,
-  TextInput,
-} from "@mantine/core";
+import { Avatar, CloseButton, Group, Stack, TextInput } from "@mantine/core";
 import { embeddedImage } from "../room/tokens";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
-
-const TOKEN_SIZES = ["1", "2", "3"];
 
 export function TokenList() {
   const room = useRoom();
@@ -28,12 +19,6 @@ export function TokenList() {
             aria-label="Token name"
             size="xs"
             flex={1}
-          />
-          <SegmentedControl
-            data={TOKEN_SIZES}
-            value={String(token.size)}
-            onChange={(size) => room.resizeToken(token.id, Number(size))}
-            size="xs"
           />
           <CloseButton
             onClick={() => room.removeToken(token.id)}

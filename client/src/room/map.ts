@@ -4,6 +4,7 @@ import {
   DEFAULT_MAP_BOUNDS,
   isValidMapBounds,
   type MapBounds,
+  type Square,
 } from "./grid";
 import type { RoomStore } from "./roomStore";
 
@@ -11,7 +12,7 @@ export type MapActions = ReturnType<typeof createMapActions>;
 
 export function placeToken(
   bounds: MapBounds,
-  token: { x: number; y: number; size: number },
+  token: Square,
   dx: number,
   dy: number,
 ) {

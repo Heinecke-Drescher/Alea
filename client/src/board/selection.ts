@@ -6,7 +6,7 @@ import {
   type Items,
   type ItemType,
 } from "../room/areaActions";
-import { CELL_SIZE, mapRect, type MapBounds } from "../room/grid";
+import { CELL_SIZE, mapRect, type MapBounds, type Square } from "../room/grid";
 
 export type Selection =
   | { kind: "none" }
@@ -31,6 +31,11 @@ export function selectedArea(selection: Selection) {
 
 export function selectedItems(selection: Selection) {
   return selection.kind === "items" ? selection.items : NO_ITEMS;
+}
+
+export function resizableTokenId({ strokes, tokens }: Items) {
+  const [id, ...others] = tokens;
+  return id && others.length === 0 && strokes.length === 0 ? id : null;
 }
 
 export function withPressedItem(
@@ -100,9 +105,7 @@ export function clipBounds(clip: Clip): IRect {
   ]);
 }
 
-export function squaresBounds(
-  squares: { x: number; y: number; size: number }[],
-): IRect {
+export function squaresBounds(squares: Square[]): IRect {
   return linesBounds(
     squares.map(({ x, y, size }) => [
       x * CELL_SIZE,

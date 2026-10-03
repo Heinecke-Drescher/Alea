@@ -11,6 +11,7 @@ import {
   NO_ITEMS,
   NO_SELECTION,
   pixelOffset,
+  resizableTokenId,
   selectedArea,
   selectedItems,
   withoutItem,
@@ -84,6 +85,15 @@ describe("item selection rules", () => {
     expect(selectedArea(area)).toEqual({ x: 0, y: 0, width: 10, height: 10 });
     expect(selectedItems(area)).toEqual(NO_ITEMS);
     expect(selectedArea(strokes(["a"]))).toBeNull();
+  });
+});
+
+describe("resizableTokenId", () => {
+  it("allows resizing only a single selected token", () => {
+    expect(resizableTokenId({ strokes: [], tokens: ["t"] })).toBe("t");
+    expect(resizableTokenId({ strokes: [], tokens: ["t", "u"] })).toBeNull();
+    expect(resizableTokenId({ strokes: ["s"], tokens: ["t"] })).toBeNull();
+    expect(resizableTokenId(NO_ITEMS)).toBeNull();
   });
 });
 

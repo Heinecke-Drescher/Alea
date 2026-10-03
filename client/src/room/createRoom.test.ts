@@ -83,7 +83,7 @@ describe("addToken", () => {
 
   it("does not place new tokens on cells covered by a large token", () => {
     room.addToken("Dragon", IMAGE);
-    room.resizeToken(onlyToken().id, 3);
+    room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
     room.addToken("Goblin", IMAGE);
     const goblin = Array.from(room.tokensMap.values()).find(
       (token) => token.name === "Goblin",
@@ -98,15 +98,33 @@ describe("addToken", () => {
 });
 
 describe("changing tokens", () => {
+  it("resizes a token to a new place and size in a single undo step", () => {
+    room.addToken("Dragon", IMAGE);
+    moveOnlyTokenTo(5, 5);
+    const before = room.doc.toJSON();
+    room.resizeToken(onlyToken().id, { x: 3, y: 4, size: 3 });
+    expect(onlyToken()).toMatchObject({ x: 3, y: 4, size: 3 });
+    room.undoManager.undo();
+    expect(room.doc.toJSON()).toEqual(before);
+  });
+
   it("keeps a resized token inside the map", () => {
     room.addToken("Dragon", IMAGE);
     moveOnlyTokenTo(columns - 1, rows - 1);
-    room.resizeToken(onlyToken().id, 3);
+    room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
     expect(onlyToken()).toMatchObject({
       size: 3,
       x: columns - 3,
       y: rows - 3,
     });
+  });
+
+  it("refuses token sizes it does not support", () => {
+    room.addToken("Dragon", IMAGE);
+    const { id } = onlyToken();
+    expect(() => room.resizeToken(id, { x: 0, y: 0, size: 0 })).toThrow();
+    expect(() => room.resizeToken(id, { x: 0, y: 0, size: 4 })).toThrow();
+    expect(() => room.resizeToken(id, { x: 0, y: 0, size: 1.5 })).toThrow();
   });
 
   it("removes a token and its image", () => {
@@ -214,8 +232,7 @@ describe("moveArea", () => {
 
   it("moves tokens whose center is inside and keeps them on the map", () => {
     room.addToken("Dragon", IMAGE);
-    const { id } = onlyToken();
-    room.resizeToken(id, 3);
+    room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
     room.moveArea(cellArea(1, 1, 1, 1), columns, 2);
     expect(onlyToken()).toMatchObject({ x: columns - 3, y: 2 });
   });
@@ -424,7 +441,7 @@ describe("map bounds", () => {
 
     room.addToken("Ogre", IMAGE);
     moveOnlyTokenTo(0, 6);
-    room.resizeToken(onlyToken().id, 3);
+    room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
     expect(room.resize(bounds(0, 0, 30, 8))).toBe(false);
     expect(room.resize(bounds(0, 7, 30, 13))).toBe(false);
     expect(room.mapBounds()).toEqual(DEFAULT_MAP_BOUNDS);
@@ -448,7 +465,7 @@ describe("map bounds", () => {
     room.addToken("Ogre", IMAGE);
     expect(onlyToken()).toMatchObject({ x: -10, y: 0 });
     moveOnlyTokenTo(29, 0);
-    room.resizeToken(onlyToken().id, 2);
+    room.resizeToken(onlyToken().id, { ...onlyToken(), size: 2 });
     expect(onlyToken()).toMatchObject({ x: 28, y: 0 });
   });
 
