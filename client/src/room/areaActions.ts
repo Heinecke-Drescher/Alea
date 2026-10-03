@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { CELL_SIZE } from "./grid";
+import { CELL_SIZE, squareCenter } from "./grid";
 import { putCell, shiftPoints } from "./drawing";
 import { placeToken, type MapActions } from "./map";
 import { cellKey, type Cell, type RoomStore } from "./roomStore";
@@ -12,13 +12,12 @@ export interface Clip {
 }
 
 function hasCenterIn(area: Area, x: number, y: number, size: number) {
-  const centerX = (x + size / 2) * CELL_SIZE;
-  const centerY = (y + size / 2) * CELL_SIZE;
+  const center = squareCenter(x, y, size);
   return (
-    centerX >= area.x &&
-    centerX <= area.x + area.width &&
-    centerY >= area.y &&
-    centerY <= area.y + area.height
+    center.x >= area.x &&
+    center.x <= area.x + area.width &&
+    center.y >= area.y &&
+    center.y <= area.y + area.height
   );
 }
 

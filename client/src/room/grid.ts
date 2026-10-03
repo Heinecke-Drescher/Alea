@@ -29,6 +29,10 @@ export function mapRect({ x, y, columns, rows }: MapBounds): IRect {
   };
 }
 
+export function squareCenter(x: number, y: number, size: number): Vector2d {
+  return { x: (x + size / 2) * CELL_SIZE, y: (y + size / 2) * CELL_SIZE };
+}
+
 export function clampToMap(point: Vector2d, bounds: MapBounds): Vector2d {
   const { x, y, width, height } = mapRect(bounds);
   return {

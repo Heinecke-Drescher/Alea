@@ -1,3 +1,6 @@
+import type { Vector2d } from "konva/lib/types";
+import { segments } from "./points";
+
 export interface Area {
   x: number;
   y: number;
@@ -5,38 +8,15 @@ export interface Area {
   height: number;
 }
 
-interface Point {
-  x: number;
-  y: number;
-}
-
 export function strokeTouches(points: number[], area: Area) {
-  const vertices = toVertices(points);
-  return vertices.some((start, i) => {
-    const end = vertices[i + 1];
-    return end !== undefined && segmentTouches(start, end, area);
-  });
-}
-
-function toVertices(points: number[]): Point[] {
-  if (points.length < 4 || points.length % 2 !== 0) {
-    throw new Error("A stroke needs at least two points");
-  }
-  const vertices: Point[] = [];
-  for (let i = 0; i < points.length; i += 2) {
-    vertices.push({ x: at(points, i), y: at(points, i + 1) });
-  }
-  return vertices;
-}
-
-function at(points: number[], index: number) {
-  const value = points[index];
-  if (value === undefined) throw new Error(`No point at index ${index}`);
-  return value;
+  if (points.length < 4) throw new Error("A stroke needs at least two points");
+  return segments(points).some(({ from, to }) =>
+    segmentTouches(from, to, area),
+  );
 }
 
 // Liang–Barsky: narrows the part of the segment that lies inside each edge.
-function segmentTouches(start: Point, end: Point, area: Area) {
+function segmentTouches(start: Vector2d, end: Vector2d, area: Area) {
   const dx = end.x - start.x;
   const dy = end.y - start.y;
   const edges = [

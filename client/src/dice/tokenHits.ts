@@ -1,16 +1,12 @@
 import type { Vector2d } from "konva/lib/types";
-import { CELL_SIZE } from "../room/grid";
+import { CELL_SIZE, squareCenter } from "../room/grid";
+import { segments } from "../room/points";
 import type { Token } from "../room/roomStore";
-import { segments } from "./throwPath";
 
 export interface TokenHit {
   tokenId: string;
   distance: number;
   direction: Vector2d;
-}
-
-function tokenCenter({ x, y, size }: Token): Vector2d {
-  return { x: (x + size / 2) * CELL_SIZE, y: (y + size / 2) * CELL_SIZE };
 }
 
 function contactShare(
@@ -41,7 +37,7 @@ export function tokenHits(
 ): TokenHit[] {
   const hits: TokenHit[] = [];
   for (const token of tokens) {
-    const center = tokenCenter(token);
+    const center = squareCenter(token.x, token.y, token.size);
     const reach = (token.size * CELL_SIZE) / 2 + dieRadius;
     let travelled = 0;
     for (const { from, to, length } of segments(path)) {

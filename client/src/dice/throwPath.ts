@@ -1,5 +1,6 @@
 import type { Vector2d } from "konva/lib/types";
 import { CELL_SIZE, clampToMap, mapRect, type MapBounds } from "../room/grid";
+import { segments, toPoints } from "../room/points";
 
 export interface DragSample {
   x: number;
@@ -24,29 +25,6 @@ function distanceToEdge(
   return Infinity;
 }
 
-function pathPoints(path: number[]): Vector2d[] {
-  if (path.length < 2 || path.length % 2 !== 0) {
-    throw new Error(`Invalid path of ${path.length} values`);
-  }
-  const points: Vector2d[] = [];
-  for (let i = 0; i < path.length; i += 2) {
-    const x = path[i];
-    const y = path[i + 1];
-    if (x === undefined || y === undefined) throw new Error("Invalid path");
-    points.push({ x, y });
-  }
-  return points;
-}
-
-export function segments(path: number[]) {
-  const points = pathPoints(path);
-  return points.slice(1).map((to, i) => {
-    const from = points[i];
-    if (!from) throw new Error("Invalid path");
-    return { from, to, length: Math.hypot(to.x - from.x, to.y - from.y) };
-  });
-}
-
 export function pathLength(path: number[]) {
   return segments(path).reduce((sum, { length }) => sum + length, 0);
 }
@@ -63,7 +41,7 @@ export function pointAlong(path: number[], distance: number): Vector2d {
     }
     left -= length;
   }
-  const end = pathPoints(path).at(-1);
+  const end = toPoints(path).at(-1);
   if (!end) throw new Error("Invalid path");
   return end;
 }
