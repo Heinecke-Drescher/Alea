@@ -6,12 +6,7 @@ import {
   BACKGROUND_FILE_MEGABYTES,
   setBackgroundFromFile,
 } from "../background/setBackgroundFromFile";
-import {
-  handleImageFile,
-  imageFileRule,
-  isImageFile,
-  notifyFileError,
-} from "../images/imageFiles";
+import { handleImageFile, validImages } from "../images/imageFiles";
 import { cellAt, containsCell, dropCells } from "../room/grid";
 import { useRoom } from "../room/RoomContext";
 import {
@@ -22,15 +17,6 @@ import { dropPointOnMap } from "./dropPoint";
 
 function isFileDrag(dataTransfer: DataTransfer) {
   return dataTransfer.types.includes("Files");
-}
-
-function validImages(files: File[], maxMegabytes: number) {
-  const images = files.filter((file) => isImageFile(file, maxMegabytes));
-  for (const file of files) {
-    if (images.includes(file)) continue;
-    notifyFileError(file, new Error(imageFileRule(maxMegabytes)));
-  }
-  return images;
 }
 
 // Images dropped on the map become tokens, images dropped beside it the background.

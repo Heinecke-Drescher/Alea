@@ -1,5 +1,5 @@
-import { Button, Stack } from "@mantine/core";
-import { ImageDropzone } from "../images/ImageDropzone";
+import { Button, Group } from "@mantine/core";
+import { ImageFileButton } from "../images/ImageFileButton";
 import { useRoom } from "../room/RoomContext";
 import { useBackgroundImage } from "../room/useBackgroundImage";
 import {
@@ -12,12 +12,11 @@ export function BackgroundPanel() {
   const hasBackground = useBackgroundImage() !== null;
 
   return (
-    <Stack gap="xs">
-      <ImageDropzone
+    <Group gap="xs" grow>
+      <ImageFileButton
+        label="Set background…"
         maxMegabytes={BACKGROUND_FILE_MEGABYTES}
         multiple={false}
-        label="Drop a map background here or click to select"
-        acceptLabel="Drop to set the background"
         onFile={(file) => setBackgroundFromFile(room, file)}
       />
       {hasBackground && (
@@ -25,6 +24,6 @@ export function BackgroundPanel() {
           Remove background
         </Button>
       )}
-    </Stack>
+    </Group>
   );
 }

@@ -8,17 +8,27 @@ export const IMAGE_TYPES = [
   "image/avif",
 ];
 
-export function imageFileRule(maxMegabytes: number) {
+function imageFileRule(maxMegabytes: number) {
   return `Only PNG, JPEG, WebP, GIF or AVIF up to ${maxMegabytes} MB`;
 }
 
-export function isImageFile(file: File, maxMegabytes: number) {
+function isImageFile(file: File, maxMegabytes: number) {
   return (
     IMAGE_TYPES.includes(file.type) && file.size <= maxMegabytes * 1024 ** 2
   );
 }
 
-export function notifyFileError(file: File, error: unknown) {
+// Reports the files that are no images or too large and returns the others.
+export function validImages(files: File[], maxMegabytes: number) {
+  const images = files.filter((file) => isImageFile(file, maxMegabytes));
+  for (const file of files) {
+    if (images.includes(file)) continue;
+    notifyFileError(file, new Error(imageFileRule(maxMegabytes)));
+  }
+  return images;
+}
+
+function notifyFileError(file: File, error: unknown) {
   console.error(error);
   notifications.show({
     color: "red",
