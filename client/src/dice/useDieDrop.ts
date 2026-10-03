@@ -1,6 +1,7 @@
 import type { Stage as StageNode } from "konva/lib/Stage";
 import { useRef, type DragEvent, type RefObject } from "react";
 import { rollDie } from "../../../shared/dice";
+import { dropPointOnMap } from "../board/dropPoint";
 import { cellAt, containsCell } from "../room/grid";
 import type { PlayerColor } from "../room/playerColors";
 import { useRoom } from "../room/RoomContext";
@@ -26,15 +27,6 @@ export function useDieDrop({
   const room = useRoom();
   const dragSamples = useRef<DragSample[]>([]);
 
-  function dragPointOnMap(event: DragEvent<HTMLElement>) {
-    const stage = stageRef.current;
-    if (!stage) throw new Error("Stage is not mounted");
-    stage.setPointersPositions(event.nativeEvent);
-    const point = stage.getRelativePointerPosition();
-    if (!point) throw new Error("Drag without stage pointer");
-    return point;
-  }
-
   function trackDieDrag(event: DragEvent<HTMLElement>) {
     if (!isDieDrag(event.dataTransfer)) return;
     event.preventDefault();
@@ -43,7 +35,7 @@ export function useDieDrop({
       ...dragSamples.current.filter(
         (sample) => time - sample.time <= SWING_WINDOW_MS,
       ),
-      { ...dragPointOnMap(event), time },
+      { ...dropPointOnMap(stageRef.current, event), time },
     ];
   }
 
@@ -51,7 +43,7 @@ export function useDieDrop({
     const sides = droppedDie(event.dataTransfer);
     if (!sides) return;
     event.preventDefault();
-    const point = dragPointOnMap(event);
+    const point = dropPointOnMap(stageRef.current, event);
     const velocity = dragVelocity([
       ...dragSamples.current,
       { ...point, time: event.timeStamp },

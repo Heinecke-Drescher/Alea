@@ -1,14 +1,6 @@
 import { Text } from "@mantine/core";
 import { Dropzone } from "@mantine/dropzone";
-import { notifications } from "@mantine/notifications";
-
-const IMAGE_TYPES = [
-  "image/png",
-  "image/jpeg",
-  "image/webp",
-  "image/gif",
-  "image/avif",
-];
+import { handleImageFile, IMAGE_TYPES, imageFileRule } from "./imageFiles";
 
 interface ImageDropzoneProps {
   maxMegabytes: number;
@@ -16,19 +8,6 @@ interface ImageDropzoneProps {
   label: string;
   acceptLabel: string;
   onFile: (file: File) => Promise<void>;
-}
-
-async function handleFile(file: File, onFile: (file: File) => Promise<void>) {
-  try {
-    await onFile(file);
-  } catch (error) {
-    console.error(error);
-    notifications.show({
-      color: "red",
-      title: `Could not add ${file.name}`,
-      message: error instanceof Error ? error.message : String(error),
-    });
-  }
 }
 
 export function ImageDropzone({
@@ -43,7 +22,9 @@ export function ImageDropzone({
       accept={IMAGE_TYPES}
       maxSize={maxMegabytes * 1024 ** 2}
       multiple={multiple}
-      onDrop={(files) => files.forEach((file) => void handleFile(file, onFile))}
+      onDrop={(files) =>
+        files.forEach((file) => void handleImageFile(file, onFile))
+      }
     >
       <Dropzone.Idle>
         <Text ta="center" c="dimmed">
@@ -55,7 +36,7 @@ export function ImageDropzone({
       </Dropzone.Accept>
       <Dropzone.Reject>
         <Text ta="center" c="red">
-          Only PNG, JPEG, WebP, GIF or AVIF up to {maxMegabytes} MB
+          {imageFileRule(maxMegabytes)}
         </Text>
       </Dropzone.Reject>
     </Dropzone>

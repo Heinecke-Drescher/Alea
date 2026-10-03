@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CELL_SIZE,
   clampToMap,
+  dropCells,
   MAX_MAP_CELLS,
   MAX_TOKEN_SIZE,
   MIN_MAP_CELLS,
@@ -54,6 +55,56 @@ describe("snapMapBounds", () => {
       columns: 30,
       rows: MAX_MAP_CELLS,
     });
+  });
+});
+
+describe("dropCells", () => {
+  const map = { x: 0, y: 0, columns: 20, rows: 10 };
+
+  it("lays tokens out to the right of the start cell", () => {
+    expect(dropCells({ x: 3, y: 4 }, 3, map)).toEqual([
+      { x: 3, y: 4 },
+      { x: 4, y: 4 },
+      { x: 5, y: 4 },
+    ]);
+  });
+
+  it("shifts the row left so it stays on the map", () => {
+    expect(dropCells({ x: 18, y: 4 }, 4, map)).toEqual([
+      { x: 16, y: 4 },
+      { x: 17, y: 4 },
+      { x: 18, y: 4 },
+      { x: 19, y: 4 },
+    ]);
+  });
+
+  it("moves a start beside the map onto it", () => {
+    expect(dropCells({ x: -5, y: 30 }, 1, map)).toEqual([{ x: 0, y: 9 }]);
+  });
+
+  it("continues in the next row when a row is full", () => {
+    const narrow = { x: 0, y: 0, columns: 5, rows: 10 };
+    expect(dropCells({ x: 3, y: 1 }, 7, narrow)).toEqual([
+      { x: 0, y: 1 },
+      { x: 1, y: 1 },
+      { x: 2, y: 1 },
+      { x: 3, y: 1 },
+      { x: 4, y: 1 },
+      { x: 3, y: 2 },
+      { x: 4, y: 2 },
+    ]);
+  });
+
+  it("shifts the rows up so they stay on the map", () => {
+    const narrow = { x: 0, y: 0, columns: 5, rows: 10 };
+    expect(dropCells({ x: 0, y: 9 }, 6, narrow)).toEqual([
+      { x: 0, y: 8 },
+      { x: 1, y: 8 },
+      { x: 2, y: 8 },
+      { x: 3, y: 8 },
+      { x: 4, y: 8 },
+      { x: 0, y: 9 },
+    ]);
   });
 });
 

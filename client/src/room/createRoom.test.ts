@@ -82,6 +82,14 @@ describe("addToken", () => {
     );
   });
 
+  it("places a new token on the given cell and keeps it on the map", () => {
+    room.addToken("Goblin", IMAGE, { x: 4, y: 2 });
+    expect(onlyToken()).toMatchObject({ x: 4, y: 2, size: 1 });
+    room.removeToken(onlyToken().id);
+    room.addToken("Goblin", IMAGE, { x: columns + 3, y: -2 });
+    expect(onlyToken()).toMatchObject({ x: columns - 1, y: 0 });
+  });
+
   it("does not place new tokens on cells covered by a large token", () => {
     room.addToken("Dragon", IMAGE);
     room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });

@@ -56,6 +56,22 @@ export function cellAt(point: Vector2d) {
   };
 }
 
+// Lays dropped tokens out in rows from the start cell, shifted left and up so they stay on the map.
+export function dropCells(
+  start: { x: number; y: number },
+  count: number,
+  map: MapBounds,
+) {
+  const rows = Math.ceil(count / map.columns);
+  const top = clamp(start.y, map.y, map.y + map.rows - rows);
+  return Array.from({ length: count }, (_, i) => {
+    const row = Math.floor(i / map.columns);
+    const rowLength = Math.min(map.columns, count - row * map.columns);
+    const left = clamp(start.x, map.x, map.x + map.columns - rowLength);
+    return { x: left + (i % map.columns), y: top + row };
+  });
+}
+
 export function containsCell(bounds: MapBounds, x: number, y: number) {
   return (
     x >= bounds.x &&

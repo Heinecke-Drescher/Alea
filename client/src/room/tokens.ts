@@ -21,11 +21,18 @@ export function createTokens(
   { doc, tokensMap, imagesMap, undoManager }: RoomStore,
   { mapBounds }: MapActions,
 ) {
-  function addToken(name: string, imageDataUrl: string) {
+  // Without a cell, the token goes to the first free one.
+  function addToken(
+    name: string,
+    imageDataUrl: string,
+    cell?: { x: number; y: number },
+  ) {
     undoManager.stopCapturing();
     const id = nanoid();
     const imageId = nanoid();
-    const { x, y } = findFreeCell();
+    const { x, y } = cell
+      ? placeToken(mapBounds(), { ...cell, size: 1 }, 0, 0)
+      : findFreeCell();
     doc.transact(() => {
       imagesMap.set(imageId, imageDataUrl);
       tokensMap.set(id, { id, name, imageId, x, y, size: 1 });
