@@ -11,6 +11,12 @@ import {
 } from "react";
 import { rollDie } from "../../../shared/dice";
 import { droppedDie, isDieDrag } from "../dice/dieDrag";
+import {
+  dragVelocity,
+  SWING_WINDOW_MS,
+  throwPath,
+  type DragSample,
+} from "../dice/throwPath";
 import { Layer, Stage } from "react-konva";
 import type { Awareness } from "../room/connectRoom";
 import type { PlayerColor } from "../room/playerColors";
@@ -117,6 +123,7 @@ export function Board({
   });
   const isPressed = useRef(false);
   const stageRef = useRef<StageNode>(null);
+  const dragSamples = useRef<DragSample[]>([]);
   const cursor = useCursorBroadcast(awareness, playerName, playerColor);
 
   // Keeps the browser's own copy and paste working, e.g. for text in the dice history.
@@ -229,18 +236,48 @@ export function Board({
     handleMouseUp();
   }
 
-  function rollDroppedDie(event: ReactDragEvent<HTMLDivElement>) {
-    const sides = droppedDie(event.dataTransfer);
-    if (!sides) return;
-    event.preventDefault();
+  function dragPointOnMap(event: ReactDragEvent<HTMLDivElement>) {
     const stage = stageRef.current;
     if (!stage) throw new Error("Stage is not mounted");
     stage.setPointersPositions(event.nativeEvent);
     const point = stage.getRelativePointerPosition();
-    if (!point) throw new Error("Drop without stage pointer");
+    if (!point) throw new Error("Drag without stage pointer");
+    return point;
+  }
+
+  function trackDieDrag(event: ReactDragEvent<HTMLDivElement>) {
+    if (!isDieDrag(event.dataTransfer)) return;
+    event.preventDefault();
+    const time = event.timeStamp;
+    dragSamples.current = [
+      ...dragSamples.current.filter(
+        (sample) => time - sample.time <= SWING_WINDOW_MS,
+      ),
+      { ...dragPointOnMap(event), time },
+    ];
+  }
+
+  function rollDroppedDie(event: ReactDragEvent<HTMLDivElement>) {
+    const sides = droppedDie(event.dataTransfer);
+    if (!sides) return;
+    event.preventDefault();
+    const point = dragPointOnMap(event);
+    const velocity = dragVelocity(dragSamples.current);
+    dragSamples.current = [];
+    const bounds = room.mapBounds();
     const cell = cellAt(point);
-    if (!containsCell(room.mapBounds(), cell.x, cell.y)) return;
-    room.addRoll(playerName, playerColor, sides, rollDie(sides), point);
+    if (!containsCell(bounds, cell.x, cell.y)) return;
+    const path = throwPath(point, velocity, bounds);
+    const [x, y] = path.slice(-2);
+    if (x === undefined || y === undefined) throw new Error("Empty throw path");
+    room.addRoll(
+      playerName,
+      playerColor,
+      sides,
+      rollDie(sides),
+      { x, y },
+      path,
+    );
   }
 
   return (
@@ -249,9 +286,7 @@ export function Board({
       pos="relative"
       h="calc(100dvh - var(--app-shell-header-height))"
       style={{ cursor: cursorArrowCss(theme.colors[playerColor][6]) }}
-      onDragOver={(event) => {
-        if (isDieDrag(event.dataTransfer)) event.preventDefault();
-      }}
+      onDragOver={trackDieDrag}
       onDrop={rollDroppedDie}
     >
       <Stage

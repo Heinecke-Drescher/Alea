@@ -34,6 +34,7 @@ export interface Roll {
   at: number;
   // Where a die dragged onto the map landed, in pixels. Clicked dice have none and land in each viewer's view.
   position?: { x: number; y: number };
+  path?: number[];
 }
 
 export type RoomStore = ReturnType<typeof createRoomStore>;
