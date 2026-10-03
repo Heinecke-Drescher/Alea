@@ -1,11 +1,9 @@
 import { useMantineTheme } from "@mantine/core";
-import { clamp } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import { Circle, Group, Image } from "react-konva";
 import useImage from "use-image";
 import type { Token } from "../room/roomStore";
-import { useRoom } from "../room/RoomContext";
-import { CELL_SIZE, type MapBounds } from "../room/grid";
+import { CELL_SIZE } from "../room/grid";
 import { HIGHLIGHT_OPACITY, highlightColor } from "./highlight";
 
 const HIGHLIGHT_RING = 10;
@@ -14,28 +12,17 @@ interface TokenViewProps {
   token: Token;
   imageDataUrl: string;
   isHighlighted: boolean;
-}
-
-function snapToGrid(
-  event: KonvaEventObject<DragEvent>,
-  token: Token,
-  map: MapBounds,
-) {
-  const node = event.target;
-  const snap = (value: number, start: number, cells: number) =>
-    clamp(Math.round(value / CELL_SIZE), start, start + cells - token.size);
-  const x = snap(node.x(), map.x, map.columns);
-  const y = snap(node.y(), map.y, map.rows);
-  node.position({ x: x * CELL_SIZE, y: y * CELL_SIZE });
-  return { x, y };
+  onPress: (event: KonvaEventObject<MouseEvent>) => void;
+  onClick: (event: KonvaEventObject<MouseEvent>) => void;
 }
 
 export function TokenView({
   token,
   imageDataUrl,
   isHighlighted,
+  onPress,
+  onClick,
 }: TokenViewProps) {
-  const room = useRoom();
   const theme = useMantineTheme();
   const [image, status] = useImage(imageDataUrl);
   if (status === "failed") {
@@ -49,10 +36,8 @@ export function TokenView({
       x={token.x * CELL_SIZE}
       y={token.y * CELL_SIZE}
       draggable
-      onDragEnd={(event) => {
-        const { x, y } = snapToGrid(event, token, room.mapBounds());
-        room.moveToken(token.id, x, y);
-      }}
+      onMouseDown={onPress}
+      onClick={onClick}
     >
       {isHighlighted && (
         <Circle

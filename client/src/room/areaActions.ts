@@ -2,13 +2,45 @@ import { nanoid } from "nanoid";
 import { CELL_SIZE, squareCenter } from "./grid";
 import { putCell, shiftPoints } from "./drawing";
 import { placeToken, type MapActions } from "./map";
-import { cellKey, type Cell, type RoomStore } from "./roomStore";
+import type * as Y from "yjs";
+import {
+  cellKey,
+  type Cell,
+  type RoomStore,
+  type Stroke,
+  type Token,
+} from "./roomStore";
 import { strokeTouches, type Area } from "./strokeTouches";
 
 export interface Clip {
   cells: Cell[];
   tokens: { name: string; image: string; x: number; y: number; size: number }[];
   strokes: { color: string; points: number[] }[];
+}
+
+export type ItemType = "strokes" | "tokens";
+
+export type Items = Record<ItemType, string[]>;
+
+interface Content {
+  cells: Cell[];
+  tokens: Token[];
+  strokes: Stroke[];
+}
+
+export function hasGridContent({ cells, tokens }: Clip | Content) {
+  return cells.length > 0 || tokens.length > 0;
+}
+
+function isWholeCells(dx: number, dy: number) {
+  return Number.isInteger(dx / CELL_SIZE) && Number.isInteger(dy / CELL_SIZE);
+}
+
+export function existing<T>(map: Y.Map<T>, ids: string[]) {
+  return ids.flatMap((id) => {
+    const value = map.get(id);
+    return value ? [value] : [];
+  });
 }
 
 export function hasCenterIn(area: Area, x: number, y: number, size: number) {
@@ -25,38 +57,40 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
   const { doc, tokensMap, imagesMap, cellsMap, strokesMap, undoManager } =
     store;
 
-  function moveArea(area: Area, dx: number, dy: number) {
+  function move({ cells, tokens, strokes }: Content, dx: number, dy: number) {
     if (dx === 0 && dy === 0) return;
+    const columns = dx / CELL_SIZE;
+    const rows = dy / CELL_SIZE;
     undoManager.stopCapturing();
     doc.transact(() => {
-      moveCellsIn(area, dx, dy);
-      moveTokensIn(area, dx, dy);
-      moveStrokesIn(area, dx, dy);
+      for (const cell of cells) cellsMap.delete(cellKey(cell.x, cell.y));
+      for (const cell of cells)
+        putCell(store, mapBounds(), cell, columns, rows);
+      for (const token of tokens) {
+        tokensMap.set(token.id, {
+          ...token,
+          ...placeToken(mapBounds(), token, columns, rows),
+        });
+      }
+      for (const stroke of strokes) {
+        strokesMap.set(stroke.id, {
+          ...stroke,
+          points: shiftPoints(stroke.points, dx, dy),
+        });
+      }
     });
   }
 
-  function moveCellsIn(area: Area, dx: number, dy: number) {
-    const moved = cellsIn(area);
-    for (const cell of moved) cellsMap.delete(cellKey(cell.x, cell.y));
-    for (const cell of moved) putCell(store, mapBounds(), cell, dx, dy);
+  function moveArea(area: Area, dx: number, dy: number) {
+    move(contentIn(area), dx * CELL_SIZE, dy * CELL_SIZE);
   }
 
-  function moveTokensIn(area: Area, dx: number, dy: number) {
-    for (const token of tokensIn(area)) {
-      tokensMap.set(token.id, {
-        ...token,
-        ...placeToken(mapBounds(), token, dx, dy),
-      });
+  function moveItems(items: Items, dx: number, dy: number) {
+    const content = contentOf(items);
+    if (hasGridContent(content) && !isWholeCells(dx, dy)) {
+      throw new Error("Tokens can only be moved in whole cells");
     }
-  }
-
-  function moveStrokesIn(area: Area, dx: number, dy: number) {
-    for (const stroke of strokesIn(area)) {
-      strokesMap.set(stroke.id, {
-        ...stroke,
-        points: shiftPoints(stroke.points, dx * CELL_SIZE, dy * CELL_SIZE),
-      });
-    }
+    move(content, dx, dy);
   }
 
   function cellsIn(area: Area) {
@@ -77,37 +111,47 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     );
   }
 
-  function copyArea(area: Area): Clip {
+  function contentIn(area: Area): Content {
     return {
       cells: cellsIn(area),
-      tokens: tokensIn(area).flatMap(({ name, imageId, x, y, size }) => {
+      tokens: tokensIn(area),
+      strokes: strokesIn(area),
+    };
+  }
+
+  function contentOf(items: Items): Content {
+    return {
+      cells: [],
+      tokens: existing(tokensMap, items.tokens),
+      strokes: existing(strokesMap, items.strokes),
+    };
+  }
+
+  function copy({ cells, tokens, strokes }: Content): Clip {
+    return {
+      cells,
+      tokens: tokens.flatMap(({ name, imageId, x, y, size }) => {
         const image = imagesMap.get(imageId);
         return image ? [{ name, image, x, y, size }] : [];
       }),
-      strokes: strokesIn(area).map(({ color, points }) => ({ color, points })),
+      strokes: strokes.map(({ color, points }) => ({ color, points })),
     };
   }
 
-  function copyStrokes(ids: string[]): Clip {
-    return {
-      cells: [],
-      tokens: [],
-      strokes: ids.flatMap((id) => {
-        const stroke = strokesMap.get(id);
-        return stroke ? [{ color: stroke.color, points: stroke.points }] : [];
-      }),
-    };
+  function copyArea(area: Area) {
+    return copy(contentIn(area));
+  }
+
+  function copyItems(items: Items) {
+    return copy(contentOf(items));
   }
 
   function paste(clip: Clip, dx: number, dy: number) {
-    const hasGridContent = clip.cells.length > 0 || clip.tokens.length > 0;
-    const isWholeCells =
-      Number.isInteger(dx / CELL_SIZE) && Number.isInteger(dy / CELL_SIZE);
-    if (hasGridContent && !isWholeCells) {
+    if (hasGridContent(clip) && !isWholeCells(dx, dy)) {
       throw new Error("Cells and tokens can only be pasted in whole cells");
     }
     undoManager.stopCapturing();
-    const strokeIds: string[] = [];
+    const pasted: Items = { strokes: [], tokens: [] };
     doc.transact(() => {
       for (const cell of clip.cells) {
         putCell(store, mapBounds(), cell, dx / CELL_SIZE, dy / CELL_SIZE);
@@ -123,29 +167,44 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
         );
         imagesMap.set(imageId, image);
         tokensMap.set(id, { ...token, ...position, id, imageId });
+        pasted.tokens.push(id);
       }
       for (const { color, points } of clip.strokes) {
         const id = nanoid();
-        strokeIds.push(id);
+        pasted.strokes.push(id);
         strokesMap.set(id, { id, color, points: shiftPoints(points, dx, dy) });
       }
     });
-    return strokeIds;
+    return pasted;
   }
 
-  function deleteArea(area: Area) {
+  function remove({ cells, tokens, strokes }: Content) {
     undoManager.stopCapturing();
     doc.transact(() => {
-      for (const cell of cellsIn(area)) {
-        cellsMap.delete(cellKey(cell.x, cell.y));
-      }
-      for (const token of tokensIn(area)) {
+      for (const cell of cells) cellsMap.delete(cellKey(cell.x, cell.y));
+      for (const token of tokens) {
         tokensMap.delete(token.id);
         imagesMap.delete(token.imageId);
       }
-      for (const stroke of strokesIn(area)) strokesMap.delete(stroke.id);
+      for (const stroke of strokes) strokesMap.delete(stroke.id);
     });
   }
 
-  return { moveArea, copyArea, copyStrokes, paste, deleteArea };
+  function deleteArea(area: Area) {
+    remove(contentIn(area));
+  }
+
+  function deleteItems(items: Items) {
+    remove(contentOf(items));
+  }
+
+  return {
+    moveArea,
+    moveItems,
+    copyArea,
+    copyItems,
+    paste,
+    deleteArea,
+    deleteItems,
+  };
 }

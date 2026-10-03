@@ -18,6 +18,7 @@ import {
   type DragSample,
 } from "../dice/throwPath";
 import { Layer, Stage } from "react-konva";
+import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connectRoom";
 import type { PlayerColor } from "../room/playerColors";
 import { useRoom } from "../room/RoomContext";
@@ -35,6 +36,7 @@ import { SelectionFrame } from "./SelectionFrame";
 import { Toolbar, type Tool } from "./Toolbar";
 import { useClipboard } from "./useClipboard";
 import { useCursorBroadcast } from "./useCursorBroadcast";
+import { useItemDrag } from "./useItemDrag";
 import { useSelection } from "./useSelection";
 
 const LEFT_MOUSE_BUTTON = 0;
@@ -113,7 +115,8 @@ export function Board({
   const [color, setColor] = useState<PaintColor>("red");
   const [draftPoints, setDraftPoints] = useState<number[] | null>(null);
   const selection = useSelection(room);
-  const { area, strokeIds: selectedStrokeIds } = selection;
+  const { area, items } = selection;
+  const itemDrag = useItemDrag(room, items);
   const lastPointer = useRef<Vector2d | null>(null);
   const clipboard = useClipboard({
     room,
@@ -170,14 +173,24 @@ export function Board({
     }
   }
 
-  function pressStroke(id: string, event: KonvaEventObject<MouseEvent>) {
-    if (!isSelecting || event.evt.button !== LEFT_MOUSE_BUTTON) return;
-    selection.pressStroke(id, isAddKeyPressed(event));
+  function isSelectClick(event: KonvaEventObject<MouseEvent>) {
+    return isSelecting && event.evt.button === LEFT_MOUSE_BUTTON;
   }
 
-  function clickStroke(id: string, event: KonvaEventObject<MouseEvent>) {
-    if (!isSelecting || event.evt.button !== LEFT_MOUSE_BUTTON) return;
-    selection.clickStroke(id, isAddKeyPressed(event));
+  function pressItem(type: ItemType) {
+    return (id: string, event: KonvaEventObject<MouseEvent>) => {
+      if (isSelectClick(event)) {
+        selection.pressItem(type, id, isAddKeyPressed(event));
+      }
+    };
+  }
+
+  function clickItem(type: ItemType) {
+    return (id: string, event: KonvaEventObject<MouseEvent>) => {
+      if (isSelectClick(event)) {
+        selection.clickItem(type, id, isAddKeyPressed(event));
+      }
+    };
   }
 
   function changeTool(nextTool: Tool) {
@@ -308,18 +321,27 @@ export function Board({
           <Cells selection={area} />
           <GridLines />
         </Layer>
-        <Layer>
+        <Layer
+          onDragStart={itemDrag.start}
+          onDragMove={itemDrag.move}
+          onDragEnd={itemDrag.end}
+        >
           <Strokes
             draft={draftPoints && { color: colorValue, points: draftPoints }}
             selection={area}
-            selectedIds={selectedStrokeIds}
+            selectedIds={items.strokes}
             listening={tool === "eraser" || isSelecting}
             draggable={isSelecting}
-            onStrokePress={pressStroke}
-            onStrokeClick={clickStroke}
-            onStrokesMove={room.moveStrokes}
+            onStrokePress={pressItem("strokes")}
+            onStrokeClick={clickItem("strokes")}
           />
-          <Tokens listening={isSelecting} selection={area} />
+          <Tokens
+            listening={isSelecting}
+            selection={area}
+            selectedIds={items.tokens}
+            onTokenPress={pressItem("tokens")}
+            onTokenClick={clickItem("tokens")}
+          />
         </Layer>
         <Layer>
           {isSelecting && <MapResizer />}

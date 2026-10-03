@@ -55,35 +55,11 @@ export function createDrawing({
     });
   }
 
-  function moveStrokes(ids: string[], dx: number, dy: number) {
-    if (dx === 0 && dy === 0) return;
-    undoManager.stopCapturing();
-    doc.transact(() => {
-      for (const id of ids) {
-        const stroke = strokesMap.get(id);
-        if (!stroke) continue;
-        strokesMap.set(id, {
-          ...stroke,
-          points: shiftPoints(stroke.points, dx, dy),
-        });
-      }
-    });
-  }
-
-  function deleteStrokes(ids: string[]) {
-    undoManager.stopCapturing();
-    doc.transact(() => {
-      for (const id of ids) strokesMap.delete(id);
-    });
-  }
-
   return {
     paintCell,
     eraseCell,
     addStroke,
     removeStroke,
     clearDrawings,
-    moveStrokes,
-    deleteStrokes,
   };
 }

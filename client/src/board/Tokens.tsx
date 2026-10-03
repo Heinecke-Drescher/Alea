@@ -1,3 +1,4 @@
+import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
 import { Group } from "react-konva";
 import { hasCenterIn } from "../room/areaActions";
@@ -9,9 +10,18 @@ import { TokenView } from "./TokenView";
 interface TokensProps {
   listening: boolean;
   selection: IRect | null;
+  selectedIds: string[];
+  onTokenPress: (id: string, event: KonvaEventObject<MouseEvent>) => void;
+  onTokenClick: (id: string, event: KonvaEventObject<MouseEvent>) => void;
 }
 
-export function Tokens({ listening, selection }: TokensProps) {
+export function Tokens({
+  listening,
+  selection,
+  selectedIds,
+  onTokenPress,
+  onTokenClick,
+}: TokensProps) {
   const room = useRoom();
   const tokens = Object.values(useY(room.tokensMap));
   const images = useY(room.imagesMap);
@@ -29,9 +39,12 @@ export function Tokens({ listening, selection }: TokensProps) {
             token={token}
             imageDataUrl={imageDataUrl}
             isHighlighted={
-              selection !== null &&
-              hasCenterIn(selection, token.x, token.y, token.size)
+              selectedIds.includes(token.id) ||
+              (selection !== null &&
+                hasCenterIn(selection, token.x, token.y, token.size))
             }
+            onPress={(event) => onTokenPress(token.id, event)}
+            onClick={(event) => onTokenClick(token.id, event)}
           />
         );
       })}

@@ -1,5 +1,6 @@
 import type { Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
+import type { ItemType } from "../room/areaActions";
 import type { Room } from "../room/createRoom";
 import { CELL_SIZE } from "../room/grid";
 import {
@@ -8,9 +9,9 @@ import {
   clipToMap,
   NO_SELECTION,
   selectedArea,
-  selectedStrokeIds,
-  withoutStroke,
-  withPressedStroke,
+  selectedItems,
+  withoutItem,
+  withPressedItem,
   type Selection,
 } from "./selection";
 
@@ -21,7 +22,7 @@ export function useSelection(room: Room) {
   const areaStart = useRef<Vector2d | null>(null);
   const addedOnPress = useRef<string | null>(null);
   const area = selectedArea(selection);
-  const strokeIds = selectedStrokeIds(selection);
+  const items = selectedItems(selection);
 
   useEffect(() => {
     const clear = () => setSelection(NO_SELECTION);
@@ -63,29 +64,29 @@ export function useSelection(room: Room) {
     );
   }
 
-  function pressStroke(id: string, isAdding: boolean) {
-    const next = withPressedStroke(selection, id, isAdding);
+  function pressItem(type: ItemType, id: string, isAdding: boolean) {
+    const next = withPressedItem(selection, type, id, isAdding);
     addedOnPress.current = isAdding && next !== selection ? id : null;
     setSelection(next);
   }
 
-  // Removing waits for the click, so Ctrl+drag on a selected stroke still drags the whole selection.
-  function clickStroke(id: string, isAdding: boolean) {
+  // Removing waits for the click, so Ctrl+drag on a selected item still drags the whole selection.
+  function clickItem(type: ItemType, id: string, isAdding: boolean) {
     if (!isAdding || addedOnPress.current === id) return;
-    setSelection(withoutStroke(selection, id));
+    setSelection(withoutItem(selection, type, id));
   }
 
   return {
     selection,
     area,
-    strokeIds,
+    items,
     set: setSelection,
     clear,
     beginArea,
     extendArea,
     endArea,
     moveArea,
-    pressStroke,
-    clickStroke,
+    pressItem,
+    clickItem,
   };
 }

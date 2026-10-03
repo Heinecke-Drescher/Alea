@@ -4,15 +4,17 @@ import {
   areaSelection,
   boxBetween,
   cellOffset,
+  clipBounds,
   clipToMap,
+  itemsSelection,
   linesBounds,
+  NO_ITEMS,
   NO_SELECTION,
   pixelOffset,
   selectedArea,
-  selectedStrokeIds,
-  strokesSelection,
-  withoutStroke,
-  withPressedStroke,
+  selectedItems,
+  withoutItem,
+  withPressedItem,
 } from "./selection";
 
 const defaultMap = DEFAULT_MAP_BOUNDS;
@@ -38,42 +40,77 @@ describe("boxBetween", () => {
   });
 });
 
-describe("stroke selection rules", () => {
+describe("item selection rules", () => {
   const area = areaSelection({ x: 0, y: 0, width: 10, height: 10 });
+  const strokes = (ids: string[]) =>
+    itemsSelection({ ...NO_ITEMS, strokes: ids });
 
-  it("selects only the pressed stroke", () => {
-    expect(withPressedStroke(strokesSelection(["a"]), "b", false)).toEqual(
-      strokesSelection(["b"]),
+  it("selects only the pressed item", () => {
+    expect(withPressedItem(strokes(["a"]), "strokes", "b", false)).toEqual(
+      strokes(["b"]),
+    );
+    expect(withPressedItem(strokes(["a"]), "tokens", "t", false)).toEqual(
+      itemsSelection({ ...NO_ITEMS, tokens: ["t"] }),
     );
   });
 
-  it("adds the pressed stroke while the add key is held", () => {
-    expect(withPressedStroke(strokesSelection(["a"]), "b", true)).toEqual(
-      strokesSelection(["a", "b"]),
+  it("adds the pressed item while the add key is held", () => {
+    expect(withPressedItem(strokes(["a"]), "strokes", "b", true)).toEqual(
+      strokes(["a", "b"]),
+    );
+    expect(withPressedItem(strokes(["a"]), "tokens", "t", true)).toEqual(
+      itemsSelection({ ...NO_ITEMS, strokes: ["a"], tokens: ["t"] }),
     );
   });
 
-  it("keeps the selection when pressing a selected stroke", () => {
-    const selection = strokesSelection(["a", "b"]);
-    expect(withPressedStroke(selection, "b", false)).toBe(selection);
-    expect(withPressedStroke(selection, "b", true)).toBe(selection);
+  it("keeps the selection when pressing a selected item", () => {
+    const selection = strokes(["a", "b"]);
+    expect(withPressedItem(selection, "strokes", "b", false)).toBe(selection);
+    expect(withPressedItem(selection, "strokes", "b", true)).toBe(selection);
   });
 
-  it("replaces an area with the pressed stroke", () => {
-    expect(withPressedStroke(area, "a", true)).toEqual(strokesSelection(["a"]));
+  it("replaces an area with the pressed item", () => {
+    expect(withPressedItem(area, "strokes", "a", true)).toEqual(strokes(["a"]));
   });
 
-  it("removes a stroke and ends up with no selection when empty", () => {
-    expect(withoutStroke(strokesSelection(["a", "b"]), "a")).toEqual(
-      strokesSelection(["b"]),
+  it("removes an item and ends up with no selection when empty", () => {
+    expect(withoutItem(strokes(["a", "b"]), "strokes", "a")).toEqual(
+      strokes(["b"]),
     );
-    expect(withoutStroke(strokesSelection(["a"]), "a")).toBe(NO_SELECTION);
+    expect(withoutItem(strokes(["a"]), "strokes", "a")).toBe(NO_SELECTION);
   });
 
-  it("reads area and strokes only from the matching kind", () => {
+  it("reads area and items only from the matching kind", () => {
     expect(selectedArea(area)).toEqual({ x: 0, y: 0, width: 10, height: 10 });
-    expect(selectedStrokeIds(area)).toEqual([]);
-    expect(selectedArea(strokesSelection(["a"]))).toBeNull();
+    expect(selectedItems(area)).toEqual(NO_ITEMS);
+    expect(selectedArea(strokes(["a"]))).toBeNull();
+  });
+});
+
+describe("clipBounds", () => {
+  const stroke = { color: "#000000", points: [-30, 10, 20, 400] };
+
+  it("spans the strokes when there are only strokes", () => {
+    expect(clipBounds({ cells: [], tokens: [], strokes: [stroke] })).toEqual({
+      x: -30,
+      y: 10,
+      width: 50,
+      height: 390,
+    });
+  });
+
+  it("spans only cells and tokens when there are any", () => {
+    const clip = {
+      cells: [{ x: 1, y: 2, color: "#ff0000" }],
+      tokens: [{ name: "Ogre", image: "", x: 3, y: 0, size: 2 }],
+      strokes: [stroke],
+    };
+    expect(clipBounds(clip)).toEqual({
+      x: CELL_SIZE,
+      y: 0,
+      width: 4 * CELL_SIZE,
+      height: 3 * CELL_SIZE,
+    });
   });
 });
 

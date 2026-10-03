@@ -1,44 +1,63 @@
 import { clamp } from "@mantine/hooks";
 import type { IRect, Vector2d } from "konva/lib/types";
+import {
+  hasGridContent,
+  type Clip,
+  type Items,
+  type ItemType,
+} from "../room/areaActions";
 import { CELL_SIZE, mapRect, type MapBounds } from "../room/grid";
 
 export type Selection =
   | { kind: "none" }
   | { kind: "area"; area: IRect }
-  | { kind: "strokes"; ids: string[] };
+  | { kind: "items"; items: Items };
 
 export const NO_SELECTION: Selection = { kind: "none" };
+export const NO_ITEMS: Items = { strokes: [], tokens: [] };
 
 export function areaSelection(area: IRect | null): Selection {
   return area ? { kind: "area", area } : NO_SELECTION;
 }
 
-export function strokesSelection(ids: string[]): Selection {
-  return ids.length > 0 ? { kind: "strokes", ids } : NO_SELECTION;
+export function itemsSelection(items: Items): Selection {
+  const isEmpty = Object.values(items).every((ids) => ids.length === 0);
+  return isEmpty ? NO_SELECTION : { kind: "items", items };
 }
 
 export function selectedArea(selection: Selection) {
   return selection.kind === "area" ? selection.area : null;
 }
 
-export function selectedStrokeIds(selection: Selection) {
-  return selection.kind === "strokes" ? selection.ids : [];
+export function selectedItems(selection: Selection) {
+  return selection.kind === "items" ? selection.items : NO_ITEMS;
 }
 
-export function withPressedStroke(
+export function withPressedItem(
   selection: Selection,
+  type: ItemType,
   id: string,
   isAdding: boolean,
 ): Selection {
-  const ids = selectedStrokeIds(selection);
-  if (ids.includes(id)) return selection;
-  return strokesSelection(isAdding ? [...ids, id] : [id]);
+  const items = selectedItems(selection);
+  if (items[type].includes(id)) return selection;
+  return itemsSelection(
+    isAdding
+      ? { ...items, [type]: [...items[type], id] }
+      : { ...NO_ITEMS, [type]: [id] },
+  );
 }
 
-export function withoutStroke(selection: Selection, id: string): Selection {
-  return strokesSelection(
-    selectedStrokeIds(selection).filter((other) => other !== id),
-  );
+export function withoutItem(
+  selection: Selection,
+  type: ItemType,
+  id: string,
+): Selection {
+  const items = selectedItems(selection);
+  return itemsSelection({
+    ...items,
+    [type]: items[type].filter((other) => other !== id),
+  });
 }
 
 export function boxBetween(start: Vector2d, end: Vector2d): IRect {
@@ -68,6 +87,30 @@ export function linesBounds(lines: number[][]): IRect {
   }
   if (left > right) throw new Error("Cannot bound lines without points");
   return { x: left, y: top, width: right - left, height: bottom - top };
+}
+
+export function clipBounds(clip: Clip): IRect {
+  if (!hasGridContent(clip)) {
+    return linesBounds(clip.strokes.map((stroke) => stroke.points));
+  }
+  // Strokes may stick out of the map, so only cells and tokens keep a paste on it.
+  return squaresBounds([
+    ...clip.cells.map((cell) => ({ ...cell, size: 1 })),
+    ...clip.tokens,
+  ]);
+}
+
+export function squaresBounds(
+  squares: { x: number; y: number; size: number }[],
+): IRect {
+  return linesBounds(
+    squares.map(({ x, y, size }) => [
+      x * CELL_SIZE,
+      y * CELL_SIZE,
+      (x + size) * CELL_SIZE,
+      (y + size) * CELL_SIZE,
+    ]),
+  );
 }
 
 export function clipToMap(box: IRect, map: MapBounds): IRect | null {

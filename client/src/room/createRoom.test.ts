@@ -21,6 +21,15 @@ function onlyToken() {
   return token;
 }
 
+function moveOnlyTokenTo(x: number, y: number) {
+  const token = onlyToken();
+  room.moveItems(
+    { strokes: [], tokens: [token.id] },
+    (x - token.x) * CELL_SIZE,
+    (y - token.y) * CELL_SIZE,
+  );
+}
+
 describe("drawing", () => {
   it("paints and erases cells", () => {
     room.paintCell(2, 3, "#ff0000");
@@ -89,17 +98,10 @@ describe("addToken", () => {
 });
 
 describe("changing tokens", () => {
-  it("moves a token", () => {
-    room.addToken("Goblin", IMAGE);
-    room.moveToken(onlyToken().id, 5, 7);
-    expect(onlyToken()).toMatchObject({ x: 5, y: 7 });
-  });
-
   it("keeps a resized token inside the map", () => {
     room.addToken("Dragon", IMAGE);
-    const { id } = onlyToken();
-    room.moveToken(id, columns - 1, rows - 1);
-    room.resizeToken(id, 3);
+    moveOnlyTokenTo(columns - 1, rows - 1);
+    room.resizeToken(onlyToken().id, 3);
     expect(onlyToken()).toMatchObject({
       size: 3,
       x: columns - 3,
@@ -115,7 +117,6 @@ describe("changing tokens", () => {
   });
 
   it("ignores changes to tokens that no longer exist", () => {
-    room.moveToken("gone", 1, 1);
     room.removeToken("gone");
     expect(room.tokensMap.size).toBe(0);
   });
@@ -235,7 +236,7 @@ describe("moveArea", () => {
     room.paintCell(1, 1, "#ff0000");
     room.addStroke("#000000", [0, 75, 150, 75]);
     room.addToken("Goblin", IMAGE);
-    room.moveToken(onlyToken().id, 1, 1);
+    moveOnlyTokenTo(1, 1);
     const before = room.doc.toJSON();
     room.moveArea(cellArea(1, 1, 1, 1), 2, 2);
     room.undoManager.undo();
@@ -243,31 +244,48 @@ describe("moveArea", () => {
   });
 });
 
-describe("moveStrokes", () => {
+describe("moveItems", () => {
+  const strokes = (ids: string[]) => ({ strokes: ids, tokens: [] });
+
   it("moves only the given strokes by pixels", () => {
     room.addStroke("#000000", [10, 10, 20, 20]);
     room.addStroke("#ff0000", [30, 30, 40, 40]);
     const [first, second] = room.strokesMap.keys();
     if (!first || !second) throw new Error("Expected two strokes");
-    room.moveStrokes([first], 5, -3);
+    room.moveItems(strokes([first]), 5, -3);
     expect(room.strokesMap.get(first)?.points).toEqual([15, 7, 25, 17]);
     expect(room.strokesMap.get(second)?.points).toEqual([30, 30, 40, 40]);
   });
 
-  it("is undone in a single step", () => {
+  it("moves strokes and tokens together in a single undo step", () => {
     room.addStroke("#000000", [10, 10, 20, 20]);
-    room.addStroke("#ff0000", [30, 30, 40, 40]);
+    room.addToken("Goblin", IMAGE);
+    const [strokeId] = room.strokesMap.keys();
+    if (!strokeId) throw new Error("Expected a stroke");
     const before = room.doc.toJSON();
-    room.moveStrokes(Array.from(room.strokesMap.keys()), 5, 5);
+    const tokenId = onlyToken().id;
+    room.moveItems(
+      { strokes: [strokeId], tokens: [tokenId] },
+      2 * CELL_SIZE,
+      CELL_SIZE,
+    );
+    expect(onlyToken()).toMatchObject({ x: 2, y: 1 });
+    expect(room.strokesMap.get(strokeId)?.points).toEqual([110, 60, 120, 70]);
     room.undoManager.undo();
     expect(room.doc.toJSON()).toEqual(before);
   });
 
-  it("skips strokes that were removed in the meantime", () => {
+  it("refuses to move tokens off the grid", () => {
+    room.addToken("Goblin", IMAGE);
+    const tokens = { strokes: [], tokens: [onlyToken().id] };
+    expect(() => room.moveItems(tokens, 7, 0)).toThrow();
+  });
+
+  it("skips items that were removed in the meantime", () => {
     room.addStroke("#000000", [10, 10, 20, 20]);
     const [id] = room.strokesMap.keys();
     if (!id) throw new Error("Expected a stroke");
-    room.moveStrokes([id, "gone"], 5, 5);
+    room.moveItems(strokes([id, "gone"]), 5, 5);
     expect(room.strokesMap.size).toBe(1);
     expect(room.strokesMap.get(id)?.points).toEqual([15, 15, 25, 25]);
   });
@@ -286,7 +304,7 @@ describe("copy, paste and delete", () => {
     fillFirstCell();
     const original = onlyToken();
     const clip = room.copyArea(firstCell);
-    const strokeIds = room.paste(clip, 2 * CELL_SIZE, CELL_SIZE);
+    const pasted = room.paste(clip, 2 * CELL_SIZE, CELL_SIZE);
 
     expect(room.cellsMap.get("2,1")).toEqual({ x: 2, y: 1, color: "#ff0000" });
     const copy = Array.from(room.tokensMap.values()).find(
@@ -296,10 +314,11 @@ describe("copy, paste and delete", () => {
     expect(copy).toMatchObject({ name: "Goblin", x: 2, y: 1 });
     expect(copy.imageId).not.toBe(original.imageId);
     expect(room.imagesMap.get(copy.imageId)).toBe(IMAGE);
-    const [strokeId, ...rest] = strokeIds;
+    const [strokeId, ...rest] = pasted.strokes;
     if (!strokeId) throw new Error("Expected a pasted stroke");
     expect(rest).toEqual([]);
     expect(room.strokesMap.get(strokeId)?.points).toEqual([110, 60, 120, 70]);
+    expect(pasted.tokens).toEqual([copy.id]);
     expect(room.cellsMap.size).toBe(2);
     expect(room.tokensMap.size).toBe(2);
     expect(room.strokesMap.size).toBe(2);
@@ -309,7 +328,8 @@ describe("copy, paste and delete", () => {
     room.addStroke("#000000", [10, 10, 20, 20]);
     const [id] = room.strokesMap.keys();
     if (!id) throw new Error("Expected a stroke");
-    const [copyId] = room.paste(room.copyStrokes([id]), 7, 3);
+    const clip = room.copyItems({ strokes: [id], tokens: [] });
+    const [copyId] = room.paste(clip, 7, 3).strokes;
     if (!copyId) throw new Error("Expected a pasted stroke");
     expect(copyId).not.toBe(id);
     expect(room.strokesMap.get(copyId)?.points).toEqual([17, 13, 27, 23]);
@@ -341,14 +361,31 @@ describe("copy, paste and delete", () => {
     expect(room.doc.toJSON()).toEqual(before);
   });
 
-  it("deletes only the given strokes", () => {
-    room.addStroke("#000000", [10, 10, 20, 20]);
+  it("copies the given items and skips ones that are gone", () => {
+    fillFirstCell();
+    const token = onlyToken();
+    const clip = room.copyItems({ strokes: ["gone"], tokens: [token.id] });
+    expect(clip.cells).toEqual([]);
+    expect(clip.tokens).toEqual([
+      { name: "Goblin", image: IMAGE, x: 0, y: 0, size: 1 },
+    ]);
+    expect(clip.strokes).toEqual([]);
+  });
+
+  it("deletes only the given items in a single undo step", () => {
+    fillFirstCell();
     room.addStroke("#ff0000", [30, 30, 40, 40]);
     const [first] = room.strokesMap.keys();
     if (!first) throw new Error("Expected a stroke");
-    room.deleteStrokes([first]);
+    const before = room.doc.toJSON();
+    room.deleteItems({ strokes: [first], tokens: [onlyToken().id] });
     expect(room.strokesMap.size).toBe(1);
     expect(room.strokesMap.has(first)).toBe(false);
+    expect(room.tokensMap.size).toBe(0);
+    expect(room.imagesMap.size).toBe(0);
+    expect(room.cellsMap.size).toBe(1);
+    room.undoManager.undo();
+    expect(room.doc.toJSON()).toEqual(before);
   });
 });
 
@@ -386,7 +423,7 @@ describe("map bounds", () => {
     room.eraseCell(9, 0);
 
     room.addToken("Ogre", IMAGE);
-    room.moveToken(onlyToken().id, 0, 6);
+    moveOnlyTokenTo(0, 6);
     room.resizeToken(onlyToken().id, 3);
     expect(room.resize(bounds(0, 0, 30, 8))).toBe(false);
     expect(room.resize(bounds(0, 7, 30, 13))).toBe(false);
@@ -410,7 +447,7 @@ describe("map bounds", () => {
     room.resize(bounds(-10, 0, 40, 20));
     room.addToken("Ogre", IMAGE);
     expect(onlyToken()).toMatchObject({ x: -10, y: 0 });
-    room.moveToken(onlyToken().id, 29, 0);
+    moveOnlyTokenTo(29, 0);
     room.resizeToken(onlyToken().id, 2);
     expect(onlyToken()).toMatchObject({ x: 28, y: 0 });
   });
@@ -464,7 +501,7 @@ describe("undo and redo", () => {
     const sync = (from: Room, to: Room) =>
       Y.applyUpdate(to.doc, Y.encodeStateAsUpdate(from.doc), "remote");
     room.addToken("Goblin", IMAGE);
-    room.moveToken(onlyToken().id, 5, 5);
+    moveOnlyTokenTo(5, 5);
     sync(room, other);
     other.removeToken(onlyToken().id);
     sync(other, room);

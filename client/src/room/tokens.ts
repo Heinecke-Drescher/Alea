@@ -31,11 +31,6 @@ export function createTokens(
     });
   }
 
-  function moveToken(id: string, x: number, y: number) {
-    undoManager.stopCapturing();
-    updateToken(id, (token) => ({ ...token, x, y }));
-  }
-
   function renameToken(id: string, name: string) {
     updateToken(id, (token) => ({ ...token, name }));
   }
@@ -78,5 +73,5 @@ export function createTokens(
     throw new Error("No free cell left on the map");
   }
 
-  return { addToken, moveToken, renameToken, resizeToken, removeToken };
+  return { addToken, renameToken, resizeToken, removeToken };
 }
