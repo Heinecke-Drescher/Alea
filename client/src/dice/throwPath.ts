@@ -38,7 +38,7 @@ function pathPoints(path: number[]): Vector2d[] {
   return points;
 }
 
-function segments(path: number[]) {
+export function segments(path: number[]) {
   const points = pathPoints(path);
   return points.slice(1).map((to, i) => {
     const from = points[i];

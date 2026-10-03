@@ -35,6 +35,7 @@ export function TokenView({ token, imageDataUrl }: TokenViewProps) {
 
   return (
     <Group
+      id={token.id}
       x={token.x * CELL_SIZE}
       y={token.y * CELL_SIZE}
       draggable
@@ -43,7 +44,16 @@ export function TokenView({ token, imageDataUrl }: TokenViewProps) {
         room.moveToken(token.id, x, y);
       }}
     >
-      <Image image={image} width={size} height={size} cornerRadius={size / 2} />
+      <Image
+        image={image}
+        x={size / 2}
+        y={size / 2}
+        offsetX={size / 2}
+        offsetY={size / 2}
+        width={size}
+        height={size}
+        cornerRadius={size / 2}
+      />
     </Group>
   );
 }
