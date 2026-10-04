@@ -82,6 +82,7 @@ function isAddKeyPressed(event: KonvaEventObject<MouseEvent>) {
 
 interface BoardProps {
   awareness: Awareness | null;
+  playerId: string;
   playerName: string;
   playerColor: PlayerColor;
   isSynced: boolean;
@@ -89,6 +90,7 @@ interface BoardProps {
 
 export function Board({
   awareness,
+  playerId,
   playerName,
   playerColor,
   isSynced,
@@ -111,7 +113,12 @@ export function Board({
   });
   const isPressed = useRef(false);
   const stageRef = useRef<StageNode>(null);
-  const cursor = useCursorBroadcast(awareness, playerName, playerColor);
+  const cursor = useCursorBroadcast(
+    awareness,
+    playerId,
+    playerName,
+    playerColor,
+  );
   const dieDrop = useDieDrop({ stageRef, playerName, playerColor });
   const imageDrop = useImageDrop(stageRef);
   const backgroundImage = useBackgroundImage();

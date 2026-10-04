@@ -1,6 +1,6 @@
-import { useCallback, useRef, useSyncExternalStore } from "react";
 import type { Awareness } from "./connectRoom";
 import { isPlayerColor, type PlayerColor } from "./playerColors";
+import { useAwareness } from "./useAwareness";
 
 export interface Cursor {
   clientId: number;
@@ -9,8 +9,6 @@ export interface Cursor {
   x: number;
   y: number;
 }
-
-const NO_CURSORS: Cursor[] = [];
 
 // Awareness states come from other players, so their shape is not trusted.
 export function toCursor(clientId: number, state: unknown): Cursor | null {
@@ -29,30 +27,5 @@ export function toCursor(clientId: number, state: unknown): Cursor | null {
 }
 
 export function useCursors(awareness: Awareness | null) {
-  const snapshot = useRef<Cursor[] | null>(null);
-
-  const subscribe = useCallback(
-    (onChange: () => void) => {
-      snapshot.current = null;
-      if (!awareness) return () => {};
-      const handleChange = () => {
-        snapshot.current = null;
-        onChange();
-      };
-      awareness.on("change", handleChange);
-      return () => awareness.off("change", handleChange);
-    },
-    [awareness],
-  );
-
-  function getSnapshot() {
-    if (!awareness) return NO_CURSORS;
-    snapshot.current ??= Array.from(awareness.getStates())
-      .filter(([clientId]) => clientId !== awareness.clientID)
-      .map(([clientId, state]) => toCursor(clientId, state))
-      .filter((cursor) => cursor !== null);
-    return snapshot.current;
-  }
-
-  return useSyncExternalStore(subscribe, getSnapshot);
+  return useAwareness(awareness, toCursor);
 }

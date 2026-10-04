@@ -45,6 +45,11 @@ export interface Music {
   at: number;
 }
 
+export interface DungeonMaster {
+  playerId: string;
+  name: string;
+}
+
 export type RoomStore = ReturnType<typeof createRoomStore>;
 
 export function cellKey(x: number, y: number) {
@@ -61,8 +66,9 @@ export function createRoomStore(doc: Y.Doc) {
   const rollsArray = doc.getArray<Roll>("rolls");
   const settingsMap = doc.getMap<MapBounds>("settings");
   const musicMap = doc.getMap<Music>("music");
-  // Tracks only local changes, so undo never reverts other players' work. Rolls and music stay
-  // final, and so do map bounds: undoing a resize could push others' new content off the map.
+  const rolesMap = doc.getMap<DungeonMaster>("roles");
+  // Tracks only local changes, so undo never reverts other players' work. Rolls, music and roles
+  // stay final, and so do map bounds: undoing a resize could push others' new content off the map.
   const undoManager = new Y.UndoManager([
     tokensMap,
     imagesMap,
@@ -88,6 +94,7 @@ export function createRoomStore(doc: Y.Doc) {
     rollsArray,
     settingsMap,
     musicMap,
+    rolesMap,
     undoManager,
   };
 }

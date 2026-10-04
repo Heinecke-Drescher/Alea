@@ -9,6 +9,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useDisclosure, useHotkeys, useLocalStorage } from "@mantine/hooks";
+import { useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useParams } from "react-router";
 import { isValidRoomId } from "../../../shared/roomId";
@@ -19,9 +20,11 @@ import { DicePanel } from "../dice/DicePanel";
 import { MusicMenu } from "../music/MusicMenu";
 import { RoomContext } from "../room/RoomContext";
 import { defaultPlayerColor, isPlayerColor } from "../room/playerColors";
+import { localPlayerId } from "../room/playerId";
 import { useRoomConnection } from "../room/useRoomConnection";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { ColorSchemeToggle } from "./ColorSchemeToggle";
+import { DmControl } from "./DmControl";
 import { PlayerNameModal } from "./PlayerNameModal";
 
 export function RoomPage() {
@@ -63,6 +66,7 @@ function RoomView({ roomId }: { roomId: string }) {
   const pickedColor = isPlayerColor(storedColor) ? storedColor : null;
   const playerColor = pickedColor ?? defaultPlayerColor(playerName);
   const needsName = playerName === "";
+  const [playerId] = useState(localPlayerId);
 
   useHotkeys([
     ["mod+Z", () => room.undoManager.undo()],
@@ -84,6 +88,13 @@ function RoomView({ roomId }: { roomId: string }) {
           <Group h="100%" px="md" justify="space-between">
             <Title order={3}>Alea</Title>
             <Group gap="xs">
+              {isSynced && !needsName && (
+                <DmControl
+                  awareness={awareness}
+                  playerId={playerId}
+                  playerName={playerName}
+                />
+              )}
               <MusicMenu />
               <ColorSchemeToggle />
               <Button variant="subtle" color={playerColor} onClick={editName}>
@@ -102,6 +113,7 @@ function RoomView({ roomId }: { roomId: string }) {
           <ErrorBoundary FallbackComponent={MapError}>
             <Board
               awareness={awareness}
+              playerId={playerId}
               playerName={playerName}
               playerColor={playerColor}
               isSynced={isSynced}

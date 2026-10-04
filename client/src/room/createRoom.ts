@@ -1,6 +1,7 @@
 import type * as Y from "yjs";
 import { createAreaActions } from "./areaActions";
 import { createBackground } from "./background";
+import { createDm } from "./dm";
 import { createDrawing } from "./drawing";
 import { createMapActions } from "./map";
 import { createMusic } from "./music";
@@ -22,5 +23,6 @@ export function createRoom(doc: Y.Doc) {
     ...createAreaActions(store, map),
     ...createBackground(store),
     ...createMusic(store),
+    ...createDm(store),
   };
 }

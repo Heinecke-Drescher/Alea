@@ -8,6 +8,7 @@ const CURSOR_INTERVAL_MS = 50;
 
 export function useCursorBroadcast(
   awareness: Awareness | null,
+  playerId: string,
   playerName: string,
   playerColor: PlayerColor,
 ) {
@@ -18,9 +19,10 @@ export function useCursorBroadcast(
   );
 
   useEffect(() => {
+    awareness?.setLocalStateField("playerId", playerId);
     awareness?.setLocalStateField("name", playerName);
     awareness?.setLocalStateField("color", playerColor);
-  }, [awareness, playerName, playerColor]);
+  }, [awareness, playerId, playerName, playerColor]);
 
   return {
     move: (point: Vector2d) => send(point),
