@@ -57,6 +57,15 @@ sudo cp deploy/alea.service /etc/systemd/system/
 sudo systemctl enable --now alea
 ```
 
+For HTTPS, put a reverse proxy in front of it. With [Caddy](https://caddyserver.com/),
+which gets the certificate by itself, the whole `Caddyfile` is:
+
+```
+alea.example.com {
+	reverse_proxy localhost:3000
+}
+```
+
 ## Configuration
 
 | Variable   | Default  | Meaning                           |
