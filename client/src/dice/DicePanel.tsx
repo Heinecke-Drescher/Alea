@@ -1,4 +1,4 @@
-import { Group, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
+import { SimpleGrid, Stack, Switch, Text } from "@mantine/core";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { DIE_SIDES, rollDie, type DieSides } from "../../../shared/dice";
@@ -9,6 +9,7 @@ import { useRoom } from "../room/RoomContext";
 import { useDm } from "../room/useDm";
 import { useY } from "../room/useY";
 import { DieButton } from "./DieButton";
+import { RollRow } from "./RollRow";
 import { rollSecretly, type SecretRoll } from "./secretRoll";
 import { SecretRolls } from "./SecretRolls";
 
@@ -102,12 +103,15 @@ export function DicePanel({
       )}
       <Stack gap={4}>
         {olderRolls.map((olderRoll) => (
-          <Group key={olderRoll.id} justify="space-between" wrap="nowrap">
-            <Text c="dimmed" truncate>
-              <RollPlayer roll={olderRoll} /> · d{olderRoll.sides}
-            </Text>
-            <Text>{olderRoll.value}</Text>
-          </Group>
+          <RollRow
+            key={olderRoll.id}
+            label={
+              <>
+                <RollPlayer roll={olderRoll} /> · d{olderRoll.sides}
+              </>
+            }
+            value={olderRoll.value}
+          />
         ))}
       </Stack>
     </Stack>

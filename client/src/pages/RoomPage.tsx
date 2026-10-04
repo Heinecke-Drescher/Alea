@@ -4,6 +4,7 @@ import {
   Button,
   Center,
   Group,
+  ScrollArea,
   Stack,
   Text,
   Title,
@@ -120,16 +121,18 @@ function RoomView({ roomId }: { roomId: string }) {
             />
           </ErrorBoundary>
         </AppShell.Main>
-        <AppShell.Aside p="md">
-          <Stack>
-            <BackgroundPanel />
-            <TokenPanel />
-            <DicePanel
-              playerId={playerId}
-              playerName={playerName}
-              playerColor={playerColor}
-            />
-          </Stack>
+        <AppShell.Aside>
+          <AppShell.Section grow component={ScrollArea} p="md">
+            <Stack>
+              <BackgroundPanel />
+              <TokenPanel />
+              <DicePanel
+                playerId={playerId}
+                playerName={playerName}
+                playerColor={playerColor}
+              />
+            </Stack>
+          </AppShell.Section>
         </AppShell.Aside>
       </AppShell>
       <PlayerNameModal

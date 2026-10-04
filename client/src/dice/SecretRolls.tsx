@@ -1,4 +1,5 @@
-import { Group, Stack, Text } from "@mantine/core";
+import { Stack, Text } from "@mantine/core";
+import { RollRow } from "./RollRow";
 import type { SecretRoll } from "./secretRoll";
 
 export function SecretRolls({ rolls }: { rolls: SecretRoll[] }) {
@@ -13,16 +14,11 @@ export function SecretRolls({ rolls }: { rolls: SecretRoll[] }) {
         </Text>
       )}
       {rolls.map((roll) => (
-        <Group key={roll.id} justify="space-between" wrap="nowrap">
-          <Text size="sm" c="dimmed">
-            {roll.at.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}{" "}
-            · d{roll.sides}
-          </Text>
-          <Text fw={700}>{roll.value}</Text>
-        </Group>
+        <RollRow
+          key={roll.id}
+          label={`${roll.at.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · d${roll.sides}`}
+          value={roll.value}
+        />
       ))}
     </Stack>
   );
