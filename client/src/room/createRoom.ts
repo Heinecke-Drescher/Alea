@@ -3,6 +3,7 @@ import { createAreaActions } from "./areaActions";
 import { createBackground } from "./background";
 import { createDrawing } from "./drawing";
 import { createMapActions } from "./map";
+import { createMusic } from "./music";
 import { createRolls } from "./rolls";
 import { createRoomStore } from "./roomStore";
 import { createTokens } from "./tokens";
@@ -20,5 +21,6 @@ export function createRoom(doc: Y.Doc) {
     ...createTokens(store, map),
     ...createAreaActions(store, map),
     ...createBackground(store),
+    ...createMusic(store),
   };
 }

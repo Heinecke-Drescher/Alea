@@ -17,10 +17,12 @@ const storage = createRoomStorage(path.join(dataDirectory, "rooms"));
 const MAX_MESSAGE_BYTES = 10 * 1024 ** 2;
 
 // Token images must stay embedded (data:), so other players cannot make
-// everyone's browser load images from a third-party server.
+// everyone's browser load images from a third-party server. The only
+// third-party frame is YouTube's privacy-enhanced player for room music.
 const CONTENT_SECURITY_POLICY = [
   "default-src 'self'",
   "img-src 'self' data: blob:",
+  "frame-src https://www.youtube-nocookie.com",
   "style-src 'self' 'unsafe-inline'",
   "connect-src 'self'",
   "object-src 'none'",

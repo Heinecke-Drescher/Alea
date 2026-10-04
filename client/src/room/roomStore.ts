@@ -37,6 +37,14 @@ export interface Roll {
   path?: number[];
 }
 
+// Seconds into the video at the time `at` (ms since epoch); while playing it moves on from there.
+export interface Music {
+  videoId: string;
+  playing: boolean;
+  position: number;
+  at: number;
+}
+
 export type RoomStore = ReturnType<typeof createRoomStore>;
 
 export function cellKey(x: number, y: number) {
@@ -52,8 +60,9 @@ export function createRoomStore(doc: Y.Doc) {
   const strokesMap = doc.getMap<Stroke>("strokes");
   const rollsArray = doc.getArray<Roll>("rolls");
   const settingsMap = doc.getMap<MapBounds>("settings");
-  // Tracks only local changes, so undo never reverts other players' work. Rolls stay final,
-  // and so do map bounds: undoing a resize could push others' new content off the map.
+  const musicMap = doc.getMap<Music>("music");
+  // Tracks only local changes, so undo never reverts other players' work. Rolls and music stay
+  // final, and so do map bounds: undoing a resize could push others' new content off the map.
   const undoManager = new Y.UndoManager([
     tokensMap,
     imagesMap,
@@ -78,6 +87,7 @@ export function createRoomStore(doc: Y.Doc) {
     strokesMap,
     rollsArray,
     settingsMap,
+    musicMap,
     undoManager,
   };
 }

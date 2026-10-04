@@ -16,6 +16,7 @@ import { BackgroundPanel } from "../background/BackgroundPanel";
 import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
+import { MusicMenu } from "../music/MusicMenu";
 import { RoomContext } from "../room/RoomContext";
 import { defaultPlayerColor, isPlayerColor } from "../room/playerColors";
 import { useRoomConnection } from "../room/useRoomConnection";
@@ -83,6 +84,7 @@ function RoomView({ roomId }: { roomId: string }) {
           <Group h="100%" px="md" justify="space-between">
             <Title order={3}>Alea</Title>
             <Group gap="xs">
+              <MusicMenu />
               <ColorSchemeToggle />
               <Button variant="subtle" color={playerColor} onClick={editName}>
                 {playerName}
