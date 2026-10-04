@@ -48,6 +48,15 @@ server.
 Restart the server after every build. It reads the list of website files once
 at startup.
 
+On a Linux server, [`deploy/alea.service`](deploy/alea.service) runs Alea as a
+systemd service: code in `/opt/alea`, rooms in `/var/lib/alea/data`, user
+`alea`.
+
+```bash
+sudo cp deploy/alea.service /etc/systemd/system/
+sudo systemctl enable --now alea
+```
+
 ## Configuration
 
 | Variable   | Default  | Meaning                           |

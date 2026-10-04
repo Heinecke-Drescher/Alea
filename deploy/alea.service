@@ -1,0 +1,22 @@
+[Unit]
+Description=Alea
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=alea
+Group=alea
+WorkingDirectory=/opt/alea
+Environment=PORT=3000
+Environment=DATA_DIR=/var/lib/alea/data
+ExecStart=/usr/bin/node server/index.ts --client dist/client
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/alea
+
+[Install]
+WantedBy=multi-user.target
