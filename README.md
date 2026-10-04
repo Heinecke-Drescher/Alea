@@ -57,6 +57,8 @@ sudo cp deploy/alea.service /etc/systemd/system/
 sudo systemctl enable --now alea
 ```
 
+To update to the latest version, run `sudo sh /opt/alea/deploy/update.sh`.
+
 For HTTPS, put a reverse proxy in front of it. With [Caddy](https://caddyserver.com/),
 which gets the certificate by itself, the whole `Caddyfile` is:
 
