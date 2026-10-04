@@ -124,7 +124,11 @@ function RoomView({ roomId }: { roomId: string }) {
           <Stack>
             <BackgroundPanel />
             <TokenPanel />
-            <DicePanel playerName={playerName} playerColor={playerColor} />
+            <DicePanel
+              playerId={playerId}
+              playerName={playerName}
+              playerColor={playerColor}
+            />
           </Stack>
         </AppShell.Aside>
       </AppShell>

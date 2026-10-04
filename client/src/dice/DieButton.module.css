@@ -3,6 +3,10 @@
   cursor: grab;
 }
 
+.button[draggable="false"] {
+  cursor: pointer;
+}
+
 .die {
   display: block;
   width: 100%;

@@ -12,10 +12,16 @@ const VIEW_SIZE = RADIUS * 2.4;
 interface DieButtonProps {
   sides: DieSides;
   color: PlayerColor;
+  isDraggable: boolean;
   onRoll: () => void;
 }
 
-export function DieButton({ sides, color, onRoll }: DieButtonProps) {
+export function DieButton({
+  sides,
+  color,
+  isDraggable,
+  onRoll,
+}: DieButtonProps) {
   const theme = useMantineTheme();
   const colors = dieColors(theme, color);
 
@@ -28,7 +34,7 @@ export function DieButton({ sides, color, onRoll }: DieButtonProps) {
         "--die-text": colors.text,
       }}
       aria-label={`Roll d${sides}`}
-      draggable
+      draggable={isDraggable}
       onDragStart={(event) => startDieDrag(event.dataTransfer, sides)}
       onClick={onRoll}
     >
