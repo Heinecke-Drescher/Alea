@@ -8,7 +8,7 @@ import { useDieDrop } from "../dice/useDieDrop";
 import { Layer, Stage } from "react-konva";
 import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connectRoom";
-import type { PlayerColor } from "../room/playerColors";
+import { usePlayer } from "../player/PlayerContext";
 import { useRoom } from "../room/RoomContext";
 import { useBackgroundImage } from "../room/useBackgroundImage";
 import { Cells } from "./Cells";
@@ -82,20 +82,12 @@ function isAddKeyPressed(event: KonvaEventObject<MouseEvent>) {
 
 interface BoardProps {
   awareness: Awareness | null;
-  playerId: string;
-  playerName: string;
-  playerColor: PlayerColor;
   isSynced: boolean;
 }
 
-export function Board({
-  awareness,
-  playerId,
-  playerName,
-  playerColor,
-  isSynced,
-}: BoardProps) {
+export function Board({ awareness, isSynced }: BoardProps) {
   const room = useRoom();
+  const player = usePlayer();
   const { ref: sizeRef, width, height } = useElementSize();
   const theme = useMantineTheme();
   const [tool, setTool] = useState<Tool>("select");
@@ -113,13 +105,8 @@ export function Board({
   });
   const isPressed = useRef(false);
   const stageRef = useRef<StageNode>(null);
-  const cursor = useCursorBroadcast(
-    awareness,
-    playerId,
-    playerName,
-    playerColor,
-  );
-  const dieDrop = useDieDrop({ stageRef, playerName, playerColor });
+  const cursor = useCursorBroadcast(awareness);
+  const dieDrop = useDieDrop({ stageRef });
   const imageDrop = useImageDrop(stageRef);
   const backgroundImage = useBackgroundImage();
 
@@ -249,7 +236,7 @@ export function Board({
       pos="relative"
       h="calc(100dvh - var(--app-shell-header-height))"
       style={{
-        cursor: cursorArrowCss(theme.colors[playerColor][6]),
+        cursor: cursorArrowCss(theme.colors[player.color][6]),
         backgroundImage: backgroundImage ? `url("${backgroundImage}")` : "none",
         backgroundSize: "cover",
         backgroundPosition: "center",

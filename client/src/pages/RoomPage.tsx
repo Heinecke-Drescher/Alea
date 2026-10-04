@@ -9,8 +9,8 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { useDisclosure, useHotkeys, useLocalStorage } from "@mantine/hooks";
-import { useState } from "react";
+import { useDisclosure, useHotkeys } from "@mantine/hooks";
+import { useMemo } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useParams } from "react-router";
 import { isValidRoomId } from "../../../shared/roomId";
@@ -20,8 +20,8 @@ import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
 import { MusicMenu } from "../music/MusicMenu";
 import { RoomContext } from "../room/RoomContext";
-import { defaultPlayerColor, isPlayerColor } from "../room/playerColors";
-import { localPlayerId } from "../room/playerId";
+import { PlayerContext } from "../player/PlayerContext";
+import { useLocalPlayer } from "../player/useLocalPlayer";
 import { useRoomConnection } from "../room/useRoomConnection";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { ColorSchemeToggle } from "./ColorSchemeToggle";
@@ -54,20 +54,10 @@ function RoomView({ roomId }: { roomId: string }) {
   const [asideOpened, { toggle: toggleAside }] = useDisclosure();
   const [isEditingName, { open: editName, close: stopEditingName }] =
     useDisclosure();
-  const [playerName, setPlayerName] = useLocalStorage({
-    key: "alea-player-name",
-    defaultValue: "",
-    getInitialValueInEffect: false,
-  });
-  const [storedColor, setStoredColor] = useLocalStorage({
-    key: "alea-player-color",
-    defaultValue: "",
-    getInitialValueInEffect: false,
-  });
-  const pickedColor = isPlayerColor(storedColor) ? storedColor : null;
-  const playerColor = pickedColor ?? defaultPlayerColor(playerName);
-  const needsName = playerName === "";
-  const [playerId] = useState(localPlayerId);
+  const localPlayer = useLocalPlayer();
+  const { id, name, color } = localPlayer;
+  const player = useMemo(() => ({ id, name, color }), [id, name, color]);
+  const needsName = name === "";
 
   useHotkeys([
     ["mod+Z", () => room.undoManager.undo()],
@@ -77,75 +67,61 @@ function RoomView({ roomId }: { roomId: string }) {
 
   return (
     <RoomContext value={room}>
-      <AppShell
-        header={{ height: 60 }}
-        aside={{
-          width: 320,
-          breakpoint: "sm",
-          collapsed: { mobile: !asideOpened },
-        }}
-      >
-        <AppShell.Header>
-          <Group h="100%" px="md" justify="space-between">
-            <Title order={3}>Alea</Title>
-            <Group gap="xs">
-              {isSynced && !needsName && (
-                <DmControl
-                  awareness={awareness}
-                  playerId={playerId}
-                  playerName={playerName}
+      <PlayerContext value={player}>
+        <AppShell
+          header={{ height: 60 }}
+          aside={{
+            width: 320,
+            breakpoint: "sm",
+            collapsed: { mobile: !asideOpened },
+          }}
+        >
+          <AppShell.Header>
+            <Group h="100%" px="md" justify="space-between">
+              <Title order={3}>Alea</Title>
+              <Group gap="xs">
+                {isSynced && !needsName && <DmControl awareness={awareness} />}
+                <MusicMenu />
+                <ColorSchemeToggle />
+                <Button variant="subtle" color={color} onClick={editName}>
+                  {name}
+                </Button>
+                <Burger
+                  opened={asideOpened}
+                  onClick={toggleAside}
+                  hiddenFrom="sm"
+                  size="sm"
                 />
-              )}
-              <MusicMenu />
-              <ColorSchemeToggle />
-              <Button variant="subtle" color={playerColor} onClick={editName}>
-                {playerName}
-              </Button>
-              <Burger
-                opened={asideOpened}
-                onClick={toggleAside}
-                hiddenFrom="sm"
-                size="sm"
-              />
+              </Group>
             </Group>
-          </Group>
-        </AppShell.Header>
-        <AppShell.Main>
-          <ErrorBoundary FallbackComponent={MapError}>
-            <Board
-              awareness={awareness}
-              playerId={playerId}
-              playerName={playerName}
-              playerColor={playerColor}
-              isSynced={isSynced}
-            />
-          </ErrorBoundary>
-        </AppShell.Main>
-        <AppShell.Aside>
-          <AppShell.Section grow component={ScrollArea} p="md">
-            <Stack>
-              <BackgroundPanel />
-              <TokenPanel />
-              <DicePanel
-                playerId={playerId}
-                playerName={playerName}
-                playerColor={playerColor}
-              />
-            </Stack>
-          </AppShell.Section>
-        </AppShell.Aside>
-      </AppShell>
-      <PlayerNameModal
-        opened={needsName || isEditingName}
-        currentName={playerName}
-        currentColor={pickedColor}
-        onSave={(name, color) => {
-          setPlayerName(name);
-          setStoredColor(color);
-          stopEditingName();
-        }}
-        onCancel={needsName ? null : stopEditingName}
-      />
+          </AppShell.Header>
+          <AppShell.Main>
+            <ErrorBoundary FallbackComponent={MapError}>
+              <Board awareness={awareness} isSynced={isSynced} />
+            </ErrorBoundary>
+          </AppShell.Main>
+          <AppShell.Aside>
+            <AppShell.Section grow component={ScrollArea} p="md">
+              <Stack>
+                <BackgroundPanel />
+                <TokenPanel />
+                <DicePanel />
+              </Stack>
+            </AppShell.Section>
+          </AppShell.Aside>
+        </AppShell>
+        <PlayerNameModal
+          opened={needsName || isEditingName}
+          currentName={name}
+          currentColor={localPlayer.pickedColor}
+          onSave={(newName, newColor) => {
+            localPlayer.setName(newName);
+            localPlayer.setColor(newColor);
+            stopEditingName();
+          }}
+          onCancel={needsName ? null : stopEditingName}
+        />
+      </PlayerContext>
     </RoomContext>
   );
 }

@@ -2,11 +2,10 @@ import { SimpleGrid, Stack, Switch, Text } from "@mantine/core";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { DIE_SIDES, rollDie, type DieSides } from "../../../shared/dice";
-import type { PlayerColor } from "../room/playerColors";
+import { usePlayer } from "../player/PlayerContext";
 import { rollColor } from "../room/rolls";
 import type { Roll } from "../room/roomStore";
 import { useRoom } from "../room/RoomContext";
-import { useDm } from "../room/useDm";
 import { useY } from "../room/useY";
 import { DieButton } from "./DieButton";
 import { RollRow } from "./RollRow";
@@ -23,24 +22,14 @@ function RollPlayer({ roll }: { roll: Roll }) {
   );
 }
 
-interface DicePanelProps {
-  playerId: string;
-  playerName: string;
-  playerColor: PlayerColor;
-}
-
-export function DicePanel({
-  playerId,
-  playerName,
-  playerColor,
-}: DicePanelProps) {
+export function DicePanel() {
   const room = useRoom();
+  const player = usePlayer();
   const rolls = [...useY(room.rollsArray)].reverse();
   const [lastRoll, ...olderRolls] = rolls;
-  const isDm = useDm()?.playerId === playerId;
   const [wantsSecret, setWantsSecret] = useState(false);
   const [secretRolls, setSecretRolls] = useState<SecretRoll[]>([]);
-  const isSecret = isDm && wantsSecret;
+  const isSecret = player.isDm && wantsSecret;
 
   function roll(sides: DieSides) {
     // Secret rolls stay in this browser and never reach the room document.
@@ -51,12 +40,12 @@ export function DicePanel({
       );
       return;
     }
-    room.addRoll(playerName, playerColor, sides, rollDie(sides));
+    room.addRoll(player.name, player.color, sides, rollDie(sides));
   }
 
   return (
     <Stack>
-      {isDm && (
+      {player.isDm && (
         <Switch
           label="Secret rolls"
           checked={wantsSecret}
@@ -68,7 +57,7 @@ export function DicePanel({
           <DieButton
             key={sides}
             sides={sides}
-            color={playerColor}
+            color={player.color}
             isDraggable={!isSecret}
             onRoll={() => roll(sides)}
           />

@@ -3,7 +3,7 @@ import { useRef, type DragEvent, type RefObject } from "react";
 import { rollDie } from "../../../shared/dice";
 import { dropPointOnMap } from "../board/dropPoint";
 import { cellAt, containsCell } from "../room/grid";
-import type { PlayerColor } from "../room/playerColors";
+import { usePlayer } from "../player/PlayerContext";
 import { useRoom } from "../room/RoomContext";
 import { droppedDie, isDieDrag } from "./dieDrag";
 import {
@@ -15,16 +15,11 @@ import {
 
 interface DieDropOptions {
   stageRef: RefObject<StageNode | null>;
-  playerName: string;
-  playerColor: PlayerColor;
 }
 
-export function useDieDrop({
-  stageRef,
-  playerName,
-  playerColor,
-}: DieDropOptions) {
+export function useDieDrop({ stageRef }: DieDropOptions) {
   const room = useRoom();
+  const player = usePlayer();
   const dragSamples = useRef<DragSample[]>([]);
 
   function trackDieDrag(event: DragEvent<HTMLElement>) {
@@ -56,8 +51,8 @@ export function useDieDrop({
     const [x, y] = path.slice(-2);
     if (x === undefined || y === undefined) throw new Error("Empty throw path");
     room.addRoll(
-      playerName,
-      playerColor,
+      player.name,
+      player.color,
       sides,
       rollDie(sides),
       { x, y },

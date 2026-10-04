@@ -9,27 +9,21 @@ import type { DungeonMaster } from "../room/roomStore";
 import { useRoom } from "../room/RoomContext";
 import { useAwareness } from "../room/useAwareness";
 import { useDm } from "../room/useDm";
+import { usePlayer } from "../player/PlayerContext";
 
-interface DmControlProps {
-  awareness: Awareness | null;
-  playerId: string;
-  playerName: string;
-}
-
-export function DmControl({ awareness, playerId, playerName }: DmControlProps) {
+export function DmControl({ awareness }: { awareness: Awareness | null }) {
   const room = useRoom();
+  const player = usePlayer();
   const dm = useDm();
   const presentPlayerIds = useAwareness(awareness, toPlayerId);
-  const isDm = dm?.playerId === playerId;
+  const { id, name, isDm } = player;
 
   useEffect(() => {
-    if (isDm && dm.name !== playerName) {
-      room.becomeDm({ playerId, name: playerName });
-    }
-  }, [isDm, dm, playerId, playerName, room]);
+    if (dm && isDm && dm.name !== name) room.becomeDm({ playerId: id, name });
+  }, [dm, isDm, id, name, room]);
 
   function becomeDm() {
-    room.becomeDm({ playerId, name: playerName });
+    room.becomeDm({ playerId: id, name });
   }
 
   // The DM may have come back while the dialog was open.
@@ -78,7 +72,7 @@ export function DmControl({ awareness, playerId, playerName }: DmControlProps) {
           variant="subtle"
           size="xs"
           color="gray"
-          onClick={() => room.releaseDm(playerId)}
+          onClick={() => room.releaseDm(id)}
         >
           Release DM
         </Button>
