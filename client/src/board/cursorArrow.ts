@@ -2,7 +2,6 @@ export const CURSOR_ARROW = [0, 0, 0, 18, 5, 13, 13, 13];
 
 const PADDING = 1;
 
-// The player's own mouse pointer, drawn like the arrow other players see.
 export function cursorArrowCss(color: string) {
   const points = CURSOR_ARROW.map((value) => value + PADDING).join(" ");
   const svg =

@@ -21,7 +21,6 @@ export function createTokens(
   { doc, tokensMap, imagesMap, undoManager }: RoomStore,
   { mapBounds }: MapActions,
 ) {
-  // Without a cell, the token goes to the first free one.
   function addToken(
     name: string,
     imageDataUrl: string,

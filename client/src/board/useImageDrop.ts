@@ -19,7 +19,6 @@ function isFileDrag(dataTransfer: DataTransfer) {
   return dataTransfer.types.includes("Files");
 }
 
-// Images dropped on the map become tokens, images dropped beside it the background.
 export function useImageDrop(stageRef: RefObject<StageNode | null>) {
   const room = useRoom();
 

@@ -11,7 +11,6 @@ export interface MapBounds {
   rows: number;
 }
 
-// A token's place in cells.
 export interface Square {
   x: number;
   y: number;
@@ -56,7 +55,6 @@ export function cellAt(point: Vector2d) {
   };
 }
 
-// Lays dropped tokens out in rows from the start cell, shifted left and up so they stay on the map.
 export function dropCells(
   start: { x: number; y: number },
   count: number,

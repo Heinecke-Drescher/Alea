@@ -18,7 +18,6 @@ function isImageFile(file: File, maxMegabytes: number) {
   );
 }
 
-// Reports the files that are no images or too large and returns the others.
 export function validImages(files: File[], maxMegabytes: number) {
   const images = files.filter((file) => isImageFile(file, maxMegabytes));
   for (const file of files) {

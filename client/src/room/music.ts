@@ -35,7 +35,6 @@ export function currentPosition(music: Music, now: number) {
     : music.position;
 }
 
-// The privacy-enhanced player sets no cookies until it plays.
 export function embedUrl(music: Music, now: number) {
   const start = Math.floor(currentPosition(music, now));
   const autoplay = music.playing ? "&autoplay=1" : "";

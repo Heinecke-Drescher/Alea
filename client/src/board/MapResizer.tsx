@@ -57,7 +57,6 @@ export function MapResizer() {
         borderStroke={theme.colors.blue[6]}
         borderDash={[8, 4]}
         anchorStroke={theme.colors.blue[6]}
-        // Converts Konva's scaling into whole cells while dragging.
         onTransform={() => showBounds(snappedBounds())}
         onTransformEnd={() => {
           const next = snappedBounds();

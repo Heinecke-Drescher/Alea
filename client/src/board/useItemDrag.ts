@@ -9,7 +9,6 @@ import { cellOffset, NO_ITEMS, squaresBounds } from "./selection";
 interface Drag {
   items: Items;
   start: Vector2d;
-  // Tokens snap to whole cells, so then the drag keeps their bounds on the map.
   gridBounds: IRect | null;
   others: { node: Node; start: Vector2d }[];
 }

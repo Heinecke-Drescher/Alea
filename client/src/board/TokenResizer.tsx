@@ -79,7 +79,6 @@ export function TokenResizer({ token }: TokenResizerProps) {
       onDragStart={stopBubble}
       onDragMove={stopBubble}
       onDragEnd={stopBubble}
-      // Converts Konva's scaling into whole cells while dragging.
       onTransform={() => showSquare(snappedSquare())}
       onTransformEnd={() => {
         const next = snappedSquare();
