@@ -13,6 +13,7 @@ import { dieShape } from "../dice/dieShapes";
 import { pathLength, pointAlong } from "../dice/throwPath";
 import { tokenHits, type TokenHit } from "../dice/tokenHits";
 import { CELL_SIZE } from "../room/grid";
+import { dieColors } from "../dice/dieColors";
 import { rollColor, rollPath } from "../room/rolls";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
@@ -175,6 +176,7 @@ function ThrownDie({
 }: ThrownDieProps) {
   const room = useRoom();
   const theme = useMantineTheme();
+  const colors = dieColors(theme, color);
   // Clicked dice have no position; each viewer throws them into their own view.
   // Both are fixed when the die appears, so later renders cannot restart the roll.
   const [{ x, y }] = useState(() => position ?? viewCenter());
@@ -243,7 +245,7 @@ function ThrownDie({
       <Line
         points={dieShape(sides, DIE_RADIUS)}
         closed
-        fill={theme.colors[color][6]}
+        fill={colors.fill}
         stroke="white"
         strokeWidth={2}
         lineJoin="round"
@@ -258,7 +260,7 @@ function ThrownDie({
         verticalAlign="middle"
         fontSize={DIE_RADIUS * (sides === 100 ? 0.55 : 0.7)}
         fontStyle="bold"
-        fill="white"
+        fill={colors.text}
       />
     </Group>
   );

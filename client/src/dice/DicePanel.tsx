@@ -34,7 +34,12 @@ export function DicePanel({ playerName, playerColor }: DicePanelProps) {
     <Stack>
       <SimpleGrid cols={4}>
         {DIE_SIDES.map((sides) => (
-          <DieButton key={sides} sides={sides} onRoll={() => roll(sides)} />
+          <DieButton
+            key={sides}
+            sides={sides}
+            color={playerColor}
+            onRoll={() => roll(sides)}
+          />
         ))}
       </SimpleGrid>
       <Text c="dimmed" ta="center" size="sm">

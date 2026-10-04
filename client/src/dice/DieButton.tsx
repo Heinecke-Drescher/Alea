@@ -1,5 +1,7 @@
-import { UnstyledButton } from "@mantine/core";
+import { UnstyledButton, useMantineTheme } from "@mantine/core";
 import type { DieSides } from "../../../shared/dice";
+import type { PlayerColor } from "../room/playerColors";
+import { dieColors } from "./dieColors";
 import { startDieDrag } from "./dieDrag";
 import classes from "./DieButton.module.css";
 import { dieShape } from "./dieShapes";
@@ -9,13 +11,22 @@ const VIEW_SIZE = RADIUS * 2.4;
 
 interface DieButtonProps {
   sides: DieSides;
+  color: PlayerColor;
   onRoll: () => void;
 }
 
-export function DieButton({ sides, onRoll }: DieButtonProps) {
+export function DieButton({ sides, color, onRoll }: DieButtonProps) {
+  const theme = useMantineTheme();
+  const colors = dieColors(theme, color);
+
   return (
     <UnstyledButton
       className={classes.button}
+      style={{
+        "--die-fill": colors.fill,
+        "--die-hover-fill": colors.hoverFill,
+        "--die-text": colors.text,
+      }}
       aria-label={`Roll d${sides}`}
       draggable
       onDragStart={(event) => startDieDrag(event.dataTransfer, sides)}
