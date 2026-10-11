@@ -1,5 +1,6 @@
 import {
   AppShell,
+  Badge,
   Burger,
   Button,
   Center,
@@ -50,7 +51,8 @@ function RoomNotFound() {
 }
 
 function RoomView({ roomId }: { roomId: string }) {
-  const { room, awareness, isSynced, isFull } = useRoomConnection(roomId);
+  const { room, awareness, isSynced, connection, isFull } =
+    useRoomConnection(roomId);
   const [asideOpened, { toggle: toggleAside }] = useDisclosure();
   const [isEditingName, { open: editName, close: stopEditingName }] =
     useDisclosure();
@@ -80,7 +82,14 @@ function RoomView({ roomId }: { roomId: string }) {
         >
           <AppShell.Header>
             <Group h="100%" px="md" justify="space-between">
-              <Title order={3}>Alea</Title>
+              <Group gap="sm">
+                <Title order={3}>Alea</Title>
+                {connection === "disconnected" && (
+                  <Badge color="red" variant="light">
+                    Not connected. Changes are not saved yet.
+                  </Badge>
+                )}
+              </Group>
               <Group gap="xs">
                 {isSynced && !needsName && <DmControl awareness={awareness} />}
                 <MusicMenu />
