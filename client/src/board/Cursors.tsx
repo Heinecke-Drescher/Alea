@@ -1,10 +1,9 @@
 import { useMantineTheme } from "@mantine/core";
-import type { Group as GroupNode } from "konva/lib/Group";
-import { useEffect, useRef, useState } from "react";
 import { Group, Label, Line, Tag, Text } from "react-konva";
 import type { Awareness } from "../room/connectRoom";
 import { useCursors } from "../room/useCursors";
 import { CURSOR_ARROW } from "./cursorArrow";
+import { useStageZoom } from "./useStageZoom";
 
 interface CursorsProps {
   awareness: Awareness | null;
@@ -13,18 +12,7 @@ interface CursorsProps {
 export function Cursors({ awareness }: CursorsProps) {
   const theme = useMantineTheme();
   const cursors = useCursors(awareness);
-  const groupRef = useRef<GroupNode>(null);
-  const [zoom, setZoom] = useState(1);
-
-  useEffect(() => {
-    const stage = groupRef.current?.getStage();
-    if (!stage) throw new Error("Cursors are not on a stage");
-    const updateZoom = () => setZoom(stage.scaleX());
-    stage.on("scaleXChange", updateZoom);
-    return () => {
-      stage.off("scaleXChange", updateZoom);
-    };
-  }, []);
+  const { groupRef, zoom } = useStageZoom();
 
   return (
     <Group ref={groupRef} listening={false}>

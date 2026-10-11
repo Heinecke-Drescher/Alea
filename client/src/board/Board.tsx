@@ -14,8 +14,9 @@ import { useBackgroundImage } from "../room/useBackgroundImage";
 import { Cells } from "./Cells";
 import { cursorArrowCss } from "./cursorArrow";
 import { Cursors } from "./Cursors";
+import { DistanceMeasure } from "./DistanceMeasure";
 import { GridLines } from "./GridLines";
-import { cellAt, clampToMap, containsCell } from "../room/grid";
+import { clampToMap } from "../room/grid";
 import { Strokes } from "./Strokes";
 import { ThrownDice } from "./ThrownDice";
 import { Tokens } from "./Tokens";
@@ -25,6 +26,12 @@ import { MapResizer } from "./MapResizer";
 import { resizableTokenId } from "./selection";
 import { SelectionFrame } from "./SelectionFrame";
 import { Toolbar, type Tool } from "./Toolbar";
+import { selectTool } from "./tools/select";
+import { usePaintTool } from "./tools/paint";
+import { usePenTool } from "./tools/pen";
+import { useEraserTool } from "./tools/eraser";
+import { useMeasureTool } from "./tools/measure";
+import type { BoardTool } from "./tools/tool";
 import { useClipboard } from "./useClipboard";
 import { useCursorBroadcast } from "./useCursorBroadcast";
 import { useImageDrop } from "./useImageDrop";
@@ -69,13 +76,6 @@ function pointerOnMap(event: KonvaEventObject<MouseEvent>) {
   return pointer;
 }
 
-function strokeIdAtPointer(event: KonvaEventObject<MouseEvent>) {
-  const stage = event.target.getStage();
-  const pointer = stage?.getPointerPosition();
-  if (!stage || !pointer) throw new Error("Mouse event without stage pointer");
-  return stage.getIntersection(pointer)?.id();
-}
-
 function isAddKeyPressed(event: KonvaEventObject<MouseEvent>) {
   return event.evt.ctrlKey || event.evt.metaKey;
 }
@@ -92,8 +92,21 @@ export function Board({ awareness, isSynced }: BoardProps) {
   const theme = useMantineTheme();
   const [tool, setTool] = useState<Tool>("select");
   const [color, setColor] = useState<PaintColor>("red");
-  const [draftPoints, setDraftPoints] = useState<number[] | null>(null);
   const selection = useSelection(room);
+  const select = selectTool(selection);
+  const colorValue = paintColorValue(theme, color);
+  const paint = usePaintTool(room, colorValue);
+  const { tool: pen, draftPoints } = usePenTool(room, colorValue);
+  const eraser = useEraserTool(room);
+  const { tool: measure, measurement } = useMeasureTool(room);
+  const tools: Record<Tool, BoardTool> = {
+    select,
+    paint,
+    pen,
+    eraser,
+    measure,
+  };
+  const activeTool = tools[tool];
   const { area, items } = selection;
   const itemDrag = useItemDrag(room, items);
   const lastPointer = useRef<Vector2d | null>(null);
@@ -101,9 +114,8 @@ export function Board({ awareness, isSynced }: BoardProps) {
     room,
     selection,
     pointer: lastPointer,
-    onPaste: () => setTool("select"),
+    onPaste: () => changeTool("select"),
   });
-  const isPressed = useRef(false);
   const stageRef = useRef<StageNode>(null);
   const cursor = useCursorBroadcast(awareness);
   const dieDrop = useDieDrop({ stageRef });
@@ -113,7 +125,13 @@ export function Board({ awareness, isSynced }: BoardProps) {
   // Keeps the browser's own copy and paste working, e.g. for text in the dice history.
   const keepDefault = { preventDefault: false };
   useHotkeys([
-    ["Escape", selection.clear],
+    [
+      "Escape",
+      () => {
+        measure.onUp();
+        selection.clear();
+      },
+    ],
     ["mod+C", clipboard.copy, keepDefault],
     ["mod+X", clipboard.cut, keepDefault],
     ["mod+V", clipboard.paste, keepDefault],
@@ -137,22 +155,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
     return clampToMap(center, room.mapBounds());
   }
 
-  const isSelecting = tool === "select";
-  const colorValue = paintColorValue(theme, color);
-
-  function applyAtPointer(event: KonvaEventObject<MouseEvent>) {
-    const cell = cellAt(pointerOnMap(event));
-    const isOnMap = containsCell(room.mapBounds(), cell.x, cell.y);
-    if (tool === "paint" && isOnMap) {
-      room.paintCell(cell.x, cell.y, colorValue);
-    }
-    if (tool === "eraser") {
-      // Also off the map, to clean up cells left there by players resizing at the same time.
-      room.eraseCell(cell.x, cell.y);
-      const strokeId = strokeIdAtPointer(event);
-      if (strokeId) room.removeStroke(strokeId);
-    }
-  }
+  const isSelecting = activeTool.selectsItems;
 
   function isSelectClick(event: KonvaEventObject<MouseEvent>) {
     return isSelecting && event.evt.button === LEFT_MOUSE_BUTTON;
@@ -175,6 +178,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
   }
 
   function changeTool(nextTool: Tool) {
+    handleMouseUp();
     setTool(nextTool);
     selection.clear();
   }
@@ -185,44 +189,19 @@ export function Board({ awareness, isSynced }: BoardProps) {
     if (event.evt.button === LEFT_MOUSE_BUTTON) stage.stopDrag();
   }
 
-  function startArea(event: KonvaEventObject<MouseEvent>) {
-    if (event.target !== stageRef.current) return;
-    if (isAddKeyPressed(event)) return;
-    selection.beginArea(pointerOnMap(event));
-  }
-
   function handleMouseDown(event: KonvaEventObject<MouseEvent>) {
     if (event.evt.button !== LEFT_MOUSE_BUTTON) return;
-    if (isSelecting) startArea(event);
-    if (tool === "paint" || tool === "eraser") {
-      room.undoManager.stopCapturing();
-      isPressed.current = true;
-      applyAtPointer(event);
-    }
-    if (tool === "pen") {
-      const point = pointerOnMap(event);
-      setDraftPoints([point.x, point.y]);
-    }
+    activeTool.onDown({ point: pointerOnMap(event), event });
   }
 
   function handleMouseMove(event: KonvaEventObject<MouseEvent>) {
     lastPointer.current = pointerOnMap(event);
     cursor.move(lastPointer.current);
-    selection.extendArea(lastPointer.current);
-    if (isPressed.current) applyAtPointer(event);
-    if (draftPoints) {
-      const point = pointerOnMap(event);
-      setDraftPoints((points) => points && [...points, point.x, point.y]);
-    }
+    activeTool.onMove({ point: lastPointer.current, event });
   }
 
   function handleMouseUp() {
-    selection.endArea();
-    isPressed.current = false;
-    if (draftPoints && draftPoints.length >= 4) {
-      room.addStroke(colorValue, draftPoints);
-    }
-    setDraftPoints(null);
+    activeTool.onUp();
   }
 
   function handleMouseLeave() {
@@ -276,7 +255,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
             draft={draftPoints && { color: colorValue, points: draftPoints }}
             selection={area}
             selectedIds={items.strokes}
-            listening={tool === "eraser" || isSelecting}
+            listening={activeTool.listensToStrokes}
             draggable={isSelecting}
             onStrokePress={pressItem("strokes")}
             onStrokeClick={clickItem("strokes")}
@@ -294,6 +273,10 @@ export function Board({ awareness, isSynced }: BoardProps) {
           {isSelecting && <MapResizer />}
           <SelectionFrame area={area} onMove={selection.moveArea} />
           {isSynced && <ThrownDice viewCenter={viewCenter} />}
+          <DistanceMeasure
+            measurement={measurement}
+            color={theme.colors[player.color][6]}
+          />
           <Cursors awareness={awareness} />
         </Layer>
       </Stage>

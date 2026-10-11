@@ -15,19 +15,21 @@ import {
   IconEraser,
   IconPencil,
   IconPointer,
+  IconRuler,
   IconTrash,
   type Icon,
 } from "@tabler/icons-react";
 import { useRoom } from "../room/RoomContext";
 import { PAINT_COLORS, paintColorValue, type PaintColor } from "./paintColors";
 
-export type Tool = "select" | "paint" | "pen" | "eraser";
+export type Tool = "select" | "paint" | "pen" | "eraser" | "measure";
 
 const TOOLS: { tool: Tool; label: string; icon: Icon }[] = [
   { tool: "select", label: "Select and move", icon: IconPointer },
   { tool: "paint", label: "Paint cells", icon: IconBucketDroplet },
   { tool: "pen", label: "Draw", icon: IconPencil },
   { tool: "eraser", label: "Erase", icon: IconEraser },
+  { tool: "measure", label: "Measure distance", icon: IconRuler },
 ];
 
 function confirmClearDrawings(clearDrawings: () => void) {
