@@ -128,7 +128,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
     [
       "Escape",
       () => {
-        measure.onUp();
+        activeTool.onCancel?.();
         selection.clear();
       },
     ],

@@ -26,6 +26,9 @@ export function useMeasureTool(room: Room) {
     onUp() {
       setMeasurement(null);
     },
+    onCancel() {
+      setMeasurement(null);
+    },
   };
 
   return { tool, measurement };

@@ -12,4 +12,5 @@ export interface BoardTool {
   onDown: (pointer: ToolPointer) => void;
   onMove: (pointer: ToolPointer) => void;
   onUp: () => void;
+  onCancel?: () => void;
 }
