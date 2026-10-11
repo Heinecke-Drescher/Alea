@@ -123,7 +123,7 @@ describe("snapTokenSquare", () => {
       y: 2,
       size: 3,
     });
-    expect(snapTokenSquare(box(-1, 0, 5, 5), "top-left")).toEqual({
+    expect(snapTokenSquare(box(-8, -7, 12, 12), "top-left")).toEqual({
       x: 4 - MAX_TOKEN_SIZE,
       y: 5 - MAX_TOKEN_SIZE,
       size: MAX_TOKEN_SIZE,

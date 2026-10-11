@@ -132,7 +132,7 @@ describe("changing tokens", () => {
     room.addToken("Dragon", IMAGE);
     const { id } = onlyToken();
     expect(() => room.resizeToken(id, { x: 0, y: 0, size: 0 })).toThrow();
-    expect(() => room.resizeToken(id, { x: 0, y: 0, size: 4 })).toThrow();
+    expect(() => room.resizeToken(id, { x: 0, y: 0, size: 11 })).toThrow();
     expect(() => room.resizeToken(id, { x: 0, y: 0, size: 1.5 })).toThrow();
   });
 
@@ -451,8 +451,8 @@ describe("map bounds", () => {
   it("grows and shrinks when nothing would end up outside", () => {
     expect(room.resize(bounds(0, 0, 60, 40))).toBe(true);
     expect(room.mapBounds()).toEqual(bounds(0, 0, 60, 40));
-    expect(room.resize(bounds(0, 0, 10, 8))).toBe(true);
-    expect(room.mapBounds()).toEqual(bounds(0, 0, 10, 8));
+    expect(room.resize(bounds(0, 0, 12, 10))).toBe(true);
+    expect(room.mapBounds()).toEqual(bounds(0, 0, 12, 10));
   });
 
   it("grows to the left and top without moving anything", () => {
@@ -464,27 +464,27 @@ describe("map bounds", () => {
   });
 
   it("refuses to shrink below cells or tokens", () => {
-    room.paintCell(9, 0, "#ff0000");
-    expect(room.resize(bounds(0, 0, 9, 20))).toBe(false);
-    expect(room.resize(bounds(10, 0, 20, 20))).toBe(false);
-    room.eraseCell(9, 0);
+    room.paintCell(10, 0, "#ff0000");
+    expect(room.resize(bounds(0, 0, 10, 20))).toBe(false);
+    expect(room.resize(bounds(11, 0, 20, 20))).toBe(false);
+    room.eraseCell(10, 0);
 
     room.addToken("Ogre", IMAGE);
-    moveOnlyTokenTo(0, 6);
+    moveOnlyTokenTo(0, 8);
     room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
-    expect(room.resize(bounds(0, 0, 30, 8))).toBe(false);
-    expect(room.resize(bounds(0, 7, 30, 13))).toBe(false);
+    expect(room.resize(bounds(0, 0, 30, 10))).toBe(false);
+    expect(room.resize(bounds(0, 9, 30, 11))).toBe(false);
     expect(room.mapBounds()).toEqual(DEFAULT_MAP_BOUNDS);
   });
 
   it("lets strokes stick out of the map", () => {
     room.addStroke("#000000", [-40, 0, 10 * CELL_SIZE + 1, 0]);
     expect(room.resize(bounds(0, 0, 40, 20))).toBe(true);
-    expect(room.resize(bounds(1, 0, 9, 20))).toBe(true);
+    expect(room.resize(bounds(1, 0, 10, 20))).toBe(true);
   });
 
   it("rejects bounds outside the limits", () => {
-    expect(() => room.resize(bounds(0, 0, 4, 20))).toThrow();
+    expect(() => room.resize(bounds(0, 0, 9, 20))).toThrow();
     expect(() => room.resize(bounds(0, 0, 30, 101))).toThrow();
     expect(() => room.resize(bounds(0, 0, 30.5, 20))).toThrow();
     expect(() => room.resize(bounds(0.5, 0, 30, 20))).toThrow();

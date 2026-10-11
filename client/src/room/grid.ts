@@ -23,8 +23,8 @@ export const DEFAULT_MAP_BOUNDS: MapBounds = {
   columns: 30,
   rows: 20,
 };
-export const MIN_MAP_CELLS = 5;
-export const MAX_TOKEN_SIZE = 3;
+export const MIN_MAP_CELLS = 10;
+export const MAX_TOKEN_SIZE = 10;
 export const MAX_MAP_CELLS = 100;
 
 export function mapRect({ x, y, columns, rows }: MapBounds): IRect {
