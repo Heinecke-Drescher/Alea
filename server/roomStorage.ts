@@ -1,8 +1,23 @@
-import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
+import {
+  access,
+  mkdir,
+  readdir,
+  readFile,
+  rename,
+  writeFile,
+} from "node:fs/promises";
 import path from "node:path";
 import { isValidRoomId } from "../shared/roomId.ts";
 
-export function createRoomStorage(directory: string, maxBytes: number) {
+interface RoomLimits {
+  maxBytes: number;
+  maxRooms: number;
+}
+
+export function createRoomStorage(
+  directory: string,
+  { maxBytes, maxRooms }: RoomLimits,
+) {
   const pendingByRoom = new Map<string, Promise<unknown>>();
 
   function fileFor(roomId: string) {
@@ -40,13 +55,31 @@ export function createRoomStorage(directory: string, maxBytes: number) {
     return oneAtATime(roomId, async () => {
       const temporaryFile = `${file}.tmp`;
       await mkdir(directory, { recursive: true });
+      if (!(await exists(file)) && (await countRooms()) >= maxRooms) {
+        return false;
+      }
       await writeFile(temporaryFile, state);
       await rename(temporaryFile, file);
       return true;
     });
   }
 
+  async function countRooms() {
+    const files = await readdir(directory);
+    return files.filter((name) => name.endsWith(".ydoc")).length;
+  }
+
   return { load, save };
+}
+
+async function exists(file: string) {
+  try {
+    await access(file);
+    return true;
+  } catch (error) {
+    if (isMissingFile(error)) return false;
+    throw error;
+  }
 }
 
 function isMissingFile(error: unknown) {

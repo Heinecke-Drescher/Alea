@@ -2,6 +2,7 @@ import { existsSync } from "node:fs";
 import path from "node:path";
 import { parseArgs } from "node:util";
 import { Database } from "@hocuspocus/extension-database";
+import { Throttle } from "@hocuspocus/extension-throttle";
 import { Server } from "@hocuspocus/server";
 import sirv from "sirv";
 import { ROOM_FULL_MESSAGE } from "../shared/roomMessages.ts";
@@ -14,11 +15,11 @@ if (!Number.isInteger(port) || port <= 0) {
 }
 const dataDirectory = path.resolve(process.env.DATA_DIR ?? "data");
 const MAX_MESSAGE_BYTES = 10 * 1024 ** 2;
-const MAX_ROOM_BYTES = 5 * 1024 ** 2;
-const storage = createRoomStorage(
-  path.join(dataDirectory, "rooms"),
-  MAX_ROOM_BYTES,
-);
+const storage = createRoomStorage(path.join(dataDirectory, "rooms"), {
+  maxBytes: 5 * 1024 ** 2,
+  // At most 10 GB of rooms, a quarter of the server's disk.
+  maxRooms: 2000,
+});
 
 // Token images must stay embedded (data:), so other players cannot make
 // everyone's browser load images from a third-party server. The only
@@ -64,12 +65,14 @@ const server = new Server({
   port,
   websocketOptions: { maxPayload: MAX_MESSAGE_BYTES },
   extensions: [
+    // The throttle reads the client address from proxy headers, which only exist in production.
+    ...(serveClient ? [new Throttle({ throttle: 30 })] : []),
     new Database({
       fetch: ({ documentName }) => storage.load(documentName),
       store: async ({ documentName, state, document, instance }) => {
         if (await storage.save(documentName, state)) return;
         console.warn(
-          `Room ${documentName} is full (${state.byteLength} bytes)`,
+          `Room ${documentName} cannot be saved (${state.byteLength} bytes)`,
         );
         // Clients must not reconnect with their data, or the room would grow again.
         document.broadcastStateless(ROOM_FULL_MESSAGE);

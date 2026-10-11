@@ -132,10 +132,10 @@ function RoomFull() {
   return (
     <Center h="100dvh">
       <Stack align="center">
-        <Title order={2}>Room is full</Title>
+        <Title order={2}>This room cannot be saved</Title>
         <Text c="dimmed" ta="center">
-          This room reached its size limit. Changes since the last save are
-          lost.
+          The room or the server storage is full. Changes since the last save
+          are lost.
         </Text>
         <Button onClick={() => location.reload()}>
           Reload the last saved state

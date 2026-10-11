@@ -6,6 +6,7 @@ import { createRoomStorage } from "./roomStorage.ts";
 
 const ROOM_ID = "abc123def456";
 const MAX_BYTES = 8;
+const LIMITS = { maxBytes: MAX_BYTES, maxRooms: 2 };
 
 let directory: string;
 
@@ -28,12 +29,12 @@ async function loadedBytes(
 
 describe("roomStorage", () => {
   it("returns null for a room that was never saved", async () => {
-    const storage = createRoomStorage(directory, MAX_BYTES);
+    const storage = createRoomStorage(directory, LIMITS);
     expect(await storage.load(ROOM_ID)).toBeNull();
   });
 
   it("loads what was saved", async () => {
-    const storage = createRoomStorage(directory, MAX_BYTES);
+    const storage = createRoomStorage(directory, LIMITS);
     await storage.save(ROOM_ID, new Uint8Array([1, 2, 3]));
     expect(await loadedBytes(storage, ROOM_ID)).toEqual([1, 2, 3]);
   });
@@ -41,14 +42,14 @@ describe("roomStorage", () => {
   it("creates the directory when it does not exist yet", async () => {
     const storage = createRoomStorage(
       path.join(directory, "nested", "rooms"),
-      MAX_BYTES,
+      LIMITS,
     );
     await storage.save(ROOM_ID, new Uint8Array([7]));
     expect(await loadedBytes(storage, ROOM_ID)).toEqual([7]);
   });
 
   it("keeps overlapping saves of one room in order", async () => {
-    const storage = createRoomStorage(directory, MAX_BYTES);
+    const storage = createRoomStorage(directory, LIMITS);
     await Promise.all([
       storage.save(ROOM_ID, new Uint8Array([1])),
       storage.save(ROOM_ID, new Uint8Array([2])),
@@ -58,14 +59,14 @@ describe("roomStorage", () => {
   });
 
   it("saves a room of exactly the maximum size", async () => {
-    const storage = createRoomStorage(directory, MAX_BYTES);
+    const storage = createRoomStorage(directory, LIMITS);
     const state = new Uint8Array(MAX_BYTES).fill(1);
     expect(await storage.save(ROOM_ID, state)).toBe(true);
     expect(await loadedBytes(storage, ROOM_ID)).toEqual(Array.from(state));
   });
 
   it("refuses a larger room and keeps the last saved state", async () => {
-    const storage = createRoomStorage(directory, MAX_BYTES);
+    const storage = createRoomStorage(directory, LIMITS);
     await storage.save(ROOM_ID, new Uint8Array([1, 2, 3]));
     expect(await storage.save(ROOM_ID, new Uint8Array(MAX_BYTES + 1))).toBe(
       false,
@@ -73,10 +74,20 @@ describe("roomStorage", () => {
     expect(await loadedBytes(storage, ROOM_ID)).toEqual([1, 2, 3]);
   });
 
+  it("refuses a new room at the room limit but still saves existing ones", async () => {
+    const storage = createRoomStorage(directory, LIMITS);
+    expect(await storage.save("aaaaaaaaaaaa", new Uint8Array([1]))).toBe(true);
+    expect(await storage.save("bbbbbbbbbbbb", new Uint8Array([2]))).toBe(true);
+    expect(await storage.save("cccccccccccc", new Uint8Array([3]))).toBe(false);
+    expect(await storage.load("cccccccccccc")).toBeNull();
+    expect(await storage.save("aaaaaaaaaaaa", new Uint8Array([4]))).toBe(true);
+    expect(await loadedBytes(storage, "aaaaaaaaaaaa")).toEqual([4]);
+  });
+
   it.each(["../escape1234", "ABCDEFGHIJKL", "a/b", "", "abc"])(
     "rejects the room id %j",
     async (roomId) => {
-      const storage = createRoomStorage(directory, MAX_BYTES);
+      const storage = createRoomStorage(directory, LIMITS);
       await expect(storage.load(roomId)).rejects.toThrow("Invalid room id");
       await expect(storage.save(roomId, new Uint8Array())).rejects.toThrow(
         "Invalid room id",

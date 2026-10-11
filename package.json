@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@hocuspocus/extension-database": "^4.7.0",
+    "@hocuspocus/extension-throttle": "^4.7.0",
     "@hocuspocus/provider": "^4.7.0",
     "@hocuspocus/server": "^4.7.0",
     "@mantine/core": "^9.6.3",
