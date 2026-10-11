@@ -2,7 +2,7 @@ import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { isValidRoomId } from "../shared/roomId.ts";
 
-export function createRoomStorage(directory: string) {
+export function createRoomStorage(directory: string, maxBytes: number) {
   const pendingByRoom = new Map<string, Promise<unknown>>();
 
   function fileFor(roomId: string) {
@@ -36,11 +36,13 @@ export function createRoomStorage(directory: string) {
 
   async function save(roomId: string, state: Uint8Array) {
     const file = fileFor(roomId);
+    if (state.byteLength > maxBytes) return false;
     return oneAtATime(roomId, async () => {
       const temporaryFile = `${file}.tmp`;
       await mkdir(directory, { recursive: true });
       await writeFile(temporaryFile, state);
       await rename(temporaryFile, file);
+      return true;
     });
   }
 

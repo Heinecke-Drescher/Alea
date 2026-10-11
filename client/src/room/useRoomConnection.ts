@@ -7,13 +7,16 @@ export function useRoomConnection(roomId: string) {
   const [room] = useState(() => createRoom(new Y.Doc()));
   const [awareness, setAwareness] = useState<Awareness | null>(null);
   const [isSynced, setIsSynced] = useState(false);
+  const [isFull, setIsFull] = useState(false);
 
   useEffect(() => {
-    const connection = connectRoom(roomId, room.doc, setIsSynced);
+    const connection = connectRoom(roomId, room.doc, setIsSynced, () =>
+      setIsFull(true),
+    );
     // oxlint-disable-next-line react/set-state-in-effect -- the awareness only exists once the provider connects
     setAwareness(connection.awareness);
     return connection.disconnect;
   }, [roomId, room]);
 
-  return { room, awareness, isSynced };
+  return { room, awareness, isSynced, isFull };
 }

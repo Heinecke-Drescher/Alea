@@ -1,5 +1,6 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import type * as Y from "yjs";
+import { ROOM_FULL_MESSAGE } from "../../../shared/roomMessages";
 
 export type Awareness = NonNullable<HocuspocusProvider["awareness"]>;
 
@@ -7,6 +8,7 @@ export function connectRoom(
   roomId: string,
   doc: Y.Doc,
   onSynced: (isSynced: boolean) => void,
+  onRoomFull: () => void,
 ) {
   const protocol = location.protocol === "https:" ? "wss" : "ws";
   const provider = new HocuspocusProvider({
@@ -14,6 +16,12 @@ export function connectRoom(
     name: roomId,
     document: doc,
     onSynced: ({ state }) => onSynced(state),
+    onStateless: ({ payload }) => {
+      if (payload !== ROOM_FULL_MESSAGE) return;
+      // Reconnecting would send the data back that made the room too big.
+      provider.disconnect();
+      onRoomFull();
+    },
   });
   const { awareness } = provider;
   if (!awareness) throw new Error("Provider has no awareness");

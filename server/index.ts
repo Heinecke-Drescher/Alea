@@ -4,6 +4,7 @@ import { parseArgs } from "node:util";
 import { Database } from "@hocuspocus/extension-database";
 import { Server } from "@hocuspocus/server";
 import sirv from "sirv";
+import { ROOM_FULL_MESSAGE } from "../shared/roomMessages.ts";
 import { isSameOrigin } from "./origin.ts";
 import { createRoomStorage } from "./roomStorage.ts";
 
@@ -12,9 +13,12 @@ if (!Number.isInteger(port) || port <= 0) {
   throw new Error(`Invalid PORT: ${process.env.PORT}`);
 }
 const dataDirectory = path.resolve(process.env.DATA_DIR ?? "data");
-const storage = createRoomStorage(path.join(dataDirectory, "rooms"));
-
 const MAX_MESSAGE_BYTES = 10 * 1024 ** 2;
+const MAX_ROOM_BYTES = 5 * 1024 ** 2;
+const storage = createRoomStorage(
+  path.join(dataDirectory, "rooms"),
+  MAX_ROOM_BYTES,
+);
 
 // Token images must stay embedded (data:), so other players cannot make
 // everyone's browser load images from a third-party server. The only
@@ -62,7 +66,15 @@ const server = new Server({
   extensions: [
     new Database({
       fetch: ({ documentName }) => storage.load(documentName),
-      store: ({ documentName, state }) => storage.save(documentName, state),
+      store: async ({ documentName, state, document, instance }) => {
+        if (await storage.save(documentName, state)) return;
+        console.warn(
+          `Room ${documentName} is full (${state.byteLength} bytes)`,
+        );
+        // Clients must not reconnect with their data, or the room would grow again.
+        document.broadcastStateless(ROOM_FULL_MESSAGE);
+        instance.closeConnections(documentName);
+      },
     }),
   ],
   onConnect: ({ requestHeaders }) => {

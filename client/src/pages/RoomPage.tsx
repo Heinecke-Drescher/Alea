@@ -50,7 +50,7 @@ function RoomNotFound() {
 }
 
 function RoomView({ roomId }: { roomId: string }) {
-  const { room, awareness, isSynced } = useRoomConnection(roomId);
+  const { room, awareness, isSynced, isFull } = useRoomConnection(roomId);
   const [asideOpened, { toggle: toggleAside }] = useDisclosure();
   const [isEditingName, { open: editName, close: stopEditingName }] =
     useDisclosure();
@@ -64,6 +64,8 @@ function RoomView({ roomId }: { roomId: string }) {
     ["mod+Y", () => room.undoManager.redo()],
     ["mod+shift+Z", () => room.undoManager.redo()],
   ]);
+
+  if (isFull) return <RoomFull />;
 
   return (
     <RoomContext value={room}>
@@ -123,5 +125,22 @@ function RoomView({ roomId }: { roomId: string }) {
         />
       </PlayerContext>
     </RoomContext>
+  );
+}
+
+function RoomFull() {
+  return (
+    <Center h="100dvh">
+      <Stack align="center">
+        <Title order={2}>Room is full</Title>
+        <Text c="dimmed" ta="center">
+          This room reached its size limit. Changes since the last save are
+          lost.
+        </Text>
+        <Button onClick={() => location.reload()}>
+          Reload the last saved state
+        </Button>
+      </Stack>
+    </Center>
   );
 }
