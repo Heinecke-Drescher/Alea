@@ -1,0 +1,14 @@
+[Unit]
+Description=Delete Alea rooms that have not changed for about six months
+
+[Service]
+Type=oneshot
+User=alea
+Group=alea
+ExecStartPre=/usr/bin/mkdir -p /var/lib/alea/data/rooms
+ExecStart=/usr/bin/find /var/lib/alea/data/rooms ( -name *.ydoc -mtime +182 -o -name *.tmp -mmin +60 ) -delete
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+ReadWritePaths=/var/lib/alea

@@ -50,11 +50,11 @@ at startup.
 
 On a Linux server, [`deploy/alea.service`](deploy/alea.service) runs Alea as a
 systemd service: code in `/opt/alea`, rooms in `/var/lib/alea/data`, user
-`alea`.
+`alea`. A daily timer deletes rooms that have not changed for about six months.
 
 ```bash
-sudo cp deploy/alea.service /etc/systemd/system/
-sudo systemctl enable --now alea
+sudo cp deploy/alea.service deploy/alea-cleanup.* /etc/systemd/system/
+sudo systemctl enable --now alea alea-cleanup.timer
 ```
 
 To update to the latest version, run `sudo sh /opt/alea/deploy/update.sh`.

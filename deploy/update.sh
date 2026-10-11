@@ -7,8 +7,9 @@ main() {
 	sudo -u alea git pull --ff-only
 	sudo -u alea npm ci
 	sudo -u alea npm run build
-	cp deploy/alea.service /etc/systemd/system/
+	cp deploy/alea.service deploy/alea-cleanup.service deploy/alea-cleanup.timer /etc/systemd/system/
 	systemctl daemon-reload
+	systemctl enable --now alea-cleanup.timer
 	systemctl restart alea
 	systemctl is-active alea
 }
