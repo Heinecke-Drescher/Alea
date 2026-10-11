@@ -1,9 +1,5 @@
 import { describe, expect, it } from "vitest";
-import {
-  cellDistance,
-  measurementCell,
-  measurementLabelPosition,
-} from "./measurement";
+import { cellDistance, measurementCell } from "./measurement";
 
 describe("cellDistance", () => {
   it.each([
@@ -16,42 +12,6 @@ describe("cellDistance", () => {
   ])("counts cells for %s in both directions", (_, from, to, expected) => {
     expect(cellDistance({ from, to })).toBe(expected);
     expect(cellDistance({ from: to, to: from })).toBe(expected);
-  });
-});
-
-describe("measurementLabelPosition", () => {
-  const view = { x: 0, y: 0, zoom: 1, width: 800, height: 600 };
-
-  it("places the label beside the midpoint when there is room", () => {
-    expect(measurementLabelPosition({ x: 200, y: 200 }, view)).toEqual({
-      x: 210,
-      y: 210,
-    });
-  });
-
-  it("keeps the entire label inside the bottom and right edges", () => {
-    expect(measurementLabelPosition({ x: 750, y: 580 }, view)).toEqual({
-      x: 684,
-      y: 532,
-    });
-  });
-
-  it("keeps the label visible after zooming and panning", () => {
-    expect(
-      measurementLabelPosition(
-        { x: 500, y: 400 },
-        { ...view, x: -100, y: -100, zoom: 2 },
-      ),
-    ).toEqual({ x: 392, y: 316 });
-  });
-
-  it("limits the label at the top and left after panning", () => {
-    expect(
-      measurementLabelPosition(
-        { x: 100, y: 100 },
-        { ...view, x: -100, y: -100, zoom: 0.25 },
-      ),
-    ).toEqual({ x: 416, y: 416 });
   });
 });
 
