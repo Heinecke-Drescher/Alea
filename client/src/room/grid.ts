@@ -79,6 +79,59 @@ export function containsCell(bounds: MapBounds, x: number, y: number) {
   );
 }
 
+function overlaps(a: Square, b: Square) {
+  return (
+    a.x < b.x + b.size &&
+    b.x < a.x + a.size &&
+    a.y < b.y + b.size &&
+    b.y < a.y + a.size
+  );
+}
+
+function clockwiseFromRight({ x, y }: Vector2d) {
+  return (Math.atan2(y, x) + 2 * Math.PI) % (2 * Math.PI);
+}
+
+function ringOffsets(distance: number) {
+  const offsets: Vector2d[] = [];
+  for (let y = -distance; y <= distance; y++) {
+    for (let x = -distance; x <= distance; x++) {
+      if (Math.max(Math.abs(x), Math.abs(y)) === distance) {
+        offsets.push({ x, y });
+      }
+    }
+  }
+  return offsets.sort(
+    (a, b) =>
+      Math.hypot(a.x, a.y) - Math.hypot(b.x, b.y) ||
+      clockwiseFromRight(a) - clockwiseFromRight(b),
+  );
+}
+
+export function nearestFreeSquare(
+  square: Square,
+  occupied: Square[],
+  map: MapBounds,
+): Vector2d | null {
+  const { size } = square;
+  const maxDistance = Math.max(map.columns, map.rows);
+  for (let distance = 1; distance <= maxDistance; distance++) {
+    for (const offset of ringOffsets(distance)) {
+      const candidate = {
+        x: square.x + offset.x,
+        y: square.y + offset.y,
+        size,
+      };
+      const isFree =
+        containsCell(map, candidate.x, candidate.y) &&
+        containsCell(map, candidate.x + size - 1, candidate.y + size - 1) &&
+        !occupied.some((other) => overlaps(candidate, other));
+      if (isFree) return { x: candidate.x, y: candidate.y };
+    }
+  }
+  return null;
+}
+
 export function snapMapBounds(box: IRect, anchor: string) {
   return snapToCells(box, anchor, MIN_MAP_CELLS, MAX_MAP_CELLS);
 }

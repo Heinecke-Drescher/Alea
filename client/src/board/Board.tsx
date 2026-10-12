@@ -37,6 +37,7 @@ import { useCursorBroadcast } from "./useCursorBroadcast";
 import { useImageDrop } from "./useImageDrop";
 import { useItemDrag } from "./useItemDrag";
 import { useSelection } from "./useSelection";
+import { useTokenMenu } from "./useTokenMenu";
 
 const LEFT_MOUSE_BUTTON = 0;
 const MAP_START_X = 72;
@@ -109,6 +110,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
   const activeTool = tools[tool];
   const { area, items } = selection;
   const itemDrag = useItemDrag(room, items);
+  const tokenMenu = useTokenMenu(room, selection);
   const lastPointer = useRef<Vector2d | null>(null);
   const clipboard = useClipboard({
     room,
@@ -240,6 +242,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseLeave}
+        onContextMenu={(event) => event.evt.preventDefault()}
       >
         <Layer listening={false}>
           <MapFill />
@@ -267,6 +270,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
             resizableId={resizableTokenId(items)}
             onTokenPress={pressItem("tokens")}
             onTokenClick={clickItem("tokens")}
+            onTokenContextMenu={tokenMenu.open}
           />
         </Layer>
         <Layer>

@@ -6,6 +6,7 @@ import {
   MAX_MAP_CELLS,
   MAX_TOKEN_SIZE,
   MIN_MAP_CELLS,
+  nearestFreeSquare,
   snapMapBounds,
   snapTokenSquare,
 } from "./grid";
@@ -105,6 +106,50 @@ describe("dropCells", () => {
       { x: 4, y: 8 },
       { x: 0, y: 9 },
     ]);
+  });
+});
+
+describe("nearestFreeSquare", () => {
+  const map = { x: 0, y: 0, columns: 10, rows: 10 };
+  const square = (x: number, y: number, size = 1) => ({ x, y, size });
+  const goblin = square(5, 5);
+
+  it("prefers the cell to the right", () => {
+    expect(nearestFreeSquare(goblin, [goblin], map)).toEqual({ x: 6, y: 5 });
+  });
+
+  it("goes clockwise through the direct neighbours before the diagonals", () => {
+    const right = square(6, 5);
+    const below = square(5, 6);
+    const left = square(4, 5);
+    const above = square(5, 4);
+    expect(nearestFreeSquare(goblin, [goblin, right], map)).toEqual({
+      x: 5,
+      y: 6,
+    });
+    expect(
+      nearestFreeSquare(goblin, [goblin, right, below, left, above], map),
+    ).toEqual({ x: 6, y: 6 });
+  });
+
+  it("stays on the map", () => {
+    const atRightEdge = square(9, 0);
+    expect(nearestFreeSquare(atRightEdge, [atRightEdge], map)).toEqual({
+      x: 9,
+      y: 1,
+    });
+  });
+
+  it("finds room for the whole size of a large token", () => {
+    const dragon = square(0, 0, 3);
+    expect(nearestFreeSquare(dragon, [dragon], map)).toEqual({ x: 3, y: 0 });
+  });
+
+  it("returns null when the map has no room left", () => {
+    const tinyMap = { x: 0, y: 0, columns: 2, rows: 1 };
+    const first = square(0, 0);
+    const tokens = [first, square(1, 0)];
+    expect(nearestFreeSquare(first, tokens, tinyMap)).toBeNull();
   });
 });
 

@@ -146,6 +146,38 @@ describe("changing tokens", () => {
   it("ignores changes to tokens that no longer exist", () => {
     room.removeToken("gone");
     expect(room.tokensMap.size).toBe(0);
+    expect(room.duplicateToken("gone")).toBeUndefined();
+  });
+
+  it("duplicates a token next to it with its own image", () => {
+    room.addToken("Goblin", IMAGE);
+    const original = onlyToken();
+    const copyId = room.duplicateToken(original.id);
+    const copy = room.tokensMap.get(copyId ?? "");
+    expect(copy).toMatchObject({
+      name: "Goblin",
+      size: 1,
+      x: original.x + 1,
+      y: original.y,
+    });
+    expect(copy?.imageId).not.toBe(original.imageId);
+    expect(room.imagesMap.get(copy?.imageId ?? "")).toBe(IMAGE);
+  });
+
+  it("undoes a duplicate in one step", () => {
+    room.addToken("Goblin", IMAGE);
+    const before = room.doc.toJSON();
+    room.duplicateToken(onlyToken().id);
+    room.undoManager.undo();
+    expect(room.doc.toJSON()).toEqual(before);
+  });
+
+  it("does not duplicate when the map has no free space", () => {
+    room.resize({ x: 0, y: 0, columns: 10, rows: 10 });
+    room.addToken("Tarrasque", IMAGE);
+    room.resizeToken(onlyToken().id, { x: 0, y: 0, size: 10 });
+    expect(room.duplicateToken(onlyToken().id)).toBeUndefined();
+    expect(room.tokensMap.size).toBe(1);
   });
 });
 

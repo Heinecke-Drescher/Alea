@@ -2,6 +2,7 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
 import { Group } from "react-konva";
 import { hasCenterIn } from "../room/areaActions";
+import type { Token } from "../room/roomStore";
 import { embeddedImage } from "../room/tokens";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
@@ -15,6 +16,10 @@ interface TokensProps {
   resizableId: string | null;
   onTokenPress: (id: string, event: KonvaEventObject<MouseEvent>) => void;
   onTokenClick: (id: string, event: KonvaEventObject<MouseEvent>) => void;
+  onTokenContextMenu: (
+    token: Token,
+    event: KonvaEventObject<MouseEvent>,
+  ) => void;
 }
 
 export function Tokens({
@@ -24,6 +29,7 @@ export function Tokens({
   resizableId,
   onTokenPress,
   onTokenClick,
+  onTokenContextMenu,
 }: TokensProps) {
   const room = useRoom();
   const tokens = Object.values(useY(room.tokensMap));
@@ -52,6 +58,7 @@ export function Tokens({
           }
           onPress={(event) => onTokenPress(token.id, event)}
           onClick={(event) => onTokenClick(token.id, event)}
+          onContextMenu={(event) => onTokenContextMenu(token, event)}
         />
       ))}
       {resizable && <TokenResizer key={resizable.id} token={resizable} />}

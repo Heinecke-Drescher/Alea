@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { CELL_SIZE, squareCenter } from "./grid";
+import { CELL_SIZE, nearestFreeSquare, squareCenter } from "./grid";
 import { putCell, shiftPoints } from "./drawing";
 import { placeToken, type MapActions } from "./map";
 import type * as Y from "yjs";
@@ -178,6 +178,23 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     return pasted;
   }
 
+  function duplicateToken(id: string) {
+    const token = tokensMap.get(id);
+    if (!token) return;
+    const cell = nearestFreeSquare(
+      token,
+      Array.from(tokensMap.values()),
+      mapBounds(),
+    );
+    if (!cell) return;
+    const [copyId] = paste(
+      copyItems({ strokes: [], tokens: [id] }),
+      (cell.x - token.x) * CELL_SIZE,
+      (cell.y - token.y) * CELL_SIZE,
+    ).tokens;
+    return copyId;
+  }
+
   function remove({ cells, tokens, strokes }: Content) {
     undoManager.stopCapturing();
     doc.transact(() => {
@@ -204,6 +221,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     copyArea,
     copyItems,
     paste,
+    duplicateToken,
     deleteArea,
     deleteItems,
   };
