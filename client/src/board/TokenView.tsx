@@ -14,6 +14,7 @@ interface TokenViewProps {
   isHighlighted: boolean;
   onPress: (event: KonvaEventObject<MouseEvent>) => void;
   onClick: (event: KonvaEventObject<MouseEvent>) => void;
+  onContextMenu: (event: KonvaEventObject<MouseEvent>) => void;
 }
 
 export function TokenView({
@@ -22,6 +23,7 @@ export function TokenView({
   isHighlighted,
   onPress,
   onClick,
+  onContextMenu,
 }: TokenViewProps) {
   const theme = useMantineTheme();
   const [image, status] = useImage(imageDataUrl);
@@ -38,6 +40,7 @@ export function TokenView({
       draggable
       onMouseDown={onPress}
       onClick={onClick}
+      onContextMenu={onContextMenu}
     >
       {isHighlighted && (
         <Circle
