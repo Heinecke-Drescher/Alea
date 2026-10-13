@@ -112,7 +112,7 @@ describe("clipBounds", () => {
   it("spans only cells and tokens when there are any", () => {
     const clip = {
       cells: [{ x: 1, y: 2, color: "#ff0000" }],
-      tokens: [{ name: "Ogre", image: "", x: 3, y: 0, size: 2 }],
+      tokens: [{ name: "Ogre", image: "", x: 3, y: 0, size: 2, effects: [] }],
       strokes: [stroke],
     };
     expect(clipBounds(clip)).toEqual({

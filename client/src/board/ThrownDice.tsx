@@ -17,6 +17,7 @@ import { dieColors } from "../dice/dieColors";
 import { rollColor, rollPath } from "../room/rolls";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
+import { TOKEN_BODY_NAME } from "./tokenNodes";
 
 const DIE_RADIUS = 42;
 const ROLL_SECONDS = 1;
@@ -137,13 +138,13 @@ function knockToken(stage: Stage, { tokenId, direction }: TokenHit) {
   const token = stage.findOne<GroupNode>(`#${tokenId}`);
   // The token may have been removed since the throw.
   if (!token) return () => {};
-  const image = token.findOne("Image");
-  if (!image) throw new Error(`Token ${tokenId} has no image`);
-  // Only the image moves, around its fixed place in the middle of the token,
+  const body = token.findOne(`.${TOKEN_BODY_NAME}`);
+  if (!body) throw new Error(`Token ${tokenId} has no body`);
+  // Only the body moves, around its fixed place in the middle of the token,
   // so the token's own position stays with React and dragging.
-  const middle = image.width() / 2;
+  const middle = body.offsetX();
   return pushAndReturn(
-    image,
+    body,
     {
       x: middle + direction.x * KNOCK_DISTANCE,
       y: middle + direction.y * KNOCK_DISTANCE,
