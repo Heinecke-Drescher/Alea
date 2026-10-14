@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { tokenEffects, type StatusEffect } from "./effects";
 import { MAX_TOKEN_SIZE, type Square } from "./grid";
 import { placeToken, type MapActions } from "./map";
 import { cellKey, type RoomStore, type Token } from "./roomStore";
@@ -40,6 +41,19 @@ export function createTokens(
 
   function renameToken(id: string, name: string) {
     updateToken(id, (token) => ({ ...token, name }));
+  }
+
+  function toggleEffect(id: string, effect: StatusEffect) {
+    undoManager.stopCapturing();
+    updateToken(id, (token) => {
+      const effects = tokenEffects(token);
+      return {
+        ...token,
+        effects: effects.includes(effect)
+          ? effects.filter((other) => other !== effect)
+          : [...effects, effect],
+      };
+    });
   }
 
   function resizeToken(id: string, square: Square) {
@@ -84,5 +98,5 @@ export function createTokens(
     throw new Error("No free cell left on the map");
   }
 
-  return { addToken, renameToken, resizeToken, removeToken };
+  return { addToken, renameToken, toggleEffect, resizeToken, removeToken };
 }

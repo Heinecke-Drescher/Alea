@@ -1,10 +1,16 @@
 import { useMantineTheme } from "@mantine/core";
+import { Grayscale } from "konva/lib/filters/Grayscale";
 import type { KonvaEventObject } from "konva/lib/Node";
+import type { Image as ImageNode } from "konva/lib/shapes/Image";
+import { useEffect, useRef } from "react";
 import { Circle, Group, Image } from "react-konva";
 import useImage from "use-image";
+import { tokenEffects } from "../room/effects";
 import type { Token } from "../room/roomStore";
 import { CELL_SIZE } from "../room/grid";
 import { HIGHLIGHT_OPACITY, highlightColor } from "./highlight";
+import { TokenEffects } from "./TokenEffects";
+import { TOKEN_BODY_NAME } from "./tokenNodes";
 
 const HIGHLIGHT_RING = 10;
 
@@ -27,10 +33,24 @@ export function TokenView({
 }: TokenViewProps) {
   const theme = useMantineTheme();
   const [image, status] = useImage(imageDataUrl);
+  const imageRef = useRef<ImageNode>(null);
+  const size = token.size * CELL_SIZE;
+  const effects = tokenEffects(token);
+  const isOutOfFight = effects.length > 0;
+
+  useEffect(() => {
+    const node = imageRef.current;
+    if (!node) throw new Error("Token image is not mounted");
+    if (!image) return;
+    // Konva filters only work on cached nodes. Caching at the image's own
+    // resolution keeps a zoomed-in token as sharp as without the filter.
+    if (isOutOfFight) node.cache({ pixelRatio: image.width / size });
+    else node.clearCache();
+  }, [image, size, isOutOfFight]);
+
   if (status === "failed") {
     throw new Error(`Image of token "${token.name}" could not be loaded`);
   }
-  const size = token.size * CELL_SIZE;
 
   return (
     <Group
@@ -53,16 +73,23 @@ export function TokenView({
           listening={false}
         />
       )}
-      <Image
-        image={image}
+      <Group
+        name={TOKEN_BODY_NAME}
         x={size / 2}
         y={size / 2}
         offsetX={size / 2}
         offsetY={size / 2}
-        width={size}
-        height={size}
-        cornerRadius={size / 2}
-      />
+      >
+        <Image
+          ref={imageRef}
+          image={image}
+          width={size}
+          height={size}
+          cornerRadius={size / 2}
+          filters={isOutOfFight ? [Grayscale] : []}
+        />
+        <TokenEffects effects={effects} tokenSize={token.size} />
+      </Group>
     </Group>
   );
 }

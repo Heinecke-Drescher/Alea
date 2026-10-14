@@ -3,6 +3,8 @@ import * as Y from "yjs";
 import { BACKGROUND_IMAGE_ID } from "./background";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
+import { tokenEffects } from "./effects";
+import type { Token } from "./roomStore";
 import { rollColor, rollPath } from "./rolls";
 import { embeddedImage } from "./tokens";
 
@@ -178,6 +180,54 @@ describe("changing tokens", () => {
     room.resizeToken(onlyToken().id, { x: 0, y: 0, size: 10 });
     expect(room.duplicateToken(onlyToken().id)).toBeUndefined();
     expect(room.tokensMap.size).toBe(1);
+  });
+});
+
+describe("status effects", () => {
+  it("toggles effects on and off", () => {
+    room.addToken("Goblin", IMAGE);
+    const { id } = onlyToken();
+    room.toggleEffect(id, "unconscious");
+    room.toggleEffect(id, "dead");
+    expect(tokenEffects(onlyToken())).toEqual(["dead", "unconscious"]);
+    room.toggleEffect(id, "dead");
+    expect(tokenEffects(onlyToken())).toEqual(["unconscious"]);
+  });
+
+  it("undoes each toggle in its own step", () => {
+    room.addToken("Goblin", IMAGE);
+    const { id } = onlyToken();
+    room.toggleEffect(id, "unconscious");
+    room.toggleEffect(id, "dead");
+    room.undoManager.undo();
+    expect(tokenEffects(onlyToken())).toEqual(["unconscious"]);
+  });
+
+  it("reads only known effects from other players' data", () => {
+    room.addToken("Goblin", IMAGE);
+    const token = onlyToken();
+    const foreign = { ...token, effects: ["dead", "flying", 3, "dead"] };
+    room.tokensMap.set(token.id, foreign as unknown as Token);
+    expect(tokenEffects(onlyToken())).toEqual(["dead"]);
+    room.tokensMap.set(token.id, {
+      ...token,
+      effects: "dead",
+    } as unknown as Token);
+    expect(tokenEffects(onlyToken())).toEqual([]);
+  });
+
+  it("keeps the effects of a duplicate", () => {
+    room.addToken("Goblin", IMAGE);
+    const { id } = onlyToken();
+    room.toggleEffect(id, "unconscious");
+    const copyId = room.duplicateToken(id);
+    const copy = room.tokensMap.get(copyId ?? "");
+    expect(copy && tokenEffects(copy)).toEqual(["unconscious"]);
+  });
+
+  it("ignores effects on tokens that no longer exist", () => {
+    room.toggleEffect("gone", "dead");
+    expect(room.tokensMap.size).toBe(0);
   });
 });
 
@@ -446,7 +496,7 @@ describe("copy, paste and delete", () => {
     const clip = room.copyItems({ strokes: ["gone"], tokens: [token.id] });
     expect(clip.cells).toEqual([]);
     expect(clip.tokens).toEqual([
-      { name: "Goblin", image: IMAGE, x: 0, y: 0, size: 1 },
+      { name: "Goblin", image: IMAGE, x: 0, y: 0, size: 1, effects: [] },
     ]);
     expect(clip.strokes).toEqual([]);
   });

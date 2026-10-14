@@ -1,4 +1,5 @@
 import { nanoid } from "nanoid";
+import { tokenEffects, type StatusEffect } from "./effects";
 import { CELL_SIZE, nearestFreeSquare, squareCenter } from "./grid";
 import { putCell, shiftPoints } from "./drawing";
 import { placeToken, type MapActions } from "./map";
@@ -14,7 +15,14 @@ import { strokeTouches, type Area } from "./strokeTouches";
 
 export interface Clip {
   cells: Cell[];
-  tokens: { name: string; image: string; x: number; y: number; size: number }[];
+  tokens: {
+    name: string;
+    image: string;
+    x: number;
+    y: number;
+    size: number;
+    effects: StatusEffect[];
+  }[];
   strokes: { color: string; points: number[] }[];
 }
 
@@ -130,9 +138,12 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
   function copy({ cells, tokens, strokes }: Content): Clip {
     return {
       cells,
-      tokens: tokens.flatMap(({ name, imageId, x, y, size }) => {
+      tokens: tokens.flatMap((token) => {
+        const { name, imageId, x, y, size } = token;
         const image = imagesMap.get(imageId);
-        return image ? [{ name, image, x, y, size }] : [];
+        return image
+          ? [{ name, image, x, y, size, effects: tokenEffects(token) }]
+          : [];
       }),
       strokes: strokes.map(({ color, points }) => ({ color, points })),
     };

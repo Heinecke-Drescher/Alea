@@ -1,4 +1,4 @@
-import { Box, useMantineTheme } from "@mantine/core";
+import { Box, Tooltip, useMantineTheme } from "@mantine/core";
 import { clamp, useElementSize, useHotkeys } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
@@ -8,11 +8,13 @@ import { useDieDrop } from "../dice/useDieDrop";
 import { Layer, Stage } from "react-konva";
 import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connectRoom";
+import type { StatusEffect } from "../room/effects";
 import { usePlayer } from "../player/PlayerContext";
 import { useRoom } from "../room/RoomContext";
 import { useBackgroundImage } from "../room/useBackgroundImage";
 import { Cells } from "./Cells";
 import { cursorArrowCss } from "./cursorArrow";
+import { EFFECT_LABELS } from "./effectIcons";
 import { Cursors } from "./Cursors";
 import { DistanceMeasure } from "./DistanceMeasure";
 import { GridLines } from "./GridLines";
@@ -38,6 +40,7 @@ import { useImageDrop } from "./useImageDrop";
 import { useItemDrag } from "./useItemDrag";
 import { useSelection } from "./useSelection";
 import { useTokenMenu } from "./useTokenMenu";
+import { effectAt } from "./tokenNodes";
 
 const LEFT_MOUSE_BUTTON = 0;
 const MAP_START_X = 72;
@@ -93,6 +96,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
   const theme = useMantineTheme();
   const [tool, setTool] = useState<Tool>("select");
   const [color, setColor] = useState<PaintColor>("red");
+  const [hoveredEffect, setHoveredEffect] = useState<StatusEffect | null>(null);
   const selection = useSelection(room);
   const select = selectTool(selection);
   const colorValue = paintColorValue(theme, color);
@@ -200,6 +204,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
     lastPointer.current = pointerOnMap(event);
     cursor.move(lastPointer.current);
     activeTool.onMove({ point: lastPointer.current, event });
+    setHoveredEffect(effectAt(event.target));
   }
 
   function handleMouseUp() {
@@ -208,88 +213,96 @@ export function Board({ awareness, isSynced }: BoardProps) {
 
   function handleMouseLeave() {
     cursor.leave();
+    setHoveredEffect(null);
     handleMouseUp();
   }
 
   return (
-    <Box
-      ref={sizeRef}
-      pos="relative"
-      h="calc(100dvh - var(--app-shell-header-height))"
-      style={{
-        cursor: cursorArrowCss(theme.colors[player.color][6]),
-        backgroundImage: backgroundImage ? `url("${backgroundImage}")` : "none",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-      }}
-      onDragOver={(event) => {
-        dieDrop.onDragOver(event);
-        imageDrop.onDragOver(event);
-      }}
-      onDrop={(event) => {
-        dieDrop.onDrop(event);
-        imageDrop.onDrop(event);
-      }}
+    <Tooltip.Floating
+      label={hoveredEffect && EFFECT_LABELS[hoveredEffect]}
+      disabled={!hoveredEffect}
     >
-      <Stage
-        width={width}
-        height={height}
-        ref={stageRef}
-        draggable
-        onDragStart={panOnlyWithMiddleButton}
-        onWheel={zoomAtPointer}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseLeave}
-        onContextMenu={(event) => event.evt.preventDefault()}
+      <Box
+        ref={sizeRef}
+        pos="relative"
+        h="calc(100dvh - var(--app-shell-header-height))"
+        style={{
+          cursor: cursorArrowCss(theme.colors[player.color][6]),
+          backgroundImage: backgroundImage
+            ? `url("${backgroundImage}")`
+            : "none",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+        onDragOver={(event) => {
+          dieDrop.onDragOver(event);
+          imageDrop.onDragOver(event);
+        }}
+        onDrop={(event) => {
+          dieDrop.onDrop(event);
+          imageDrop.onDrop(event);
+        }}
       >
-        <Layer listening={false}>
-          <MapFill />
-          <Cells selection={area} />
-          <GridLines />
-        </Layer>
-        <Layer
-          onDragStart={itemDrag.start}
-          onDragMove={itemDrag.move}
-          onDragEnd={itemDrag.end}
+        <Stage
+          width={width}
+          height={height}
+          ref={stageRef}
+          draggable
+          onDragStart={panOnlyWithMiddleButton}
+          onWheel={zoomAtPointer}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onContextMenu={(event) => event.evt.preventDefault()}
         >
-          <Strokes
-            draft={draftPoints && { color: colorValue, points: draftPoints }}
-            selection={area}
-            selectedIds={items.strokes}
-            listening={activeTool.listensToStrokes}
-            draggable={isSelecting}
-            onStrokePress={pressItem("strokes")}
-            onStrokeClick={clickItem("strokes")}
-          />
-          <Tokens
-            listening={isSelecting}
-            selection={area}
-            selectedIds={items.tokens}
-            resizableId={resizableTokenId(items)}
-            onTokenPress={pressItem("tokens")}
-            onTokenClick={clickItem("tokens")}
-            onTokenContextMenu={tokenMenu.open}
-          />
-        </Layer>
-        <Layer>
-          {isSelecting && <MapResizer />}
-          <SelectionFrame area={area} onMove={selection.moveArea} />
-          {isSynced && <ThrownDice viewCenter={viewCenter} />}
-          <DistanceMeasure
-            measurement={measurement}
-            color={theme.colors[player.color][6]}
-          />
-          <Cursors awareness={awareness} />
-        </Layer>
-      </Stage>
-      <Toolbar
-        activeTool={tool}
-        onToolChange={changeTool}
-        activeColor={color}
-        onColorChange={setColor}
-      />
-    </Box>
+          <Layer listening={false}>
+            <MapFill />
+            <Cells selection={area} />
+            <GridLines />
+          </Layer>
+          <Layer
+            onDragStart={itemDrag.start}
+            onDragMove={itemDrag.move}
+            onDragEnd={itemDrag.end}
+          >
+            <Strokes
+              draft={draftPoints && { color: colorValue, points: draftPoints }}
+              selection={area}
+              selectedIds={items.strokes}
+              listening={activeTool.listensToStrokes}
+              draggable={isSelecting}
+              onStrokePress={pressItem("strokes")}
+              onStrokeClick={clickItem("strokes")}
+            />
+            <Tokens
+              listening={isSelecting}
+              selection={area}
+              selectedIds={items.tokens}
+              resizableId={resizableTokenId(items)}
+              onTokenPress={pressItem("tokens")}
+              onTokenClick={clickItem("tokens")}
+              onTokenContextMenu={tokenMenu.open}
+            />
+          </Layer>
+          <Layer>
+            {isSelecting && <MapResizer />}
+            <SelectionFrame area={area} onMove={selection.moveArea} />
+            {isSynced && <ThrownDice viewCenter={viewCenter} />}
+            <DistanceMeasure
+              measurement={measurement}
+              color={theme.colors[player.color][6]}
+            />
+            <Cursors awareness={awareness} />
+          </Layer>
+        </Stage>
+        <Toolbar
+          activeTool={tool}
+          onToolChange={changeTool}
+          activeColor={color}
+          onColorChange={setColor}
+        />
+      </Box>
+    </Tooltip.Floating>
   );
 }

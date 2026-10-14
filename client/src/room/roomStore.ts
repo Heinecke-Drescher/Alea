@@ -1,5 +1,6 @@
 import * as Y from "yjs";
 import type { DieSides } from "./dice";
+import type { StatusEffect } from "./effects";
 import type { MapBounds } from "./grid";
 import type { PlayerColor } from "./playerColors";
 
@@ -10,6 +11,8 @@ export interface Token {
   x: number;
   y: number;
   size: number;
+  // Tokens made before status effects have none.
+  effects?: StatusEffect[];
 }
 
 export interface Cell {
