@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DIE_SIDES } from "../../../shared/dice";
+import { DIE_SIDES } from "../room/dice";
 import { dieShape } from "./dieShapes";
 
 describe("dieShape", () => {

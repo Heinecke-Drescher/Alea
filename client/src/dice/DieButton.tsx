@@ -1,5 +1,5 @@
 import { UnstyledButton, useMantineTheme } from "@mantine/core";
-import type { DieSides } from "../../../shared/dice";
+import type { DieSides } from "../room/dice";
 import type { PlayerColor } from "../room/playerColors";
 import { dieColors } from "./dieColors";
 import { startDieDrag } from "./dieDrag";

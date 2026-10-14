@@ -1,5 +1,5 @@
 import * as Y from "yjs";
-import type { DieSides } from "../../../shared/dice";
+import type { DieSides } from "./dice";
 import type { MapBounds } from "./grid";
 import type { PlayerColor } from "./playerColors";
 

@@ -1,4 +1,4 @@
-import { isDieSides, type DieSides } from "../../../shared/dice";
+import { isDieSides, type DieSides } from "../room/dice";
 
 const DIE_TYPE = "application/x-alea-die";
 

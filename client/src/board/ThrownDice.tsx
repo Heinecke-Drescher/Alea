@@ -8,7 +8,7 @@ import { Animation } from "konva/lib/Animation";
 import { Easings, Tween } from "konva/lib/Tween";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Group, Line, Text } from "react-konva";
-import { rollDie, type DieSides } from "../../../shared/dice";
+import { rollDie, type DieSides } from "../room/dice";
 import { dieShape } from "../dice/dieShapes";
 import { pathLength, pointAlong } from "../dice/throwPath";
 import { tokenHits, type TokenHit } from "../dice/tokenHits";

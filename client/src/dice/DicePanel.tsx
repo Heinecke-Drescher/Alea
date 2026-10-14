@@ -1,7 +1,7 @@
 import { SimpleGrid, Stack, Switch, Text } from "@mantine/core";
 import { motion } from "motion/react";
 import { useState } from "react";
-import { DIE_SIDES, rollDie, type DieSides } from "../../../shared/dice";
+import { DIE_SIDES, rollDie, type DieSides } from "../room/dice";
 import { usePlayer } from "../player/PlayerContext";
 import { rollColor } from "../room/rolls";
 import type { Roll } from "../room/roomStore";

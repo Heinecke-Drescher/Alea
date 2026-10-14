@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import type { DieSides } from "../../../shared/dice";
+import type { DieSides } from "./dice";
 import { isPlayerColor, type PlayerColor } from "./playerColors";
 import type { Roll, RoomStore } from "./roomStore";
 

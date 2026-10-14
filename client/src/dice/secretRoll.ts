@@ -1,5 +1,5 @@
 import { nanoid } from "nanoid";
-import { rollDie, type DieSides } from "../../../shared/dice";
+import { rollDie, type DieSides } from "../room/dice";
 
 export interface SecretRoll {
   id: string;

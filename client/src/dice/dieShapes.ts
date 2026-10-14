@@ -1,4 +1,4 @@
-import type { DieSides } from "../../../shared/dice";
+import type { DieSides } from "../room/dice";
 
 const POINT_UP = -Math.PI / 2;
 

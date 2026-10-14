@@ -1,6 +1,6 @@
 import type { Stage as StageNode } from "konva/lib/Stage";
 import { useRef, type DragEvent, type RefObject } from "react";
-import { rollDie } from "../../../shared/dice";
+import { rollDie } from "../room/dice";
 import { dropPointOnMap } from "../board/dropPoint";
 import { cellAt, containsCell } from "../room/grid";
 import { usePlayer } from "../player/PlayerContext";
