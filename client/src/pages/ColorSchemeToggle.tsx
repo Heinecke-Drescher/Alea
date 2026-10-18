@@ -1,5 +1,6 @@
 import {
   ActionIcon,
+  Tooltip,
   useComputedColorScheme,
   useMantineColorScheme,
 } from "@mantine/core";
@@ -12,14 +13,15 @@ export function ColorSchemeToggle() {
   const label = isDark ? "Use light mode" : "Use dark mode";
 
   return (
-    <ActionIcon
-      variant="subtle"
-      color="gray"
-      onClick={() => setColorScheme(isDark ? "light" : "dark")}
-      aria-label={label}
-      title={label}
-    >
-      {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
-    </ActionIcon>
+    <Tooltip label={label} position="bottom">
+      <ActionIcon
+        variant="subtle"
+        color="gray"
+        onClick={() => setColorScheme(isDark ? "light" : "dark")}
+        aria-label={label}
+      >
+        {isDark ? <IconSun size={20} /> : <IconMoon size={20} />}
+      </ActionIcon>
+    </Tooltip>
   );
 }

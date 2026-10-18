@@ -1,4 +1,4 @@
-import { ActionIcon, Popover } from "@mantine/core";
+import { ActionIcon, Popover, Tooltip } from "@mantine/core";
 import { IconMusic } from "@tabler/icons-react";
 import { MusicPanel } from "./MusicPanel";
 
@@ -15,16 +15,13 @@ export function MusicMenu() {
       keepMounted
       keepMountedMode="display-none"
     >
-      <Popover.Target>
-        <ActionIcon
-          variant="subtle"
-          color="gray"
-          aria-label="Music"
-          title="Music"
-        >
-          <IconMusic size={20} />
-        </ActionIcon>
-      </Popover.Target>
+      <Tooltip label="Music" position="bottom">
+        <Popover.Target>
+          <ActionIcon variant="subtle" color="gray" aria-label="Music">
+            <IconMusic size={20} />
+          </ActionIcon>
+        </Popover.Target>
+      </Tooltip>
       <Popover.Dropdown>
         <MusicPanel />
       </Popover.Dropdown>

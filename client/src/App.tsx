@@ -9,10 +9,11 @@ import { MotionConfig } from "motion/react";
 import { BrowserRouter, Route, Routes } from "react-router";
 import { HomePage } from "./pages/HomePage";
 import { RoomPage } from "./pages/RoomPage";
+import { theme } from "./theme";
 
 export function App() {
   return (
-    <MantineProvider defaultColorScheme="auto">
+    <MantineProvider theme={theme} defaultColorScheme="auto">
       <Notifications />
       <ModalsProvider>
         <ContextMenuProvider>

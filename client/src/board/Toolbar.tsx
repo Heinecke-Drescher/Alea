@@ -65,45 +65,47 @@ export function Toolbar({
 
   return (
     <Paper pos="absolute" top={12} left={12} p={4} shadow="sm" withBorder>
-      <Stack gap={4} align="center">
-        {TOOLS.map(({ tool, label, icon: ToolIcon }) => (
-          <Tooltip key={tool} label={label} position="right">
-            <ActionIcon
-              variant={tool === activeTool ? "filled" : "subtle"}
-              size="lg"
-              aria-label={label}
-              onClick={() => onToolChange(tool)}
+      <Tooltip.Group>
+        <Stack gap={4} align="center">
+          {TOOLS.map(({ tool, label, icon: ToolIcon }) => (
+            <Tooltip key={tool} label={label} position="right">
+              <ActionIcon
+                variant={tool === activeTool ? "filled" : "subtle"}
+                size="lg"
+                aria-label={label}
+                onClick={() => onToolChange(tool)}
+              >
+                <ToolIcon size={20} />
+              </ActionIcon>
+            </Tooltip>
+          ))}
+          <Divider w="100%" />
+          {PAINT_COLORS.map((color) => (
+            <ColorSwatch
+              key={color}
+              component="button"
+              color={paintColorValue(theme, color)}
+              size={24}
+              aria-label={`Use ${color}`}
+              onClick={() => onColorChange(color)}
             >
-              <ToolIcon size={20} />
+              {color === activeColor && <CheckIcon size={12} color="white" />}
+            </ColorSwatch>
+          ))}
+          <Divider w="100%" />
+          <Tooltip label="Clear drawings" position="right">
+            <ActionIcon
+              variant="subtle"
+              color="red"
+              size="lg"
+              aria-label="Clear drawings"
+              onClick={() => confirmClearDrawings(room.clearDrawings)}
+            >
+              <IconTrash size={20} />
             </ActionIcon>
           </Tooltip>
-        ))}
-        <Divider w="100%" />
-        {PAINT_COLORS.map((color) => (
-          <ColorSwatch
-            key={color}
-            component="button"
-            color={paintColorValue(theme, color)}
-            size={24}
-            aria-label={`Use ${color}`}
-            onClick={() => onColorChange(color)}
-          >
-            {color === activeColor && <CheckIcon size={12} color="white" />}
-          </ColorSwatch>
-        ))}
-        <Divider w="100%" />
-        <Tooltip label="Clear drawings" position="right">
-          <ActionIcon
-            variant="subtle"
-            color="red"
-            size="lg"
-            aria-label="Clear drawings"
-            onClick={() => confirmClearDrawings(room.clearDrawings)}
-          >
-            <IconTrash size={20} />
-          </ActionIcon>
-        </Tooltip>
-      </Stack>
+        </Stack>
+      </Tooltip.Group>
     </Paper>
   );
 }
