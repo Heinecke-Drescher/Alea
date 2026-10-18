@@ -12,14 +12,14 @@ import {
   ContextMenuItem,
   useContextMenu,
 } from "mantine-contextmenu";
-import type { Room } from "../room/createRoom";
-import { STATUS_EFFECTS, tokenEffects } from "../room/effects";
-import type { Token } from "../room/roomStore";
-import { openRenameDialog } from "../tokens/openRenameDialog";
+import type { Room } from "../../room/createRoom";
+import { STATUS_EFFECTS, tokenEffects } from "../../room/effects";
+import type { Token } from "../../room/roomStore";
+import { openRenameDialog } from "../../tokens/openRenameDialog";
 import { EFFECT_COLORS, EFFECT_ICONS, EFFECT_LABELS } from "./effectIcons";
-import { itemsSelection, NO_ITEMS } from "./selection";
+import { itemsSelection, NO_ITEMS } from "../selection/selection";
 import { showMenuAt } from "./showMenuAt";
-import type { SelectionControls } from "./useSelection";
+import type { SelectionControls } from "../selection/useSelection";
 
 export function useTokenMenu(room: Room, selection: SelectionControls) {
   const { showContextMenu } = useContextMenu();

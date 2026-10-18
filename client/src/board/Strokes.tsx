@@ -5,7 +5,7 @@ import { Group, Line } from "react-konva";
 import { useRoom } from "../room/RoomContext";
 import { strokeTouches } from "../room/strokeTouches";
 import { useY } from "../room/useY";
-import { HIGHLIGHT_OPACITY, highlightColor } from "./highlight";
+import { HIGHLIGHT_OPACITY, highlightColor } from "./selection/highlight";
 
 const STROKE_WIDTH = 4;
 const HIT_WIDTH = 16;

@@ -4,9 +4,9 @@ import type { Rect as RectNode } from "konva/lib/shapes/Rect";
 import type { Transformer as TransformerNode } from "konva/lib/shapes/Transformer";
 import { useEffect, useRef } from "react";
 import { Rect, Transformer } from "react-konva";
-import { useRoom } from "../room/RoomContext";
-import { useMapBounds } from "../room/useMapBounds";
-import { mapRect, snapMapBounds, type MapBounds } from "../room/grid";
+import { useRoom } from "../../room/RoomContext";
+import { useMapBounds } from "../../room/useMapBounds";
+import { mapRect, snapMapBounds, type MapBounds } from "../../room/grid";
 
 export function MapResizer() {
   const room = useRoom();

@@ -1,11 +1,11 @@
 import { useMantineTheme } from "@mantine/core";
 import type { IRect } from "konva/lib/types";
 import { Group, Rect } from "react-konva";
-import { hasCenterIn } from "../room/areaActions";
-import { CELL_SIZE } from "../room/grid";
-import { useRoom } from "../room/RoomContext";
-import { useY } from "../room/useY";
-import { HIGHLIGHT_OPACITY, highlightColor } from "./highlight";
+import { hasCenterIn } from "../../room/areaActions";
+import { CELL_SIZE } from "../../room/grid";
+import { useRoom } from "../../room/RoomContext";
+import { useY } from "../../room/useY";
+import { HIGHLIGHT_OPACITY, highlightColor } from "../selection/highlight";
 
 interface CellsProps {
   selection: IRect | null;

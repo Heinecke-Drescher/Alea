@@ -5,8 +5,13 @@ import {
   type Clip,
   type Items,
   type ItemType,
-} from "../room/areaActions";
-import { CELL_SIZE, mapRect, type MapBounds, type Square } from "../room/grid";
+} from "../../room/areaActions";
+import {
+  CELL_SIZE,
+  mapRect,
+  type MapBounds,
+  type Square,
+} from "../../room/grid";
 
 export type Selection =
   | { kind: "none" }

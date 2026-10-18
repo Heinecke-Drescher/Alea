@@ -1,5 +1,5 @@
 import type { Node } from "konva/lib/Node";
-import { isStatusEffect } from "../room/effects";
+import { isStatusEffect } from "../../room/effects";
 
 export const TOKEN_BODY_NAME = "token-body";
 export const EFFECT_BADGE_NAME = "effect-badge";

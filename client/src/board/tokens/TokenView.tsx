@@ -5,10 +5,10 @@ import type { Image as ImageNode } from "konva/lib/shapes/Image";
 import { useEffect, useRef } from "react";
 import { Circle, Group, Image } from "react-konva";
 import useImage from "use-image";
-import { tokenEffects } from "../room/effects";
-import type { Token } from "../room/roomStore";
-import { CELL_SIZE } from "../room/grid";
-import { HIGHLIGHT_OPACITY, highlightColor } from "./highlight";
+import { tokenEffects } from "../../room/effects";
+import type { Token } from "../../room/roomStore";
+import { CELL_SIZE } from "../../room/grid";
+import { HIGHLIGHT_OPACITY, highlightColor } from "../selection/highlight";
 import { TokenEffects } from "./TokenEffects";
 import { TOKEN_BODY_NAME } from "./tokenNodes";
 

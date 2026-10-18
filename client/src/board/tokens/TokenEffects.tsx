@@ -1,8 +1,8 @@
 import { useMantineTheme } from "@mantine/core";
 import { Circle, Group, Image } from "react-konva";
 import useImage from "use-image";
-import type { StatusEffect } from "../room/effects";
-import { CELL_SIZE } from "../room/grid";
+import type { StatusEffect } from "../../room/effects";
+import { CELL_SIZE } from "../../room/grid";
 import { EFFECT_COLORS, effectImageUrl } from "./effectIcons";
 import { EFFECT_BADGE_NAME } from "./tokenNodes";
 

@@ -1,6 +1,6 @@
 import type { Room } from "../../room/createRoom";
 import type { Tool } from "../Toolbar";
-import type { SelectionControls } from "../useSelection";
+import type { SelectionControls } from "../selection/useSelection";
 import { useEraserTool } from "./eraser";
 import { useMeasureTool } from "./measure";
 import { usePaintTool } from "./paint";

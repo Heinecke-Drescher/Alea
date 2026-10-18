@@ -1,6 +1,6 @@
 import { clamp } from "@mantine/hooks";
 import type { Vector2d } from "konva/lib/types";
-import type { MapBounds } from "../room/grid";
+import type { MapBounds } from "../../room/grid";
 
 export interface Measurement {
   from: Vector2d;

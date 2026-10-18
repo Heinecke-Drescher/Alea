@@ -3,9 +3,9 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { Transformer as TransformerNode } from "konva/lib/shapes/Transformer";
 import { useEffect, useRef } from "react";
 import { Transformer } from "react-konva";
-import { CELL_SIZE, snapTokenSquare, type Square } from "../room/grid";
-import type { Token } from "../room/roomStore";
-import { useRoom } from "../room/RoomContext";
+import { CELL_SIZE, snapTokenSquare, type Square } from "../../room/grid";
+import type { Token } from "../../room/roomStore";
+import { useRoom } from "../../room/RoomContext";
 
 const CORNERS = ["top-left", "top-right", "bottom-left", "bottom-right"];
 

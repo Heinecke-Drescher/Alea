@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Room } from "../../room/createRoom";
 import { cellAt, containsCell } from "../../room/grid";
-import { measurementCell, type Measurement } from "../measurement";
+import { measurementCell, type Measurement } from "./measurement";
 import type { BoardTool } from "./tool";
 
 export function useMeasureTool(room: Room) {

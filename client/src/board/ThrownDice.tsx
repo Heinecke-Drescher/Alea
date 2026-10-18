@@ -17,7 +17,7 @@ import { dieColors } from "../dice/dieColors";
 import { rollColor, rollPath } from "../room/rolls";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
-import { TOKEN_BODY_NAME } from "./tokenNodes";
+import { TOKEN_BODY_NAME } from "./tokens/tokenNodes";
 
 const DIE_RADIUS = 42;
 const ROLL_SECONDS = 1;

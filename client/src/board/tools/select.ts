@@ -1,4 +1,4 @@
-import type { SelectionControls } from "../useSelection";
+import type { SelectionControls } from "../selection/useSelection";
 import type { BoardTool } from "./tool";
 
 export function selectTool(selection: SelectionControls): BoardTool {

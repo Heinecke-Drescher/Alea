@@ -1,7 +1,7 @@
 import { useComputedColorScheme, useMantineTheme } from "@mantine/core";
 import { Rect } from "react-konva";
-import { mapRect } from "../room/grid";
-import { useMapBounds } from "../room/useMapBounds";
+import { mapRect } from "../../room/grid";
+import { useMapBounds } from "../../room/useMapBounds";
 
 // Covers the background image, which only shows around the map.
 export function MapFill() {

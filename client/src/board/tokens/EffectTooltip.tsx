@@ -8,8 +8,8 @@ import {
   type ReactNode,
   type RefObject,
 } from "react";
-import type { StatusEffect } from "../room/effects";
-import { TOOLTIP_DELAY } from "../theme";
+import type { StatusEffect } from "../../room/effects";
+import { TOOLTIP_DELAY } from "../../theme";
 import { EFFECT_LABELS } from "./effectIcons";
 import { effectAt } from "./tokenNodes";
 

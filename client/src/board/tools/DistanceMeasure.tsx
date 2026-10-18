@@ -1,8 +1,8 @@
 import { useComputedColorScheme, useMantineTheme } from "@mantine/core";
 import { Group, Label, Line, Tag, Text } from "react-konva";
-import { squareCenter } from "../room/grid";
+import { squareCenter } from "../../room/grid";
 import { cellDistance, type Measurement } from "./measurement";
-import { useStageZoom } from "./useStageZoom";
+import { useStageZoom } from "../useStageZoom";
 
 interface DistanceMeasureProps {
   measurement: Measurement | null;

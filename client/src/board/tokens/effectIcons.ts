@@ -2,7 +2,7 @@ import skullSvg from "@tabler/icons/outline/skull.svg?raw";
 import zzzSvg from "@tabler/icons/outline/zzz.svg?raw";
 import type { DefaultMantineColor } from "@mantine/core";
 import { IconSkull, IconZzz, type Icon } from "@tabler/icons-react";
-import type { StatusEffect } from "../room/effects";
+import type { StatusEffect } from "../../room/effects";
 
 export const EFFECT_LABELS: Record<StatusEffect, string> = {
   dead: "Dead",

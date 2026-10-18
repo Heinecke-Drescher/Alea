@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { STATUS_EFFECTS } from "../room/effects";
+import { STATUS_EFFECTS } from "../../room/effects";
 import { effectImageUrl } from "./effectIcons";
 
 describe("effectImageUrl", () => {

@@ -1,9 +1,9 @@
 import type { KonvaEventObject, Node } from "konva/lib/Node";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef } from "react";
-import { existing, type Items } from "../room/areaActions";
-import type { Room } from "../room/createRoom";
-import { CELL_SIZE } from "../room/grid";
+import { existing, type Items } from "../../room/areaActions";
+import type { Room } from "../../room/createRoom";
+import { CELL_SIZE } from "../../room/grid";
 import { cellOffset, NO_ITEMS, squaresBounds } from "./selection";
 
 interface Drag {

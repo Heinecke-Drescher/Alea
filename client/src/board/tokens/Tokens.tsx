@@ -1,11 +1,11 @@
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
 import { Group } from "react-konva";
-import { hasCenterIn } from "../room/areaActions";
-import type { Token } from "../room/roomStore";
-import { embeddedImage } from "../room/tokens";
-import { useRoom } from "../room/RoomContext";
-import { useY } from "../room/useY";
+import { hasCenterIn } from "../../room/areaActions";
+import type { Token } from "../../room/roomStore";
+import { embeddedImage } from "../../room/tokens";
+import { useRoom } from "../../room/RoomContext";
+import { useY } from "../../room/useY";
 import { TokenResizer } from "./TokenResizer";
 import { TokenView } from "./TokenView";
 
