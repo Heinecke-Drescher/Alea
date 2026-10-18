@@ -19,6 +19,7 @@ import { BackgroundPanel } from "../background/BackgroundPanel";
 import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
+import { FogPanel } from "../fog/FogPanel";
 import { MusicMenu } from "../music/MusicMenu";
 import { RoomContext } from "../room/RoomContext";
 import { PlayerContext } from "../player/PlayerContext";
@@ -115,6 +116,7 @@ function RoomView({ roomId }: { roomId: string }) {
             <AppShell.Section grow component={ScrollArea} p="md">
               <Stack>
                 <BackgroundPanel />
+                <FogPanel />
                 <TokenPanel />
                 <DicePanel />
               </Stack>

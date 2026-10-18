@@ -14,6 +14,7 @@ import { useBackgroundImage } from "../room/useBackgroundImage";
 import { cursorArrowCss } from "./cursorArrow";
 import { Cursors } from "./Cursors";
 import { Cells } from "./map/Cells";
+import { FogOfWar } from "./map/FogOfWar";
 import { GridLines } from "./map/GridLines";
 import { MapFill } from "./map/MapFill";
 import { MapResizer } from "./map/MapResizer";
@@ -266,6 +267,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
             />
           </Layer>
           <Layer>
+            <FogOfWar />
             {isSelecting && <MapResizer />}
             <SelectionFrame area={area} onMove={selection.moveArea} />
             {isSynced && <ThrownDice viewCenter={viewCenter} />}

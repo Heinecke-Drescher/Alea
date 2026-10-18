@@ -40,6 +40,7 @@
     "react-error-boundary": "^6.1.6",
     "react-konva": "^19.3.0",
     "react-router": "^8.4.0",
+    "simplex-noise": "^4.0.3",
     "sirv": "^3.0.2",
     "use-image": "^1.1.4",
     "yjs": "^13.6.33"
