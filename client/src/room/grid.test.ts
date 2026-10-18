@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CELL_SIZE,
+  clampCellToMap,
   clampToMap,
   dropCells,
   MAX_MAP_CELLS,
@@ -16,6 +17,23 @@ const box = (x: number, y: number, width: number, height: number) => ({
   y: y * CELL_SIZE,
   width: width * CELL_SIZE,
   height: height * CELL_SIZE,
+});
+
+describe("clampCellToMap", () => {
+  const map = { x: -3, y: -2, columns: 5, rows: 6 };
+
+  it("keeps a cell inside the map", () => {
+    expect(clampCellToMap({ x: 0, y: 1 }, map)).toEqual({ x: 0, y: 1 });
+  });
+
+  it("limits cells to the first cell at the top and left", () => {
+    expect(clampCellToMap({ x: -10, y: -10 }, map)).toEqual({ x: -3, y: -2 });
+  });
+
+  it("limits cells to the last cell at the bottom and right", () => {
+    expect(clampCellToMap({ x: 2, y: 4 }, map)).toEqual({ x: 1, y: 3 });
+    expect(clampCellToMap({ x: 100, y: 100 }, map)).toEqual({ x: 1, y: 3 });
+  });
 });
 
 describe("clampToMap", () => {

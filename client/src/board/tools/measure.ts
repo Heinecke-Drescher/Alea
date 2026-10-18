@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { Room } from "../../room/createRoom";
-import { cellAt, containsCell } from "../../room/grid";
-import { measurementCell, type Measurement } from "./measurement";
+import { cellAt, clampCellToMap, containsCell } from "../../room/grid";
+import type { Measurement } from "./measurement";
 import type { BoardTool } from "./tool";
 
 export function useMeasureTool(room: Room) {
@@ -15,7 +15,7 @@ export function useMeasureTool(room: Room) {
       setMeasurement({ from: cell, to: cell });
     },
     onMove({ point }) {
-      const to = measurementCell(cellAt(point), room.mapBounds());
+      const to = clampCellToMap(cellAt(point), room.mapBounds());
       setMeasurement((current) => {
         if (!current || (current.to.x === to.x && current.to.y === to.y)) {
           return current;

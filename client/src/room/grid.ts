@@ -55,6 +55,13 @@ export function cellAt(point: Vector2d) {
   };
 }
 
+export function clampCellToMap(cell: Vector2d, map: MapBounds): Vector2d {
+  return {
+    x: clamp(cell.x, map.x, map.x + map.columns - 1),
+    y: clamp(cell.y, map.y, map.y + map.rows - 1),
+  };
+}
+
 export function dropCells(
   start: { x: number; y: number },
   count: number,

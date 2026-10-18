@@ -13,16 +13,18 @@ import { modals } from "@mantine/modals";
 import {
   IconBucketDroplet,
   IconEraser,
+  IconEye,
+  IconEyeOff,
   IconPencil,
   IconPointer,
   IconRuler,
   IconTrash,
   type Icon,
 } from "@tabler/icons-react";
+import { usePlayer } from "../player/PlayerContext";
 import { useRoom } from "../room/RoomContext";
 import { PAINT_COLORS, paintColorValue, type PaintColor } from "./paintColors";
-
-export type Tool = "select" | "paint" | "pen" | "eraser" | "measure";
+import { isDmTool, type Tool } from "./tools/tool";
 
 const TOOLS: { tool: Tool; label: string; icon: Icon }[] = [
   { tool: "select", label: "Select and move", icon: IconPointer },
@@ -30,6 +32,8 @@ const TOOLS: { tool: Tool; label: string; icon: Icon }[] = [
   { tool: "pen", label: "Draw", icon: IconPencil },
   { tool: "eraser", label: "Erase", icon: IconEraser },
   { tool: "measure", label: "Measure distance", icon: IconRuler },
+  { tool: "reveal", label: "Reveal fog", icon: IconEye },
+  { tool: "hide", label: "Hide under fog", icon: IconEyeOff },
 ];
 
 function confirmClearDrawings(clearDrawings: () => void) {
@@ -62,12 +66,14 @@ export function Toolbar({
 }: ToolbarProps) {
   const theme = useMantineTheme();
   const room = useRoom();
+  const { isDm } = usePlayer();
+  const tools = TOOLS.filter(({ tool }) => isDm || !isDmTool(tool));
 
   return (
     <Paper pos="absolute" top={12} left={12} p={4} shadow="sm" withBorder>
       <Tooltip.Group>
         <Stack gap={4} align="center">
-          {TOOLS.map(({ tool, label, icon: ToolIcon }) => (
+          {tools.map(({ tool, label, icon: ToolIcon }) => (
             <Tooltip key={tool} label={label} position="right">
               <ActionIcon
                 variant={tool === activeTool ? "filled" : "subtle"}

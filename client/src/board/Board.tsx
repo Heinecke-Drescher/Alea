@@ -29,8 +29,10 @@ import { ThrownDice } from "./ThrownDice";
 import { EffectTooltip } from "./tokens/EffectTooltip";
 import { Tokens } from "./tokens/Tokens";
 import { useTokenMenu } from "./tokens/useTokenMenu";
-import { Toolbar, type Tool } from "./Toolbar";
+import { Toolbar } from "./Toolbar";
 import { DistanceMeasure } from "./tools/DistanceMeasure";
+import { FogFrame } from "./tools/FogFrame";
+import { isDmTool, type Tool } from "./tools/tool";
 import { useBoardTools } from "./tools/useBoardTools";
 import { useCursorBroadcast } from "./useCursorBroadcast";
 import { useDieDrop } from "./useDieDrop";
@@ -88,11 +90,13 @@ export function Board({ awareness, isSynced }: BoardProps) {
   const player = usePlayer();
   const { ref: sizeRef, width, height } = useElementSize();
   const theme = useMantineTheme();
-  const [tool, setTool] = useState<Tool>("select");
+  const [chosenTool, setTool] = useState<Tool>("select");
+  // Releasing the DM role while a fog tool is active falls back to selecting.
+  const tool = player.isDm || !isDmTool(chosenTool) ? chosenTool : "select";
   const [color, setColor] = useState<PaintColor>("red");
   const selection = useSelection(room);
   const colorValue = paintColorValue(theme, color);
-  const { activeTool, draftPoints, measurement } = useBoardTools(
+  const { activeTool, draftPoints, measurement, fogFrame } = useBoardTools(
     tool,
     selection,
     room,
@@ -268,6 +272,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
           </Layer>
           <Layer>
             <FogOfWar />
+            <FogFrame frame={fogFrame} />
             {isSelecting && <MapResizer />}
             <SelectionFrame area={area} onMove={selection.moveArea} />
             {isSynced && <ThrownDice viewCenter={viewCenter} />}
