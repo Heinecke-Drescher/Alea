@@ -6,7 +6,6 @@ import { usePlayer } from "../../player/PlayerContext";
 import { foggedCells } from "../../room/fog";
 import { CELL_SIZE } from "../../room/grid";
 import { useFog } from "../../room/useFog";
-import { useMapBounds } from "../../room/useMapBounds";
 import { fogTextureUrl } from "./fogTexture";
 import { mapFillColor } from "./mapColors";
 
@@ -16,8 +15,7 @@ const TEXTURE_SCALE = 2;
 export function FogOfWar() {
   const theme = useMantineTheme();
   const { isDm } = usePlayer();
-  const { enabled, revealed } = useFog();
-  const cells = foggedCells(useMapBounds(), revealed, enabled);
+  const cells = foggedCells(useFog());
   const colorScheme = useComputedColorScheme("light");
   // Clouds over the map's own color keep the fog's edge soft against the revealed map.
   const background = mapFillColor(theme, colorScheme);

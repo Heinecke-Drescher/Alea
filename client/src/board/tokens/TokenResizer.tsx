@@ -7,6 +7,7 @@ import { CELL_SIZE, snapTokenSquare, type Square } from "../../room/grid";
 import type { Token } from "../../room/roomStore";
 import { useRoom } from "../../room/RoomContext";
 import { highlightColor } from "../selection/highlight";
+import { useFogGuard } from "../useFogGuard";
 
 const CORNERS = ["top-left", "top-right", "bottom-left", "bottom-right"];
 
@@ -23,6 +24,7 @@ export function TokenResizer({ token }: TokenResizerProps) {
   const room = useRoom();
   const theme = useMantineTheme();
   const transformerRef = useRef<TransformerNode>(null);
+  const fogGuard = useFogGuard();
 
   function mountedTransformer() {
     const transformer = transformerRef.current;
@@ -85,7 +87,13 @@ export function TokenResizer({ token }: TokenResizerProps) {
         const next = snappedSquare();
         // React draws the token from the room data, so the node goes back first.
         showSquare(token);
-        room.resizeToken(token.id, next);
+        const reachesFog = fogGuard.hidesRect({
+          x: next.x * CELL_SIZE,
+          y: next.y * CELL_SIZE,
+          width: next.size * CELL_SIZE,
+          height: next.size * CELL_SIZE,
+        });
+        if (!reachesFog) room.resizeToken(token.id, next);
       }}
     />
   );

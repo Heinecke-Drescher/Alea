@@ -3,7 +3,9 @@ import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef } from "react";
 import { existing, type Items } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
+import { shiftPoints } from "../../room/drawing";
 import { CELL_SIZE } from "../../room/grid";
+import { useFogGuard } from "../useFogGuard";
 import { cellOffset, NO_ITEMS, squaresBounds } from "./selection";
 
 interface Drag {
@@ -15,6 +17,7 @@ interface Drag {
 
 export function useItemDrag(room: Room, selected: Items) {
   const drag = useRef<Drag | null>(null);
+  const fogGuard = useFogGuard();
 
   function onlyItem(id: string): Items {
     if (room.strokesMap.has(id)) return { ...NO_ITEMS, strokes: [id] };
@@ -87,7 +90,24 @@ export function useItemDrag(room: Room, selected: Items) {
     // React draws the moved items from the room data, so the nodes go back first.
     placeAll(event, 0, 0);
     drag.current = null;
+    if (reachesFog(items, dx, dy)) return;
     room.moveItems(items, dx, dy);
+  }
+
+  function reachesFog({ tokens, strokes }: Items, dx: number, dy: number) {
+    return (
+      existing(room.tokensMap, tokens).some((token) =>
+        fogGuard.hidesRect({
+          x: token.x * CELL_SIZE + dx,
+          y: token.y * CELL_SIZE + dy,
+          width: token.size * CELL_SIZE,
+          height: token.size * CELL_SIZE,
+        }),
+      ) ||
+      existing(room.strokesMap, strokes).some((stroke) =>
+        fogGuard.hidesPoints(shiftPoints(stroke.points, dx, dy)),
+      )
+    );
   }
 
   return { start, move, end };

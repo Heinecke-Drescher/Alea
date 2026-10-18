@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import type { ItemType } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
 import { CELL_SIZE } from "../../room/grid";
+import { useFogGuard } from "../useFogGuard";
 import {
   areaSelection,
   boxBetween,
@@ -21,6 +22,7 @@ export function useSelection(room: Room) {
   const [selection, setSelection] = useState<Selection>(NO_SELECTION);
   const areaStart = useRef<Vector2d | null>(null);
   const addedOnPress = useRef<string | null>(null);
+  const fogGuard = useFogGuard();
   const area = selectedArea(selection);
   const items = selectedItems(selection);
 
@@ -41,11 +43,12 @@ export function useSelection(room: Room) {
 
   function extendArea(point: Vector2d) {
     if (!areaStart.current) return;
-    setSelection(
-      areaSelection(
-        clipToMap(boxBetween(areaStart.current, point), room.mapBounds()),
-      ),
+    const next = clipToMap(
+      boxBetween(areaStart.current, point),
+      room.mapBounds(),
     );
+    if (next && fogGuard.hidesRect(next)) return;
+    setSelection(areaSelection(next));
   }
 
   function endArea() {
@@ -54,14 +57,14 @@ export function useSelection(room: Room) {
 
   function moveArea(dx: number, dy: number) {
     if (!area) throw new Error("Moved a selection that does not exist");
+    const moved = {
+      ...area,
+      x: area.x + dx * CELL_SIZE,
+      y: area.y + dy * CELL_SIZE,
+    };
+    if (fogGuard.hidesRect(moved)) return;
     room.moveArea(area, dx, dy);
-    setSelection(
-      areaSelection({
-        ...area,
-        x: area.x + dx * CELL_SIZE,
-        y: area.y + dy * CELL_SIZE,
-      }),
-    );
+    setSelection(areaSelection(moved));
   }
 
   function pressItem(type: ItemType, id: string, isAdding: boolean) {

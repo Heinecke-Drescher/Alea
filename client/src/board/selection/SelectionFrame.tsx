@@ -47,6 +47,8 @@ export function SelectionFrame({ area, onMove }: SelectionFrameProps) {
           onDragMove={(event) => snapToCells(event, area)}
           onDragEnd={(event) => {
             const { dx, dy } = snapToCells(event, area);
+            // React draws the frame from the selection, so the node goes back first.
+            event.target.position({ x: area.x, y: area.y });
             onMove(dx, dy);
           }}
         />
