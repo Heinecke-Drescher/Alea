@@ -3,21 +3,18 @@ import { CELL_SIZE, cellAt, containsCell, type MapBounds } from "./grid";
 import { toPoints } from "./points";
 import { cellKey, type RoomStore } from "./roomStore";
 
-export const FOG_KEY = "enabled";
-
 export interface FogView {
   bounds: MapBounds;
-  revealed: Record<string, unknown>;
-  enabled: boolean;
+  fogged: Record<string, unknown>;
 }
 
 // Cells off the map hold nothing hidden, so the fog never covers them.
 export function isCellFogged(
-  { bounds, revealed, enabled }: FogView,
+  { bounds, fogged }: FogView,
   x: number,
   y: number,
 ) {
-  return enabled && containsCell(bounds, x, y) && !(cellKey(x, y) in revealed);
+  return containsCell(bounds, x, y) && cellKey(x, y) in fogged;
 }
 
 export function rectTouchesFog(fog: FogView, rect: IRect) {
@@ -40,12 +37,7 @@ export function pointsTouchFog(fog: FogView, points: number[]) {
   });
 }
 
-export function fogEnabled(value: unknown) {
-  return value === true;
-}
-
 export function foggedCells(fog: FogView) {
-  if (!fog.enabled) return [];
   const { bounds } = fog;
   const cells: Vector2d[] = [];
   for (let y = bounds.y; y < bounds.y + bounds.rows; y++) {
@@ -66,38 +58,24 @@ function cellsBetween(from: Vector2d, to: Vector2d) {
   return cells;
 }
 
-export function createFog({
-  doc,
-  revealedMap,
-  fogMap,
-  undoManager,
-}: RoomStore) {
-  function setFogEnabled(enabled: boolean) {
-    fogMap.set(FOG_KEY, enabled);
+export function createFog({ doc, fogMap, undoManager }: RoomStore) {
+  function hideCells(from: Vector2d, to: Vector2d) {
+    undoManager.stopCapturing();
+    doc.transact(() => {
+      for (const { x, y } of cellsBetween(from, to)) {
+        fogMap.set(cellKey(x, y), { x, y });
+      }
+    });
   }
 
   function revealCells(from: Vector2d, to: Vector2d) {
     undoManager.stopCapturing();
     doc.transact(() => {
       for (const { x, y } of cellsBetween(from, to)) {
-        revealedMap.set(cellKey(x, y), { x, y });
+        fogMap.delete(cellKey(x, y));
       }
     });
   }
 
-  function hideCells(from: Vector2d, to: Vector2d) {
-    undoManager.stopCapturing();
-    doc.transact(() => {
-      for (const { x, y } of cellsBetween(from, to)) {
-        revealedMap.delete(cellKey(x, y));
-      }
-    });
-  }
-
-  function hideEverything() {
-    undoManager.stopCapturing();
-    revealedMap.clear();
-  }
-
-  return { setFogEnabled, revealCells, hideCells, hideEverything };
+  return { hideCells, revealCells };
 }

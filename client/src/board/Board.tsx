@@ -32,7 +32,7 @@ import { useTokenMenu } from "./tokens/useTokenMenu";
 import { Toolbar } from "./Toolbar";
 import { DistanceMeasure } from "./tools/DistanceMeasure";
 import { FogFrame } from "./tools/FogFrame";
-import { isDmTool, type Tool } from "./tools/tool";
+import { isFogTool, type Tool } from "./tools/tool";
 import { useBoardTools } from "./tools/useBoardTools";
 import { useCursorBroadcast } from "./useCursorBroadcast";
 import { useDieDrop } from "./useDieDrop";
@@ -92,7 +92,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
   const theme = useMantineTheme();
   const [chosenTool, setTool] = useState<Tool>("select");
   // Releasing the DM role while a fog tool is active falls back to selecting.
-  const tool = player.isDm || !isDmTool(chosenTool) ? chosenTool : "select";
+  const tool = player.isDm || !isFogTool(chosenTool) ? chosenTool : "select";
   const [color, setColor] = useState<PaintColor>("red");
   const selection = useSelection(room);
   const colorValue = paintColorValue(theme, color);

@@ -24,16 +24,25 @@ import {
 import { usePlayer } from "../player/PlayerContext";
 import { useRoom } from "../room/RoomContext";
 import { PAINT_COLORS, paintColorValue, type PaintColor } from "./paintColors";
-import { isDmTool, type Tool } from "./tools/tool";
+import type { Tool } from "./tools/tool";
 
-const TOOLS: { tool: Tool; label: string; icon: Icon }[] = [
+interface ToolButton {
+  tool: Tool;
+  label: string;
+  icon: Icon;
+}
+
+const TOOLS: ToolButton[] = [
   { tool: "select", label: "Select and move", icon: IconPointer },
   { tool: "paint", label: "Paint cells", icon: IconBucketDroplet },
   { tool: "pen", label: "Draw", icon: IconPencil },
   { tool: "eraser", label: "Erase", icon: IconEraser },
   { tool: "measure", label: "Measure distance", icon: IconRuler },
-  { tool: "reveal", label: "Reveal fog", icon: IconEye },
+];
+
+const FOG_TOOLS: ToolButton[] = [
   { tool: "hide", label: "Hide under fog", icon: IconEyeOff },
+  { tool: "reveal", label: "Reveal fog", icon: IconEye },
 ];
 
 function confirmClearDrawings(clearDrawings: () => void) {
@@ -67,24 +76,33 @@ export function Toolbar({
   const theme = useMantineTheme();
   const room = useRoom();
   const { isDm } = usePlayer();
-  const tools = TOOLS.filter(({ tool }) => isDm || !isDmTool(tool));
+
+  function toolButton({ tool, label, icon: ToolIcon }: ToolButton) {
+    return (
+      <Tooltip key={tool} label={label} position="right">
+        <ActionIcon
+          variant={tool === activeTool ? "filled" : "subtle"}
+          size="lg"
+          aria-label={label}
+          onClick={() => onToolChange(tool)}
+        >
+          <ToolIcon size={20} />
+        </ActionIcon>
+      </Tooltip>
+    );
+  }
 
   return (
     <Paper pos="absolute" top={12} left={12} p={4} shadow="sm" withBorder>
       <Tooltip.Group>
         <Stack gap={4} align="center">
-          {tools.map(({ tool, label, icon: ToolIcon }) => (
-            <Tooltip key={tool} label={label} position="right">
-              <ActionIcon
-                variant={tool === activeTool ? "filled" : "subtle"}
-                size="lg"
-                aria-label={label}
-                onClick={() => onToolChange(tool)}
-              >
-                <ToolIcon size={20} />
-              </ActionIcon>
-            </Tooltip>
-          ))}
+          {TOOLS.map(toolButton)}
+          {isDm && (
+            <>
+              <Divider w="100%" />
+              {FOG_TOOLS.map(toolButton)}
+            </>
+          )}
           <Divider w="100%" />
           {PAINT_COLORS.map((color) => (
             <ColorSwatch

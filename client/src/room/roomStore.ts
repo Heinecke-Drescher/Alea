@@ -70,17 +70,15 @@ export function createRoomStore(doc: Y.Doc) {
   const settingsMap = doc.getMap<MapBounds>("settings");
   const musicMap = doc.getMap<Music>("music");
   const rolesMap = doc.getMap<DungeonMaster>("roles");
-  const revealedMap = doc.getMap<{ x: number; y: number }>("revealed");
-  const fogMap = doc.getMap<boolean>("fog");
-  // Tracks only local changes, so undo never reverts other players' work. Rolls, music, roles and
-  // the fog switch stay final, and so do map bounds: undoing a resize could push others' new
-  // content off the map.
+  const fogMap = doc.getMap<{ x: number; y: number }>("fog");
+  // Tracks only local changes, so undo never reverts other players' work. Rolls, music and roles
+  // stay final, and so do map bounds: undoing a resize could push others' new content off the map.
   const undoManager = new Y.UndoManager([
     tokensMap,
     imagesMap,
     cellsMap,
     strokesMap,
-    revealedMap,
+    fogMap,
   ]);
 
   // Undo can restore a token that another player deleted together with its image.
@@ -102,7 +100,6 @@ export function createRoomStore(doc: Y.Doc) {
     settingsMap,
     musicMap,
     rolesMap,
-    revealedMap,
     fogMap,
     undoManager,
   };

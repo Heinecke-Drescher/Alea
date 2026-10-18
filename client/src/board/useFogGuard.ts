@@ -7,9 +7,8 @@ import { useFog } from "../room/useFog";
 export function useFogGuard() {
   const { isDm } = usePlayer();
   const fog = useFog();
-  const guarded = { ...fog, enabled: fog.enabled && !isDm };
   return {
-    hidesRect: (rect: IRect) => rectTouchesFog(guarded, rect),
-    hidesPoints: (points: number[]) => pointsTouchFog(guarded, points),
+    hidesRect: (rect: IRect) => !isDm && rectTouchesFog(fog, rect),
+    hidesPoints: (points: number[]) => !isDm && pointsTouchFog(fog, points),
   };
 }
