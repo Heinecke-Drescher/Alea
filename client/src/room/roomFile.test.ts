@@ -1,0 +1,151 @@
+import { beforeEach, describe, expect, it } from "vitest";
+import * as Y from "yjs";
+import { BACKGROUND_IMAGE_ID } from "./background";
+import { createRoom, type Room } from "./createRoom";
+import { DEFAULT_MAP_BOUNDS } from "./grid";
+import { parseMapFile, type MapFile } from "./roomFile";
+
+const IMAGE = "data:image/webp;base64,AAAA";
+
+let room: Room;
+
+beforeEach(() => {
+  room = createRoom(new Y.Doc());
+});
+
+function fillRoom(target: Room) {
+  target.resize({ x: -2, y: 0, columns: 20, rows: 15 });
+  target.paintCell(1, 1, "#ff0000");
+  target.addStroke("#000000", [0, 0, 10, 10]);
+  target.addStroke("#00ff00", [5, 5, 20, 20], true);
+  target.addToken("Goblin", IMAGE, { x: 3, y: 2 });
+  const [token] = target.tokensMap.values();
+  if (!token) throw new Error("Expected a token");
+  target.toggleEffect(token.id, "dead");
+  target.setBackground(IMAGE);
+  target.hideCells({ x: 0, y: 0 }, { x: 1, y: 0 });
+}
+
+function validFile(): MapFile {
+  fillRoom(room);
+  return room.exportMap();
+}
+
+describe("map files", () => {
+  it("exports the map without room ids", () => {
+    expect(validFile()).toEqual({
+      app: "alea",
+      version: 1,
+      bounds: { x: -2, y: 0, columns: 20, rows: 15 },
+      cells: [{ x: 1, y: 1, color: "#ff0000" }],
+      strokes: expect.arrayContaining([
+        { color: "#000000", points: [0, 0, 10, 10] },
+        { color: "#00ff00", points: [5, 5, 20, 20], overFog: true },
+      ]),
+      tokens: [
+        {
+          name: "Goblin",
+          x: 3,
+          y: 2,
+          size: 1,
+          effects: ["dead"],
+          image: IMAGE,
+        },
+      ],
+      background: IMAGE,
+      fog: expect.arrayContaining([
+        { x: 0, y: 0 },
+        { x: 1, y: 0 },
+      ]),
+    });
+  });
+
+  it("brings an exported map into another room unchanged", () => {
+    const file = parseMapFile(JSON.stringify(validFile()));
+    const other = createRoom(new Y.Doc());
+    other.importMap(file);
+    expect(other.exportMap()).toEqual(file);
+  });
+
+  it("replaces what was on the map before", () => {
+    const file = validFile();
+    const other = createRoom(new Y.Doc());
+    other.paintCell(5, 5, "#0000ff");
+    other.addToken("Orc", "data:image/webp;base64,BBBB");
+    other.importMap(file);
+    expect(other.cellsMap.has("5,5")).toBe(false);
+    expect(Array.from(other.tokensMap.values(), (t) => t.name)).toEqual([
+      "Goblin",
+    ]);
+    expect(other.imagesMap.size).toBe(2);
+  });
+
+  it("undoes an import in one step, map size included", () => {
+    const file = validFile();
+    const other = createRoom(new Y.Doc());
+    other.paintCell(5, 5, "#0000ff");
+    const before = other.doc.toJSON();
+    other.importMap(file);
+    other.undoManager.undo();
+    expect(other.doc.toJSON()).toEqual(before);
+    expect(other.mapBounds()).toEqual(DEFAULT_MAP_BOUNDS);
+  });
+
+  it("keeps resizing out of undo", () => {
+    room.resize({ x: 0, y: 0, columns: 40, rows: 30 });
+    room.undoManager.undo();
+    expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 40, rows: 30 });
+  });
+
+  it("imports a map without background", () => {
+    const file = { ...validFile(), background: null };
+    room.importMap(parseMapFile(JSON.stringify(file)));
+    expect(room.imagesMap.has(BACKGROUND_IMAGE_ID)).toBe(false);
+  });
+
+  it.each<[string, (file: MapFile) => unknown]>([
+    ["another app", (file) => ({ ...file, app: "other" })],
+    ["a newer version", (file) => ({ ...file, version: 2 })],
+    [
+      "an invalid map size",
+      (file) => ({ ...file, bounds: { x: 0, y: 0, columns: 3, rows: 20 } }),
+    ],
+    [
+      "a cell off the map",
+      (file) => ({ ...file, cells: [{ x: 99, y: 0, color: "#000" }] }),
+    ],
+    [
+      "a stroke with an odd point list",
+      (file) => ({ ...file, strokes: [{ color: "#000", points: [0, 0, 1] }] }),
+    ],
+    [
+      "a token too large",
+      (file) => ({ ...file, tokens: [{ ...file.tokens[0], size: 11 }] }),
+    ],
+    [
+      "a token with an image from the web",
+      (file) => ({
+        ...file,
+        tokens: [{ ...file.tokens[0], image: "https://example.com/a.png" }],
+      }),
+    ],
+    [
+      "an unknown effect",
+      (file) => ({
+        ...file,
+        tokens: [{ ...file.tokens[0], effects: ["flying"] }],
+      }),
+    ],
+    ["fog off the map", (file) => ({ ...file, fog: [{ x: -10, y: 0 }] })],
+  ])("rejects a file with %s", (_, change) => {
+    const json = JSON.stringify(change(validFile()));
+    expect(() => parseMapFile(json)).toThrow("not a valid map file");
+  });
+
+  it("rejects files that are no JSON or too large", () => {
+    expect(() => parseMapFile("not json")).toThrow("not a valid map file");
+    expect(() => parseMapFile(" ".repeat(5 * 1024 ** 2 + 1))).toThrow(
+      "larger than 5 MB",
+    );
+  });
+});

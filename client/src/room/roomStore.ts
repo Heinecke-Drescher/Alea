@@ -61,7 +61,8 @@ export function cellKey(x: number, y: number) {
   return `${x},${y}`;
 }
 
-const CLEANUP = Symbol("cleanup");
+// Changes made with this origin stay out of undo.
+export const OUTSIDE_UNDO = Symbol("outside undo");
 
 export function createRoomStore(doc: Y.Doc) {
   const tokensMap = doc.getMap<Token>("tokens");
@@ -74,13 +75,15 @@ export function createRoomStore(doc: Y.Doc) {
   const rolesMap = doc.getMap<DungeonMaster>("roles");
   const fogMap = doc.getMap<{ x: number; y: number }>("fog");
   // Tracks only local changes, so undo never reverts other players' work. Rolls, music and roles
-  // stay final, and so do map bounds: undoing a resize could push others' new content off the map.
+  // stay final. Map bounds are tracked only so an import can be undone as a whole; resizing stays
+  // outside undo, as undoing it could push others' new content off the map.
   const undoManager = new Y.UndoManager([
     tokensMap,
     imagesMap,
     cellsMap,
     strokesMap,
     fogMap,
+    settingsMap,
   ]);
 
   // Undo can restore a token that another player deleted together with its image.
@@ -89,7 +92,7 @@ export function createRoomStore(doc: Y.Doc) {
       for (const token of tokensMap.values()) {
         if (!imagesMap.has(token.imageId)) tokensMap.delete(token.id);
       }
-    }, CLEANUP);
+    }, OUTSIDE_UNDO);
   });
 
   return {

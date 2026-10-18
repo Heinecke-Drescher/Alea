@@ -7,7 +7,9 @@ import {
   type MapBounds,
   type Square,
 } from "./grid";
-import type { RoomStore } from "./roomStore";
+import { OUTSIDE_UNDO, type RoomStore } from "./roomStore";
+
+export const BOUNDS_KEY = "bounds";
 
 export type MapActions = ReturnType<typeof createMapActions>;
 
@@ -25,13 +27,14 @@ export function placeToken(
 }
 
 export function createMapActions({
+  doc,
   settingsMap,
   cellsMap,
   tokensMap,
 }: RoomStore) {
   // Rooms created before maps could be resized have no stored bounds.
   function mapBounds() {
-    return settingsMap.get("bounds") ?? DEFAULT_MAP_BOUNDS;
+    return settingsMap.get(BOUNDS_KEY) ?? DEFAULT_MAP_BOUNDS;
   }
 
   function resize(bounds: MapBounds) {
@@ -39,7 +42,7 @@ export function createMapActions({
       throw new Error(`Invalid map bounds ${JSON.stringify(bounds)}`);
     }
     if (!fitsInto(bounds)) return false;
-    settingsMap.set("bounds", bounds);
+    doc.transact(() => settingsMap.set(BOUNDS_KEY, bounds), OUTSIDE_UNDO);
     return true;
   }
 

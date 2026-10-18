@@ -7,6 +7,7 @@ import { createFog } from "./fog";
 import { createMapActions } from "./map";
 import { createMusic } from "./music";
 import { createRolls } from "./rolls";
+import { createMapFiles } from "./roomFile";
 import { createRoomStore } from "./roomStore";
 import { createTokens } from "./tokens";
 
@@ -26,5 +27,6 @@ export function createRoom(doc: Y.Doc) {
     ...createMusic(store),
     ...createDm(store),
     ...createFog(store),
+    ...createMapFiles(store, map),
   };
 }
