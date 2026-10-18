@@ -5,7 +5,6 @@ import type { Stage as StageNode } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
 import { Layer, Stage } from "react-konva";
-import { useDieDrop } from "../dice/useDieDrop";
 import { usePlayer } from "../player/PlayerContext";
 import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connectRoom";
@@ -33,6 +32,7 @@ import { Toolbar, type Tool } from "./Toolbar";
 import { DistanceMeasure } from "./tools/DistanceMeasure";
 import { useBoardTools } from "./tools/useBoardTools";
 import { useCursorBroadcast } from "./useCursorBroadcast";
+import { useDieDrop } from "./useDieDrop";
 import { useImageDrop } from "./useImageDrop";
 
 const LEFT_MOUSE_BUTTON = 0;

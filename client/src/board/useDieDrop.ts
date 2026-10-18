@@ -1,17 +1,17 @@
 import type { Stage as StageNode } from "konva/lib/Stage";
 import { useRef, type DragEvent, type RefObject } from "react";
-import { rollDie } from "../room/dice";
-import { dropPointOnMap } from "../board/dropPoint";
-import { cellAt, containsCell } from "../room/grid";
-import { usePlayer } from "../player/PlayerContext";
-import { useRoom } from "../room/RoomContext";
-import { droppedDie, isDieDrag } from "./dieDrag";
+import { droppedDie, isDieDrag } from "../dice/dieDrag";
 import {
   dragVelocity,
   SWING_WINDOW_MS,
   throwPath,
   type DragSample,
-} from "./throwPath";
+} from "../dice/throwPath";
+import { usePlayer } from "../player/PlayerContext";
+import { rollDie } from "../room/dice";
+import { cellAt, containsCell } from "../room/grid";
+import { useRoom } from "../room/RoomContext";
+import { dropPointOnMap } from "./dropPoint";
 
 interface DieDropOptions {
   stageRef: RefObject<StageNode | null>;
