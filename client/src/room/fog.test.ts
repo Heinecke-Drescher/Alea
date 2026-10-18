@@ -3,6 +3,7 @@ import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
 import {
   foggedCells,
+  isSquareHidden,
   pointsTouchFog,
   rectTouchesFog,
   type FogView,
@@ -82,6 +83,13 @@ describe("fog of war", () => {
     room.hideCells({ x: 0, y: 1 }, { x: 1, y: 1 });
     expect(pointsTouchFog(fogView(), [10, 10, 90, 40])).toBe(false);
     expect(pointsTouchFog(fogView(), [10, 10, 90, 60])).toBe(true);
+  });
+
+  it("hides a token only when all its cells are fogged", () => {
+    room.hideCells({ x: 0, y: 0 }, { x: 2, y: 1 });
+    expect(isSquareHidden(fogView(), { x: 0, y: 0, size: 2 })).toBe(true);
+    expect(isSquareHidden(fogView(), { x: 1, y: 0, size: 3 })).toBe(false);
+    expect(isSquareHidden(fogView(), { x: 4, y: 4, size: 1 })).toBe(false);
   });
 
   it("never fogs cells off the map", () => {

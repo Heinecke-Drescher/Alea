@@ -1,11 +1,15 @@
 import { Avatar, CloseButton, Group, Stack, TextInput } from "@mantine/core";
+import { useFogGuard } from "../fog/useFogGuard";
 import { embeddedImage } from "../room/tokens";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 
 export function TokenList() {
   const room = useRoom();
-  const tokens = Object.values(useY(room.tokensMap));
+  const fogGuard = useFogGuard();
+  const tokens = Object.values(useY(room.tokensMap)).filter(
+    (token) => !fogGuard.hidesSquare(token),
+  );
   const images = useY(room.imagesMap);
 
   return (

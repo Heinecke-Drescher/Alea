@@ -1,5 +1,11 @@
 import type { IRect, Vector2d } from "konva/lib/types";
-import { CELL_SIZE, cellAt, containsCell, type MapBounds } from "./grid";
+import {
+  CELL_SIZE,
+  cellAt,
+  containsCell,
+  type MapBounds,
+  type Square,
+} from "./grid";
 import { toPoints } from "./points";
 import { cellKey, type RoomStore } from "./roomStore";
 
@@ -35,6 +41,15 @@ export function pointsTouchFog(fog: FogView, points: number[]) {
     const cell = cellAt(point);
     return isCellFogged(fog, cell.x, cell.y);
   });
+}
+
+export function isSquareHidden(fog: FogView, { x, y, size }: Square) {
+  for (let dy = 0; dy < size; dy++) {
+    for (let dx = 0; dx < size; dx++) {
+      if (!isCellFogged(fog, x + dx, y + dy)) return false;
+    }
+  }
+  return true;
 }
 
 export function foggedCells(fog: FogView) {
