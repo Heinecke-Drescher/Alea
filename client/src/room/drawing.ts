@@ -1,9 +1,22 @@
 import { nanoid } from "nanoid";
 import { containsCell, type MapBounds } from "./grid";
-import { cellKey, type Cell, type RoomStore } from "./roomStore";
+import { cellKey, type Cell, type RoomStore, type Stroke } from "./roomStore";
 
 export function shiftPoints(points: number[], dx: number, dy: number) {
   return points.map((value, i) => value + (i % 2 === 0 ? dx : dy));
+}
+
+export function isOverFog(stroke: Stroke) {
+  return stroke.overFog === true;
+}
+
+export function newStroke(
+  color: string,
+  points: number[],
+  overFog: boolean,
+): [string, Stroke] {
+  const id = nanoid();
+  return [id, overFog ? { id, color, points, overFog } : { id, color, points }];
 }
 
 export function putCell(
@@ -37,10 +50,9 @@ export function createDrawing({
     cellsMap.delete(cellKey(x, y));
   }
 
-  function addStroke(color: string, points: number[]) {
+  function addStroke(color: string, points: number[], overFog = false) {
     undoManager.stopCapturing();
-    const id = nanoid();
-    strokesMap.set(id, { id, color, points });
+    strokesMap.set(...newStroke(color, points, overFog));
   }
 
   function removeStroke(id: string) {

@@ -2,6 +2,7 @@ import { useMantineTheme } from "@mantine/core";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
 import { Group, Line } from "react-konva";
+import { isOverFog } from "../room/drawing";
 import { useRoom } from "../room/RoomContext";
 import { strokeTouches } from "../room/strokeTouches";
 import { useY } from "../room/useY";
@@ -24,6 +25,7 @@ interface StrokeLineProps {
 }
 
 interface StrokesProps {
+  overFog: boolean;
   draft: StrokeLineProps | null;
   selection: IRect | null;
   selectedIds: string[];
@@ -48,6 +50,7 @@ function StrokeLine({ id, color, points, draggable }: StrokeLineProps) {
 }
 
 export function Strokes({
+  overFog,
   draft,
   selection,
   selectedIds,
@@ -58,7 +61,9 @@ export function Strokes({
 }: StrokesProps) {
   const room = useRoom();
   const theme = useMantineTheme();
-  const strokes = Object.values(useY(room.strokesMap));
+  const strokes = Object.values(useY(room.strokesMap)).filter(
+    (stroke) => isOverFog(stroke) === overFog,
+  );
   const selected = strokes.filter(
     (stroke) =>
       selectedIds.includes(stroke.id) ||

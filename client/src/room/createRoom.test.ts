@@ -3,6 +3,7 @@ import * as Y from "yjs";
 import { BACKGROUND_IMAGE_ID } from "./background";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
+import { isOverFog } from "./drawing";
 import { tokenEffects } from "./effects";
 import type { Token } from "./roomStore";
 import { rollColor, rollPath } from "./rolls";
@@ -51,6 +52,23 @@ describe("drawing", () => {
     expect(stroke).toMatchObject({ color: "#000000", points: [0, 0, 10, 10] });
     room.removeStroke(stroke.id);
     expect(room.strokesMap.size).toBe(0);
+  });
+
+  it("marks only the strokes drawn above the fog", () => {
+    room.addStroke("#000000", [0, 0, 10, 10]);
+    room.addStroke("#ff0000", [0, 0, 10, 10], true);
+    const strokes = Array.from(room.strokesMap.values());
+    const below = strokes.find((stroke) => stroke.color === "#000000");
+    const above = strokes.find((stroke) => stroke.color === "#ff0000");
+    expect(below).not.toHaveProperty("overFog");
+    expect(above && isOverFog(above)).toBe(true);
+  });
+
+  it("reads only true as above the fog from other players' data", () => {
+    const stroke = { id: "s", color: "#000000", points: [0, 0, 1, 1] };
+    expect(isOverFog({ ...stroke, overFog: true })).toBe(true);
+    expect(isOverFog({ ...stroke, overFog: "yes" } as never)).toBe(false);
+    expect(isOverFog(stroke)).toBe(false);
   });
 
   it("clears drawings but keeps tokens", () => {
@@ -477,6 +495,24 @@ describe("copy, paste and delete", () => {
     if (!copyId) throw new Error("Expected a pasted stroke");
     expect(copyId).not.toBe(id);
     expect(room.strokesMap.get(copyId)?.points).toEqual([17, 13, 27, 23]);
+  });
+
+  it("marks pasted strokes by the one who pastes and keeps the mark when moved", () => {
+    room.addStroke("#000000", [10, 10, 20, 20], true);
+    const [id] = room.strokesMap.keys();
+    if (!id) throw new Error("Expected a stroke");
+    const clip = room.copyItems({ strokes: [id], tokens: [] });
+    const [belowId] = room.paste(clip, 5, 5).strokes;
+    const [aboveId] = room.paste(clip, 5, 5, true).strokes;
+    const strokeOf = (strokeId: string | undefined) => {
+      const stroke = room.strokesMap.get(strokeId ?? "");
+      if (!stroke) throw new Error("Expected a pasted stroke");
+      return stroke;
+    };
+    expect(isOverFog(strokeOf(belowId))).toBe(false);
+    expect(isOverFog(strokeOf(aboveId))).toBe(true);
+    room.moveItems({ strokes: [id], tokens: [] }, 30, 0);
+    expect(isOverFog(strokeOf(id))).toBe(true);
   });
 
   it("refuses to paste cells off the grid", () => {

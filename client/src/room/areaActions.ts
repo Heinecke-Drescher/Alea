@@ -7,7 +7,7 @@ import {
   squareCenter,
   type Square,
 } from "./grid";
-import { putCell, shiftPoints } from "./drawing";
+import { newStroke, putCell, shiftPoints } from "./drawing";
 import { placeToken, type MapActions } from "./map";
 import type * as Y from "yjs";
 import {
@@ -163,7 +163,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     return copy(contentOf(items));
   }
 
-  function paste(clip: Clip, dx: number, dy: number) {
+  function paste(clip: Clip, dx: number, dy: number, overFog = false) {
     if (hasGridContent(clip) && !isWholeCells(dx, dy)) {
       throw new Error("Cells and tokens can only be pasted in whole cells");
     }
@@ -187,9 +187,13 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
         pasted.tokens.push(id);
       }
       for (const { color, points } of clip.strokes) {
-        const id = nanoid();
+        const [id, stroke] = newStroke(
+          color,
+          shiftPoints(points, dx, dy),
+          overFog,
+        );
         pasted.strokes.push(id);
-        strokesMap.set(id, { id, color, points: shiftPoints(points, dx, dy) });
+        strokesMap.set(id, stroke);
       }
     });
     return pasted;

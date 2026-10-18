@@ -2,6 +2,7 @@ import { notifications } from "@mantine/notifications";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef, type RefObject } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
+import { usePlayer } from "../../player/PlayerContext";
 import { hasGridContent, type Clip } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
 import { CELL_SIZE, mapRect } from "../../room/grid";
@@ -38,6 +39,7 @@ export function useClipboard({
 }: ClipboardOptions) {
   const clipboard = useRef<Clipboard | null>(null);
   const fogGuard = useFogGuard();
+  const { isDm } = usePlayer();
   const { area, items } = selection;
 
   function copy() {
@@ -88,11 +90,11 @@ export function useClipboard({
     const { dx, dy } = snapsToCells
       ? inPixels(cellOffset(bounds, target, room.mapBounds()))
       : pixelOffset(bounds, target, room.mapBounds());
-    if (fogGuard.hidesRect({ ...bounds, x: bounds.x + dx, y: bounds.y + dy })) {
-      return;
-    }
+    // Players' pasted strokes land above the fog, so only cells and tokens are kept out of it.
+    const destination = { ...bounds, x: bounds.x + dx, y: bounds.y + dy };
+    if (hasGridContent(clip) && fogGuard.hidesRect(destination)) return;
     onPaste();
-    const pasted = room.paste(clip, dx, dy);
+    const pasted = room.paste(clip, dx, dy, !isDm);
     // A frame around the paste would also catch what was there before.
     if (isArea) {
       selection.clear();

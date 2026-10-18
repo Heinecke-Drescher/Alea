@@ -25,6 +25,8 @@ export interface Stroke {
   id: string;
   color: string;
   points: number[];
+  // Strokes drawn by players stay visible above the fog.
+  overFog?: true;
 }
 
 export interface Roll {

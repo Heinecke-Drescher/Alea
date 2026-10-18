@@ -173,6 +173,16 @@ export function Board({ awareness, isSynced }: BoardProps) {
     };
   }
 
+  const draft = draftPoints && { color: colorValue, points: draftPoints };
+  const strokeProps = {
+    selection: area,
+    selectedIds: items.strokes,
+    listening: activeTool.listensToStrokes,
+    draggable: isSelecting,
+    onStrokePress: pressItem("strokes"),
+    onStrokeClick: clickItem("strokes"),
+  };
+
   function changeTool(nextTool: Tool) {
     handleMouseUp();
     setTool(nextTool);
@@ -252,13 +262,9 @@ export function Board({ awareness, isSynced }: BoardProps) {
             onDragEnd={itemDrag.end}
           >
             <Strokes
-              draft={draftPoints && { color: colorValue, points: draftPoints }}
-              selection={area}
-              selectedIds={items.strokes}
-              listening={activeTool.listensToStrokes}
-              draggable={isSelecting}
-              onStrokePress={pressItem("strokes")}
-              onStrokeClick={clickItem("strokes")}
+              overFog={false}
+              draft={player.isDm ? draft : null}
+              {...strokeProps}
             />
             <Tokens
               listening={isSelecting}
@@ -270,9 +276,18 @@ export function Board({ awareness, isSynced }: BoardProps) {
               onTokenContextMenu={tokenMenu.open}
             />
           </Layer>
-          {/* Its own layer, so the fog is not redrawn with every cursor move. */}
-          <Layer>
+          {/* Its own layer, so the fog is not redrawn with every cursor move. Players' strokes stay visible on top. */}
+          <Layer
+            onDragStart={itemDrag.start}
+            onDragMove={itemDrag.move}
+            onDragEnd={itemDrag.end}
+          >
             <FogOfWar />
+            <Strokes
+              overFog
+              draft={player.isDm ? null : draft}
+              {...strokeProps}
+            />
           </Layer>
           <Layer>
             <FogFrame frame={fogFrame} />
