@@ -1,4 +1,4 @@
-import { Box, Tooltip, useMantineTheme } from "@mantine/core";
+import { Box, useMantineTheme } from "@mantine/core";
 import { clamp, useElementSize, useHotkeys } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
@@ -8,15 +8,14 @@ import { useDieDrop } from "../dice/useDieDrop";
 import { Layer, Stage } from "react-konva";
 import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connectRoom";
-import type { StatusEffect } from "../room/effects";
 import { usePlayer } from "../player/PlayerContext";
 import { useRoom } from "../room/RoomContext";
 import { useBackgroundImage } from "../room/useBackgroundImage";
 import { Cells } from "./Cells";
 import { cursorArrowCss } from "./cursorArrow";
-import { EFFECT_LABELS } from "./effectIcons";
 import { Cursors } from "./Cursors";
 import { DistanceMeasure } from "./DistanceMeasure";
+import { EffectTooltip } from "./EffectTooltip";
 import { GridLines } from "./GridLines";
 import { clampToMap } from "../room/grid";
 import { Strokes } from "./Strokes";
@@ -35,7 +34,6 @@ import { useImageDrop } from "./useImageDrop";
 import { useItemDrag } from "./useItemDrag";
 import { useSelection } from "./useSelection";
 import { useTokenMenu } from "./useTokenMenu";
-import { effectAt } from "./tokenNodes";
 
 const LEFT_MOUSE_BUTTON = 0;
 const MAP_START_X = 72;
@@ -91,7 +89,6 @@ export function Board({ awareness, isSynced }: BoardProps) {
   const theme = useMantineTheme();
   const [tool, setTool] = useState<Tool>("select");
   const [color, setColor] = useState<PaintColor>("red");
-  const [hoveredEffect, setHoveredEffect] = useState<StatusEffect | null>(null);
   const selection = useSelection(room);
   const colorValue = paintColorValue(theme, color);
   const { activeTool, draftPoints, measurement } = useBoardTools(
@@ -192,7 +189,6 @@ export function Board({ awareness, isSynced }: BoardProps) {
     lastPointer.current = pointerOnMap(event);
     cursor.move(lastPointer.current);
     activeTool.onMove({ point: lastPointer.current, event });
-    setHoveredEffect(effectAt(event.target));
   }
 
   function handleMouseUp() {
@@ -201,15 +197,11 @@ export function Board({ awareness, isSynced }: BoardProps) {
 
   function handleMouseLeave() {
     cursor.leave();
-    setHoveredEffect(null);
     handleMouseUp();
   }
 
   return (
-    <Tooltip.Floating
-      label={hoveredEffect && EFFECT_LABELS[hoveredEffect]}
-      disabled={!hoveredEffect}
-    >
+    <EffectTooltip stageRef={stageRef}>
       <Box
         ref={sizeRef}
         pos="relative"
@@ -291,6 +283,6 @@ export function Board({ awareness, isSynced }: BoardProps) {
           onColorChange={setColor}
         />
       </Box>
-    </Tooltip.Floating>
+    </EffectTooltip>
   );
 }
