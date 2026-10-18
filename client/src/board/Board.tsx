@@ -28,12 +28,7 @@ import { MapResizer } from "./MapResizer";
 import { resizableTokenId } from "./selection";
 import { SelectionFrame } from "./SelectionFrame";
 import { Toolbar, type Tool } from "./Toolbar";
-import { selectTool } from "./tools/select";
-import { usePaintTool } from "./tools/paint";
-import { usePenTool } from "./tools/pen";
-import { useEraserTool } from "./tools/eraser";
-import { useMeasureTool } from "./tools/measure";
-import type { BoardTool } from "./tools/tool";
+import { useBoardTools } from "./tools/useBoardTools";
 import { useClipboard } from "./useClipboard";
 import { useCursorBroadcast } from "./useCursorBroadcast";
 import { useImageDrop } from "./useImageDrop";
@@ -98,20 +93,13 @@ export function Board({ awareness, isSynced }: BoardProps) {
   const [color, setColor] = useState<PaintColor>("red");
   const [hoveredEffect, setHoveredEffect] = useState<StatusEffect | null>(null);
   const selection = useSelection(room);
-  const select = selectTool(selection);
   const colorValue = paintColorValue(theme, color);
-  const paint = usePaintTool(room, colorValue);
-  const { tool: pen, draftPoints } = usePenTool(room, colorValue);
-  const eraser = useEraserTool(room);
-  const { tool: measure, measurement } = useMeasureTool(room);
-  const tools: Record<Tool, BoardTool> = {
-    select,
-    paint,
-    pen,
-    eraser,
-    measure,
-  };
-  const activeTool = tools[tool];
+  const { activeTool, draftPoints, measurement } = useBoardTools(
+    tool,
+    selection,
+    room,
+    colorValue,
+  );
   const { area, items } = selection;
   const itemDrag = useItemDrag(room, items);
   const tokenMenu = useTokenMenu(room, selection);
