@@ -6,6 +6,7 @@ import { Transformer } from "react-konva";
 import { CELL_SIZE, snapTokenSquare, type Square } from "../../room/grid";
 import type { Token } from "../../room/roomStore";
 import { useRoom } from "../../room/RoomContext";
+import { highlightColor } from "../selection/highlight";
 
 const CORNERS = ["top-left", "top-right", "bottom-left", "bottom-right"];
 
@@ -74,8 +75,8 @@ export function TokenResizer({ token }: TokenResizerProps) {
       keepRatio
       rotateEnabled={false}
       flipEnabled={false}
-      borderStroke={theme.colors.blue[6]}
-      anchorStroke={theme.colors.blue[6]}
+      borderStroke={highlightColor(theme)}
+      anchorStroke={highlightColor(theme)}
       onDragStart={stopBubble}
       onDragMove={stopBubble}
       onDragEnd={stopBubble}

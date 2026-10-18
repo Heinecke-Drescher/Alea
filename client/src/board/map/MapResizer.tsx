@@ -7,6 +7,7 @@ import { Rect, Transformer } from "react-konva";
 import { useRoom } from "../../room/RoomContext";
 import { useMapBounds } from "../../room/useMapBounds";
 import { mapRect, snapMapBounds, type MapBounds } from "../../room/grid";
+import { highlightColor } from "../selection/highlight";
 
 export function MapResizer() {
   const room = useRoom();
@@ -54,9 +55,9 @@ export function MapResizer() {
         rotateEnabled={false}
         flipEnabled={false}
         keepRatio={false}
-        borderStroke={theme.colors.blue[6]}
+        borderStroke={highlightColor(theme)}
         borderDash={[8, 4]}
-        anchorStroke={theme.colors.blue[6]}
+        anchorStroke={highlightColor(theme)}
         onTransform={() => showBounds(snappedBounds())}
         onTransformEnd={() => {
           const next = snappedBounds();

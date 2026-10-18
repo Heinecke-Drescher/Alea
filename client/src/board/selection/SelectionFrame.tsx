@@ -4,6 +4,7 @@ import type { IRect } from "konva/lib/types";
 import { Group, Rect } from "react-konva";
 import { useRoom } from "../../room/RoomContext";
 import { CELL_SIZE } from "../../room/grid";
+import { highlightColor } from "./highlight";
 import { cellOffset } from "./selection";
 
 interface SelectionFrameProps {
@@ -20,7 +21,7 @@ function setCursor(event: KonvaEventObject<MouseEvent>, cursor: string) {
 export function SelectionFrame({ area, onMove }: SelectionFrameProps) {
   const room = useRoom();
   const theme = useMantineTheme();
-  const color = theme.colors.blue[6];
+  const color = highlightColor(theme);
 
   function snapToCells(event: KonvaEventObject<DragEvent>, frame: IRect) {
     const node = event.target;
