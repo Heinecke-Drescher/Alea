@@ -1,9 +1,9 @@
 import type { Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
+import { useFogGuard } from "../../fog/useFogGuard";
 import type { ItemType } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
 import { CELL_SIZE } from "../../room/grid";
-import { useFogGuard } from "../useFogGuard";
 import {
   areaSelection,
   boxBetween,

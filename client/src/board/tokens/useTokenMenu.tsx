@@ -12,6 +12,7 @@ import {
   ContextMenuItem,
   useContextMenu,
 } from "mantine-contextmenu";
+import { useFogGuard } from "../../fog/useFogGuard";
 import type { Room } from "../../room/createRoom";
 import { STATUS_EFFECTS, tokenEffects } from "../../room/effects";
 import type { Token } from "../../room/roomStore";
@@ -24,9 +25,10 @@ import type { SelectionControls } from "../selection/useSelection";
 export function useTokenMenu(room: Room, selection: SelectionControls) {
   const { showContextMenu } = useContextMenu();
   const theme = useMantineTheme();
+  const fogGuard = useFogGuard();
 
   function duplicate(token: Token) {
-    const copyId = room.duplicateToken(token.id);
+    const copyId = room.duplicateToken(token.id, fogGuard.blockedSquares());
     if (copyId) {
       selection.set(itemsSelection({ ...NO_ITEMS, tokens: [copyId] }));
     } else if (room.tokensMap.has(token.id)) {

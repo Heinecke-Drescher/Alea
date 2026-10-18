@@ -1,11 +1,11 @@
 import type { KonvaEventObject, Node } from "konva/lib/Node";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef } from "react";
+import { useFogGuard } from "../../fog/useFogGuard";
 import { existing, type Items } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
 import { shiftPoints } from "../../room/drawing";
 import { CELL_SIZE } from "../../room/grid";
-import { useFogGuard } from "../useFogGuard";
 import { cellOffset, NO_ITEMS, squaresBounds } from "./selection";
 
 interface Drag {

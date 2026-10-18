@@ -102,7 +102,15 @@ describe("addToken", () => {
     expect(goblin).toMatchObject({ x: 3, y: 0 });
   });
 
-  it("fails when the map is full", () => {
+  it("skips blocked cells when looking for a free one", () => {
+    room.addToken("Goblin", IMAGE, undefined, [
+      { x: 0, y: 0, size: 2 },
+      { x: 2, y: 0, size: 1 },
+    ]);
+    expect(onlyToken()).toMatchObject({ x: 3, y: 0 });
+  });
+
+  it("fails when no cell is free", () => {
     for (let i = 0; i < columns * rows; i++) room.addToken("Crowd", IMAGE);
     expect(() => room.addToken("One too many", IMAGE)).toThrow();
   });
@@ -180,6 +188,13 @@ describe("changing tokens", () => {
     room.resizeToken(onlyToken().id, { x: 0, y: 0, size: 10 });
     expect(room.duplicateToken(onlyToken().id)).toBeUndefined();
     expect(room.tokensMap.size).toBe(1);
+  });
+
+  it("duplicates next to blocked cells", () => {
+    room.addToken("Goblin", IMAGE, { x: 5, y: 5 });
+    const original = onlyToken();
+    const copyId = room.duplicateToken(original.id, [{ x: 6, y: 5, size: 1 }]);
+    expect(room.tokensMap.get(copyId ?? "")).toMatchObject({ x: 5, y: 6 });
   });
 });
 

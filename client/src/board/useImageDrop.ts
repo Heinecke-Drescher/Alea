@@ -6,6 +6,7 @@ import {
   BACKGROUND_FILE_MEGABYTES,
   setBackgroundFromFile,
 } from "../background/setBackgroundFromFile";
+import { useFogGuard } from "../fog/useFogGuard";
 import { handleImageFile, validImages } from "../images/imageFiles";
 import { cellAt, containsCell, dropCells } from "../room/grid";
 import { useRoom } from "../room/RoomContext";
@@ -21,6 +22,7 @@ function isFileDrag(dataTransfer: DataTransfer) {
 
 export function useImageDrop(stageRef: RefObject<StageNode | null>) {
   const room = useRoom();
+  const fogGuard = useFogGuard();
 
   // Also stops the browser from opening an image dropped on the board.
   function allowFileDrop(event: DragEvent<HTMLElement>) {
@@ -30,10 +32,11 @@ export function useImageDrop(stageRef: RefObject<StageNode | null>) {
   function addTokens(files: File[], start: Vector2d) {
     const images = validImages(files, TOKEN_FILE_MEGABYTES);
     const cells = dropCells(start, images.length, room.mapBounds());
+    if (cells.some((cell) => fogGuard.hidesCell(cell.x, cell.y))) return;
     images.forEach((file, i) => {
       const cell = cells[i];
       if (!cell) throw new Error(`No cell for dropped image ${i}`);
-      void handleImageFile(file, () => addTokenFromFile(room, file, cell));
+      void handleImageFile(file, () => addTokenFromFile(room, file, { cell }));
     });
   }
 

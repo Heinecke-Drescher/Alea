@@ -22,7 +22,9 @@ import {
   type Icon,
 } from "@tabler/icons-react";
 import { usePlayer } from "../player/PlayerContext";
+import { foggedCells } from "../room/fog";
 import { useRoom } from "../room/RoomContext";
+import { useFog } from "../room/useFog";
 import { PAINT_COLORS, paintColorValue, type PaintColor } from "./paintColors";
 import type { Tool } from "./tools/tool";
 
@@ -76,6 +78,7 @@ export function Toolbar({
   const theme = useMantineTheme();
   const room = useRoom();
   const { isDm } = usePlayer();
+  const fog = useFog();
 
   function toolButton({ tool, label, icon: ToolIcon }: ToolButton) {
     return (
@@ -116,18 +119,23 @@ export function Toolbar({
               {color === activeColor && <CheckIcon size={12} color="white" />}
             </ColorSwatch>
           ))}
-          <Divider w="100%" />
-          <Tooltip label="Clear drawings" position="right">
-            <ActionIcon
-              variant="subtle"
-              color="red"
-              size="lg"
-              aria-label="Clear drawings"
-              onClick={() => confirmClearDrawings(room.clearDrawings)}
-            >
-              <IconTrash size={20} />
-            </ActionIcon>
-          </Tooltip>
+          {/* Clearing would also wipe what the fog hides from players. */}
+          {(isDm || foggedCells(fog).length === 0) && (
+            <>
+              <Divider w="100%" />
+              <Tooltip label="Clear drawings" position="right">
+                <ActionIcon
+                  variant="subtle"
+                  color="red"
+                  size="lg"
+                  aria-label="Clear drawings"
+                  onClick={() => confirmClearDrawings(room.clearDrawings)}
+                >
+                  <IconTrash size={20} />
+                </ActionIcon>
+              </Tooltip>
+            </>
+          )}
         </Stack>
       </Tooltip.Group>
     </Paper>

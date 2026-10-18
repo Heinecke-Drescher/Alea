@@ -1,6 +1,7 @@
 import { notifications } from "@mantine/notifications";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef, type RefObject } from "react";
+import { useFogGuard } from "../../fog/useFogGuard";
 import { hasGridContent, type Clip } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
 import { CELL_SIZE, mapRect } from "../../room/grid";
@@ -11,6 +12,10 @@ import {
   pixelOffset,
 } from "./selection";
 import type { SelectionControls } from "./useSelection";
+
+function inPixels({ dx, dy }: { dx: number; dy: number }) {
+  return { dx: dx * CELL_SIZE, dy: dy * CELL_SIZE };
+}
 
 interface Clipboard {
   clip: Clip;
@@ -32,6 +37,7 @@ export function useClipboard({
   onPaste,
 }: ClipboardOptions) {
   const clipboard = useRef<Clipboard | null>(null);
+  const fogGuard = useFogGuard();
   const { area, items } = selection;
 
   function copy() {
@@ -79,15 +85,14 @@ export function useClipboard({
       });
       return;
     }
-    onPaste();
-    let pasted;
-    if (snapsToCells) {
-      const { dx, dy } = cellOffset(bounds, target, room.mapBounds());
-      pasted = room.paste(clip, dx * CELL_SIZE, dy * CELL_SIZE);
-    } else {
-      const { dx, dy } = pixelOffset(bounds, target, room.mapBounds());
-      pasted = room.paste(clip, dx, dy);
+    const { dx, dy } = snapsToCells
+      ? inPixels(cellOffset(bounds, target, room.mapBounds()))
+      : pixelOffset(bounds, target, room.mapBounds());
+    if (fogGuard.hidesRect({ ...bounds, x: bounds.x + dx, y: bounds.y + dy })) {
+      return;
     }
+    onPaste();
+    const pasted = room.paste(clip, dx, dy);
     // A frame around the paste would also catch what was there before.
     if (isArea) {
       selection.clear();

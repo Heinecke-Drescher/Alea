@@ -1,7 +1,12 @@
 import type { IRect } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import { tokenEffects, type StatusEffect } from "./effects";
-import { CELL_SIZE, nearestFreeSquare, squareCenter } from "./grid";
+import {
+  CELL_SIZE,
+  nearestFreeSquare,
+  squareCenter,
+  type Square,
+} from "./grid";
 import { putCell, shiftPoints } from "./drawing";
 import { placeToken, type MapActions } from "./map";
 import type * as Y from "yjs";
@@ -190,12 +195,12 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     return pasted;
   }
 
-  function duplicateToken(id: string) {
+  function duplicateToken(id: string, blocked: Square[] = []) {
     const token = tokensMap.get(id);
     if (!token) return;
     const cell = nearestFreeSquare(
       token,
-      Array.from(tokensMap.values()),
+      [...tokensMap.values(), ...blocked],
       mapBounds(),
     );
     if (!cell) return;

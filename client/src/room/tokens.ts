@@ -12,17 +12,19 @@ export function createTokens(
   { doc, tokensMap, imagesMap, undoManager }: RoomStore,
   { mapBounds }: MapActions,
 ) {
+  // Without a cell the token goes to the first free one, skipping the blocked squares.
   function addToken(
     name: string,
     imageDataUrl: string,
     cell?: { x: number; y: number },
+    blocked: Square[] = [],
   ) {
+    const { x, y } = cell
+      ? placeToken(mapBounds(), { ...cell, size: 1 }, 0, 0)
+      : findFreeCell(blocked);
     undoManager.stopCapturing();
     const id = nanoid();
     const imageId = nanoid();
-    const { x, y } = cell
-      ? placeToken(mapBounds(), { ...cell, size: 1 }, 0, 0)
-      : findFreeCell();
     doc.transact(() => {
       imagesMap.set(imageId, imageDataUrl);
       tokensMap.set(id, { id, name, imageId, x, y, size: 1 });
@@ -75,13 +77,13 @@ export function createTokens(
     tokensMap.set(id, change(token));
   }
 
-  function findFreeCell() {
-    const tokens = Array.from(tokensMap.values());
+  function findFreeCell(blocked: Square[]) {
+    const occupied = [...tokensMap.values(), ...blocked];
     const { x: left, y: top, columns, rows } = mapBounds();
     for (let y = top; y < top + rows; y++) {
       for (let x = left; x < left + columns; x++) {
         const cell = { x, y, size: 1 };
-        if (!tokens.some((token) => overlaps(cell, token))) return { x, y };
+        if (!occupied.some((other) => overlaps(cell, other))) return { x, y };
       }
     }
     throw new Error("No free cell left on the map");
