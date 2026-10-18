@@ -1,21 +1,11 @@
 import { nanoid } from "nanoid";
 import { tokenEffects, type StatusEffect } from "./effects";
-import { MAX_TOKEN_SIZE, type Square } from "./grid";
+import { MAX_TOKEN_SIZE, overlaps, type Square } from "./grid";
 import { placeToken, type MapActions } from "./map";
-import { cellKey, type RoomStore, type Token } from "./roomStore";
+import type { RoomStore, Token } from "./roomStore";
 
 export function embeddedImage(value: string | undefined) {
   return value?.startsWith("data:image/") ? value : null;
-}
-
-function coveredCells(token: Token): string[] {
-  const cells: string[] = [];
-  for (let dy = 0; dy < token.size; dy++) {
-    for (let dx = 0; dx < token.size; dx++) {
-      cells.push(cellKey(token.x + dx, token.y + dy));
-    }
-  }
-  return cells;
 }
 
 export function createTokens(
@@ -86,13 +76,12 @@ export function createTokens(
   }
 
   function findFreeCell() {
-    const occupied = new Set(
-      Array.from(tokensMap.values(), coveredCells).flat(),
-    );
+    const tokens = Array.from(tokensMap.values());
     const { x: left, y: top, columns, rows } = mapBounds();
     for (let y = top; y < top + rows; y++) {
       for (let x = left; x < left + columns; x++) {
-        if (!occupied.has(cellKey(x, y))) return { x, y };
+        const cell = { x, y, size: 1 };
+        if (!tokens.some((token) => overlaps(cell, token))) return { x, y };
       }
     }
     throw new Error("No free cell left on the map");

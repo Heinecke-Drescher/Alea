@@ -1,3 +1,4 @@
+import type { IRect } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import { tokenEffects, type StatusEffect } from "./effects";
 import { CELL_SIZE, nearestFreeSquare, squareCenter } from "./grid";
@@ -11,7 +12,7 @@ import {
   type Stroke,
   type Token,
 } from "./roomStore";
-import { strokeTouches, type Area } from "./strokeTouches";
+import { strokeTouches } from "./strokeTouches";
 
 export interface Clip {
   cells: Cell[];
@@ -51,7 +52,7 @@ export function existing<T>(map: Y.Map<T>, ids: string[]) {
   });
 }
 
-export function hasCenterIn(area: Area, x: number, y: number, size: number) {
+export function hasCenterIn(area: IRect, x: number, y: number, size: number) {
   const center = squareCenter(x, y, size);
   return (
     center.x >= area.x &&
@@ -89,7 +90,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     });
   }
 
-  function moveArea(area: Area, dx: number, dy: number) {
+  function moveArea(area: IRect, dx: number, dy: number) {
     move(contentIn(area), dx * CELL_SIZE, dy * CELL_SIZE);
   }
 
@@ -101,25 +102,25 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     move(content, dx, dy);
   }
 
-  function cellsIn(area: Area) {
+  function cellsIn(area: IRect) {
     return Array.from(cellsMap.values()).filter((cell) =>
       hasCenterIn(area, cell.x, cell.y, 1),
     );
   }
 
-  function tokensIn(area: Area) {
+  function tokensIn(area: IRect) {
     return Array.from(tokensMap.values()).filter((token) =>
       hasCenterIn(area, token.x, token.y, token.size),
     );
   }
 
-  function strokesIn(area: Area) {
+  function strokesIn(area: IRect) {
     return Array.from(strokesMap.values()).filter((stroke) =>
       strokeTouches(stroke.points, area),
     );
   }
 
-  function contentIn(area: Area): Content {
+  function contentIn(area: IRect): Content {
     return {
       cells: cellsIn(area),
       tokens: tokensIn(area),
@@ -149,7 +150,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     };
   }
 
-  function copyArea(area: Area) {
+  function copyArea(area: IRect) {
     return copy(contentIn(area));
   }
 
@@ -218,7 +219,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     });
   }
 
-  function deleteArea(area: Area) {
+  function deleteArea(area: IRect) {
     remove(contentIn(area));
   }
 

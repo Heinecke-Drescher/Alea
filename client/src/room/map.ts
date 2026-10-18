@@ -1,6 +1,7 @@
 import { clamp } from "@mantine/hooks";
 import {
   containsCell,
+  containsSquare,
   DEFAULT_MAP_BOUNDS,
   isValidMapBounds,
   type MapBounds,
@@ -48,14 +49,8 @@ export function createMapActions({
       Array.from(cellsMap.values()).every((cell) =>
         containsCell(bounds, cell.x, cell.y),
       ) &&
-      Array.from(tokensMap.values()).every(
-        (token) =>
-          containsCell(bounds, token.x, token.y) &&
-          containsCell(
-            bounds,
-            token.x + token.size - 1,
-            token.y + token.size - 1,
-          ),
+      Array.from(tokensMap.values()).every((token) =>
+        containsSquare(bounds, token),
       )
     );
   }

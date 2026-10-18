@@ -79,7 +79,14 @@ export function containsCell(bounds: MapBounds, x: number, y: number) {
   );
 }
 
-function overlaps(a: Square, b: Square) {
+export function containsSquare(bounds: MapBounds, { x, y, size }: Square) {
+  return (
+    containsCell(bounds, x, y) &&
+    containsCell(bounds, x + size - 1, y + size - 1)
+  );
+}
+
+export function overlaps(a: Square, b: Square) {
   return (
     a.x < b.x + b.size &&
     b.x < a.x + a.size &&
@@ -123,8 +130,7 @@ export function nearestFreeSquare(
         size,
       };
       const isFree =
-        containsCell(map, candidate.x, candidate.y) &&
-        containsCell(map, candidate.x + size - 1, candidate.y + size - 1) &&
+        containsSquare(map, candidate) &&
         !occupied.some((other) => overlaps(candidate, other));
       if (isFree) return { x: candidate.x, y: candidate.y };
     }
