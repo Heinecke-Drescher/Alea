@@ -270,8 +270,11 @@ export function Board({ awareness, isSynced }: BoardProps) {
               onTokenContextMenu={tokenMenu.open}
             />
           </Layer>
+          {/* Its own layer, so the fog is not redrawn with every cursor move. */}
           <Layer>
             <FogOfWar />
+          </Layer>
+          <Layer>
             <FogFrame frame={fogFrame} />
             {isSelecting && <MapResizer />}
             <SelectionFrame area={area} onMove={selection.moveArea} />

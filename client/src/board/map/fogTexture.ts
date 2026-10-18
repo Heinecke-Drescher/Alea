@@ -3,6 +3,8 @@ import { createNoise4D, type NoiseFunction4D } from "simplex-noise";
 
 const SIZE = 256;
 const OCTAVES = 4;
+// Higher values leave more of the background between thinner clouds.
+const CLOUD_DENSITY = 2;
 
 // Walking two circles through 4D noise wraps at the edges, so the texture tiles without seams.
 function cloudiness(noise: NoiseFunction4D, x: number, y: number) {
@@ -26,7 +28,7 @@ function cloudiness(noise: NoiseFunction4D, x: number, y: number) {
   return (value + 1) / 2;
 }
 
-export function fogTextureUrl(dark: string, light: string) {
+export function fogTextureUrl(background: string, cloud: string) {
   const canvas = document.createElement("canvas");
   canvas.width = SIZE;
   canvas.height = SIZE;
@@ -34,11 +36,11 @@ export function fogTextureUrl(dark: string, light: string) {
   if (!context) throw new Error("Canvas 2D is not supported");
   const image = context.createImageData(SIZE, SIZE);
   const noise = createNoise4D();
-  const from = toRgba(dark);
-  const to = toRgba(light);
+  const from = toRgba(background);
+  const to = toRgba(cloud);
   for (let y = 0; y < SIZE; y++) {
     for (let x = 0; x < SIZE; x++) {
-      const t = cloudiness(noise, x, y);
+      const t = cloudiness(noise, x, y) ** CLOUD_DENSITY;
       const i = (y * SIZE + x) * 4;
       image.data[i] = from.r + (to.r - from.r) * t;
       image.data[i + 1] = from.g + (to.g - from.g) * t;

@@ -1,4 +1,4 @@
-import { alpha, useMantineTheme } from "@mantine/core";
+import { alpha, useComputedColorScheme, useMantineTheme } from "@mantine/core";
 import { useMemo } from "react";
 import { Shape } from "react-konva";
 import useImage from "use-image";
@@ -8,8 +8,9 @@ import { CELL_SIZE } from "../../room/grid";
 import { useFog } from "../../room/useFog";
 import { useMapBounds } from "../../room/useMapBounds";
 import { fogTextureUrl } from "./fogTexture";
+import { mapFillColor } from "./mapColors";
 
-const DM_FOG_OPACITY = 0.5;
+const DM_FOG_OPACITY = 0.7;
 const TEXTURE_SCALE = 2;
 
 export function FogOfWar() {
@@ -17,9 +18,15 @@ export function FogOfWar() {
   const { isDm } = usePlayer();
   const { enabled, revealed } = useFog();
   const cells = foggedCells(useMapBounds(), revealed, enabled);
-  const dark = theme.colors.dark[8];
-  const light = theme.colors.dark[4];
-  const textureUrl = useMemo(() => fogTextureUrl(dark, light), [dark, light]);
+  const colorScheme = useComputedColorScheme("light");
+  // Clouds over the map's own color keep the fog's edge soft against the revealed map.
+  const background = mapFillColor(theme, colorScheme);
+  const cloud =
+    colorScheme === "dark" ? theme.colors.dark[3] : theme.colors.gray[9];
+  const textureUrl = useMemo(
+    () => fogTextureUrl(background, cloud),
+    [background, cloud],
+  );
   const [texture] = useImage(textureUrl);
   if (cells.length === 0) return null;
 
@@ -32,7 +39,7 @@ export function FogOfWar() {
         }
         context.fillStrokeShape(shape);
       }}
-      fill={dark}
+      fill={background}
       fillPatternImage={texture}
       fillPatternScale={{ x: TEXTURE_SCALE, y: TEXTURE_SCALE }}
       fillPriority="pattern"
