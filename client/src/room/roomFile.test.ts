@@ -4,8 +4,20 @@ import { BACKGROUND_IMAGE_ID } from "./background";
 import { createRoom, type Room } from "./createRoom";
 import { DEFAULT_MAP_BOUNDS } from "./grid";
 import { parseMapFile, type MapFile } from "./roomFile";
+import type { AreaShape } from "./shapes";
 
 const IMAGE = "data:image/webp;base64,AAAA";
+const SQUARE: AreaShape = {
+  kind: "square",
+  from: { x: 0, y: 0 },
+  to: { x: 50, y: 50 },
+};
+const SQUARE_STROKE = {
+  color: "#0000ff",
+  points: [0, 0, 50, 0, 50, 50, 0, 50],
+  closed: true,
+  shape: SQUARE,
+};
 
 let room: Room;
 
@@ -18,7 +30,7 @@ function fillRoom(target: Room) {
   target.paintCell(1, 1, "#ff0000");
   target.addStroke("#000000", [0, 0, 10, 10]);
   target.addStroke("#00ff00", [5, 5, 20, 20], true);
-  target.addShape("#0000ff", [0, 0, 50, 0, 50, 50], false);
+  target.addShape("#0000ff", SQUARE, false);
   target.addToken("Goblin", IMAGE, { x: 3, y: 2 });
   const [token] = target.tokensMap.values();
   if (!token) throw new Error("Expected a token");
@@ -42,7 +54,7 @@ describe("map files", () => {
       strokes: expect.arrayContaining([
         { color: "#000000", points: [0, 0, 10, 10] },
         { color: "#00ff00", points: [5, 5, 20, 20], overFog: true },
-        { color: "#0000ff", points: [0, 0, 50, 0, 50, 50], closed: true },
+        SQUARE_STROKE,
       ]),
       tokens: [
         {
@@ -82,6 +94,14 @@ describe("map files", () => {
       { color: "#000000", points: [0, 0, 10, 10] },
     ]);
     expect(() => parseMapFile(JSON.stringify(file))).not.toThrow();
+  });
+
+  it("takes a shape's outline from its shape data", () => {
+    const stroke = { ...SQUARE_STROKE, points: [0, 0, 1, 1] };
+    const file = parseMapFile(
+      JSON.stringify({ ...validFile(), strokes: [stroke] }),
+    );
+    expect(file.strokes).toEqual([SQUARE_STROKE]);
   });
 
   it("replaces what was on the map before", () => {
@@ -140,6 +160,36 @@ describe("map files", () => {
       (file) => ({
         ...file,
         strokes: [{ color: "#000", points: [0, 0, 1, 1], closed: "yes" }],
+      }),
+    ],
+    [
+      "a shape of unknown kind",
+      (file) => ({
+        ...file,
+        strokes: [{ ...SQUARE_STROKE, shape: { ...SQUARE, kind: "hexagon" } }],
+      }),
+    ],
+    [
+      "a shape without size",
+      (file) => ({
+        ...file,
+        strokes: [{ ...SQUARE_STROKE, shape: { ...SQUARE, to: SQUARE.from } }],
+      }),
+    ],
+    [
+      "a shape too large to draw",
+      (file) => ({
+        ...file,
+        strokes: [
+          {
+            ...SQUARE_STROKE,
+            shape: {
+              ...SQUARE,
+              from: { x: -1e308, y: 0 },
+              to: { x: 1e308, y: 0 },
+            },
+          },
+        ],
       }),
     ],
     [

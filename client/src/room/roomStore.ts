@@ -3,6 +3,7 @@ import type { DieSides } from "./dice";
 import type { StatusEffect } from "./effects";
 import type { MapBounds } from "./grid";
 import type { PlayerColor } from "./playerColors";
+import type { AreaShape } from "./shapes";
 
 export interface Token {
   id: string;
@@ -28,6 +29,8 @@ export interface Stroke {
   // Strokes drawn by players stay visible above the fog.
   overFog?: true;
   closed?: true;
+  // Shapes placed before shapes could be edited have no shape data.
+  shape?: AreaShape;
 }
 
 export type StrokeData = Omit<Stroke, "id">;

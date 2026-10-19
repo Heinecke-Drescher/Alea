@@ -1,7 +1,7 @@
 import type { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import { BACKGROUND_IMAGE_ID } from "./background";
-import { isOverFog, newStroke, strokeData } from "./drawing";
+import { isOverFog, newStroke, shapeStroke, strokeData } from "./drawing";
 import { isStatusEffect, tokenEffects, type StatusEffect } from "./effects";
 import {
   containsCell,
@@ -17,6 +17,7 @@ import {
   type RoomStore,
   type StrokeData,
 } from "./roomStore";
+import { isShapeKind, shapeCells, type AreaShape } from "./shapes";
 import { embeddedImage } from "./tokens";
 
 const APP = "alea";
@@ -79,6 +80,25 @@ function cellOnMap(value: unknown, bounds: MapBounds, what: string) {
   return { x, y };
 }
 
+function point(value: unknown, what: string): Vector2d {
+  if (!isRecord(value)) invalid(what);
+  const { x, y } = value;
+  if (typeof x !== "number" || typeof y !== "number") invalid(what);
+  if (!Number.isFinite(x) || !Number.isFinite(y)) invalid(what);
+  return { x, y };
+}
+
+function parseShape(value: unknown): AreaShape {
+  if (!isRecord(value) || !isShapeKind(value.kind)) invalid("shape kind");
+  const shape = {
+    kind: value.kind,
+    from: point(value.from, "shape origin"),
+    to: point(value.to, "shape end"),
+  };
+  if (shapeCells(shape.kind, shape.from, shape.to) === 0) invalid("shape size");
+  return shape;
+}
+
 function parseStroke(value: unknown): StrokeData {
   if (!isRecord(value)) invalid("stroke");
   const color = text(value.color, "stroke color");
@@ -91,11 +111,16 @@ function parseStroke(value: unknown): StrokeData {
   if (value.closed !== undefined && value.closed !== true) {
     invalid("closed stroke");
   }
+  const shape =
+    value.shape === undefined ? null : shapeStroke(parseShape(value.shape));
+  if (shape && !shape.points.every(Number.isFinite)) invalid("shape size");
   return strokeData(
     {
       color,
       points: points as number[],
       ...(value.closed === true && { closed: true }),
+      // The outline follows from the shape, so both cannot disagree.
+      ...shape,
     },
     value.overFog === true,
   );

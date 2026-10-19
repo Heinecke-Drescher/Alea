@@ -1,16 +1,9 @@
-import type { Vector2d } from "konva/lib/types";
 import { useRef, useState } from "react";
 import { usePlayer } from "../../player/PlayerContext";
 import type { Room } from "../../room/createRoom";
 import { cellAt, containsCell, snapToCorner } from "../../room/grid";
-import { shapeOutline, type ShapeKind } from "../../room/shapes";
+import { shapeCells, type AreaShape, type ShapeKind } from "../../room/shapes";
 import type { BoardTool } from "./tool";
-
-export interface ShapeDraft {
-  kind: ShapeKind;
-  from: Vector2d;
-  to: Vector2d;
-}
 
 export function useShapeTool(
   room: Room,
@@ -19,11 +12,11 @@ export function useShapeTool(
   onPlaced: (id: string) => void,
 ) {
   const { isDm } = usePlayer();
-  const [draft, setDraft] = useState<ShapeDraft | null>(null);
+  const [draft, setDraft] = useState<AreaShape | null>(null);
   // The ref lets a second onUp before the next render see that the shape is already placed.
-  const draftRef = useRef<ShapeDraft | null>(null);
+  const draftRef = useRef<AreaShape | null>(null);
 
-  function updateDraft(next: ShapeDraft | null) {
+  function updateDraft(next: AreaShape | null) {
     draftRef.current = next;
     setDraft(next);
   }
@@ -43,9 +36,9 @@ export function useShapeTool(
     onUp() {
       const current = draftRef.current;
       updateDraft(null);
-      const outline =
-        current && shapeOutline(current.kind, current.from, current.to);
-      if (outline) onPlaced(room.addShape(color, outline, !isDm));
+      if (current && shapeCells(current.kind, current.from, current.to) > 0) {
+        onPlaced(room.addShape(color, current, !isDm));
+      }
     },
     onCancel() {
       updateDraft(null);

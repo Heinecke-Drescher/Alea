@@ -3,6 +3,33 @@ import { CELL_SIZE, toCells } from "./grid";
 
 export type ShapeKind = "cone" | "square" | "circle";
 
+export interface AreaShape {
+  kind: ShapeKind;
+  from: Vector2d;
+  to: Vector2d;
+}
+
+export function isShapeKind(value: unknown): value is ShapeKind {
+  return value === "cone" || value === "square" || value === "circle";
+}
+
+export function shiftShape(
+  { kind, from, to }: AreaShape,
+  dx: number,
+  dy: number,
+): AreaShape {
+  return {
+    kind,
+    from: { x: from.x + dx, y: from.y + dy },
+    to: { x: to.x + dx, y: to.y + dy },
+  };
+}
+
+// Takes over only the known fields, also from other players' data.
+export function copyShape(shape: AreaShape) {
+  return shiftShape(shape, 0, 0);
+}
+
 // A cone is as wide as it is long at every point (D&D 5e), so each side opens by atan(1/2).
 const CONE_HALF_ANGLE = Math.atan(1 / 2);
 const CIRCLE_CORNERS = 64;
@@ -47,10 +74,30 @@ function coneOutline(origin: Vector2d, direction: number, length: number) {
   ];
 }
 
+function squareCorner(from: Vector2d, to: Vector2d, side: number) {
+  return {
+    x: from.x + (Math.sign(to.x - from.x) || 1) * side,
+    y: from.y + (Math.sign(to.y - from.y) || 1) * side,
+  };
+}
+
 function squareOutline(from: Vector2d, to: Vector2d, side: number) {
-  const x = from.x + (Math.sign(to.x - from.x) || 1) * side;
-  const y = from.y + (Math.sign(to.y - from.y) || 1) * side;
+  const { x, y } = squareCorner(from, to, side);
   return [from.x, from.y, x, from.y, x, y, from.x, y];
+}
+
+// Moves `to` to where the shape really ends, so its size stays the same when computed again.
+export function fitShape({ kind, from, to }: AreaShape): AreaShape {
+  const size = shapeCells(kind, from, to) * CELL_SIZE;
+  const direction = Math.atan2(to.y - from.y, to.x - from.x);
+  const end =
+    kind === "square"
+      ? squareCorner(from, to, size)
+      : {
+          x: from.x + Math.cos(direction) * size,
+          y: from.y + Math.sin(direction) * size,
+        };
+  return { kind, from: { x: from.x, y: from.y }, to: end };
 }
 
 function circleOutline(center: Vector2d, radius: number) {

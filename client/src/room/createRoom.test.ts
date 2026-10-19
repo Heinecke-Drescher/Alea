@@ -7,10 +7,17 @@ import { hasShapes, isClosed, isOverFog } from "./drawing";
 import { tokenEffects } from "./effects";
 import type { Token } from "./roomStore";
 import { rollColor, rollPath } from "./rolls";
+import type { AreaShape } from "./shapes";
 import { embeddedImage } from "./tokens";
 
 const IMAGE = "data:image/webp;base64,AAAA";
 const SPOT = { x: 120, y: 80 };
+const SQUARE: AreaShape = {
+  kind: "square",
+  from: { x: 0, y: 0 },
+  to: { x: 100, y: 100 },
+};
+const SQUARE_OUTLINE = [0, 0, 100, 0, 100, 100, 0, 100];
 const { columns, rows } = DEFAULT_MAP_BOUNDS;
 
 let room: Room;
@@ -54,10 +61,10 @@ describe("drawing", () => {
     expect(room.strokesMap.size).toBe(0);
   });
 
-  it("adds shapes as closed strokes in one undo step", () => {
-    const id = room.addShape("#000000", [0, 0, 100, 0, 50, 100], false);
+  it("adds shapes as closed strokes that remember their shape in one undo step", () => {
+    const id = room.addShape("#000000", SQUARE, false);
     const shape = room.strokesMap.get(id);
-    expect(shape).toMatchObject({ points: [0, 0, 100, 0, 50, 100] });
+    expect(shape).toMatchObject({ points: SQUARE_OUTLINE, shape: SQUARE });
     expect(shape && isClosed(shape)).toBe(true);
     room.undoManager.undo();
     expect(room.strokesMap.size).toBe(0);
@@ -466,6 +473,19 @@ describe("moveItems", () => {
     expect(room.strokesMap.size).toBe(1);
     expect(room.strokesMap.get(id)?.points).toEqual([15, 15, 25, 25]);
   });
+
+  it("moves a shape together with its outline", () => {
+    const id = room.addShape("#000000", SQUARE, false);
+    room.moveItems(strokes([id]), 50, 100);
+    expect(room.strokesMap.get(id)).toMatchObject({
+      points: [50, 100, 150, 100, 150, 200, 50, 200],
+      shape: {
+        kind: "square",
+        from: { x: 50, y: 100 },
+        to: { x: 150, y: 200 },
+      },
+    });
+  });
 });
 
 describe("copy, paste and delete", () => {
@@ -513,17 +533,20 @@ describe("copy, paste and delete", () => {
   });
 
   it("pastes shapes as shapes", () => {
-    room.addShape("#000000", [0, 0, 100, 0, 50, 100], false);
-    const [id] = room.strokesMap.keys();
-    if (!id) throw new Error("Expected a shape");
+    const id = room.addShape("#000000", SQUARE, false);
     const clip = room.copyItems({ strokes: [id], tokens: [] });
     const [copyId] = room.paste(clip, 10, 0).strokes;
     const copy = room.strokesMap.get(copyId ?? "");
     expect(copy && isClosed(copy)).toBe(true);
+    expect(copy?.shape).toEqual({
+      kind: "square",
+      from: { x: 10, y: 0 },
+      to: { x: 110, y: 100 },
+    });
   });
 
   it("selects a shape by its closing edge", () => {
-    room.addShape("#000000", [0, 0, 100, 0, 100, 100, 0, 100], false);
+    room.addShape("#000000", SQUARE, false);
     const closingEdge = { x: -10, y: 40, width: 20, height: 20 };
     expect(room.copyArea(closingEdge).strokes).toHaveLength(1);
   });

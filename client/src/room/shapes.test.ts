@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CELL_SIZE } from "./grid";
 import { toPoints } from "./points";
-import { shapeCells, shapeOutline } from "./shapes";
+import { fitShape, shapeCells, shapeOutline } from "./shapes";
 
 const origin = { x: 100, y: 200 };
 
@@ -84,5 +84,22 @@ describe("shapeOutline", () => {
     for (const { x, y } of points) {
       expect(Math.hypot(x - origin.x, y - origin.y)).toBeCloseTo(radius);
     }
+  });
+});
+
+describe("fitShape", () => {
+  it("puts the end of a square on its far corner", () => {
+    const to = { x: 173.4, y: 320 };
+    expect(fitShape({ kind: "square", from: origin, to }).to).toEqual({
+      x: 200,
+      y: 300,
+    });
+  });
+
+  it("puts the end of a cone at its length in the dragged direction", () => {
+    const to = { x: 136, y: 248 };
+    const fitted = fitShape({ kind: "cone", from: origin, to });
+    expect(fitted.to.x).toBeCloseTo(130);
+    expect(fitted.to.y).toBeCloseTo(240);
   });
 });

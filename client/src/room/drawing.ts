@@ -7,6 +7,13 @@ import {
   type Stroke,
   type StrokeData,
 } from "./roomStore";
+import {
+  copyShape,
+  fitShape,
+  shapeOutline,
+  shiftShape,
+  type AreaShape,
+} from "./shapes";
 
 export function shiftPoints(points: number[], dx: number, dy: number) {
   return points.map((value, i) => value + (i % 2 === 0 ? dx : dy));
@@ -29,8 +36,25 @@ export function strokeData(stroke: StrokeData, overFog: boolean): StrokeData {
     color: stroke.color,
     points: stroke.points,
     ...(isClosed(stroke) && { closed: true }),
+    ...(stroke.shape && { shape: copyShape(stroke.shape) }),
     ...(overFog && { overFog: true }),
   };
+}
+
+export function shiftStroke(stroke: StrokeData, dx: number, dy: number) {
+  return {
+    points: shiftPoints(stroke.points, dx, dy),
+    ...(stroke.shape && { shape: shiftShape(stroke.shape, dx, dy) }),
+  };
+}
+
+export function shapeStroke(
+  shape: AreaShape,
+): Pick<StrokeData, "points" | "closed" | "shape"> {
+  const fitted = fitShape(shape);
+  const points = shapeOutline(fitted.kind, fitted.from, fitted.to);
+  if (!points) throw new Error("A shape needs a size");
+  return { points, closed: true, shape: fitted };
 }
 
 export function newStroke(
@@ -77,10 +101,10 @@ export function createDrawing({
     strokesMap.set(...newStroke({ color, points }, overFog));
   }
 
-  function addShape(color: string, points: number[], overFog: boolean) {
+  function addShape(color: string, shape: AreaShape, overFog: boolean) {
     undoManager.stopCapturing();
-    const [id, shape] = newStroke({ color, points, closed: true }, overFog);
-    strokesMap.set(id, shape);
+    const [id, stroke] = newStroke({ color, ...shapeStroke(shape) }, overFog);
+    strokesMap.set(id, stroke);
     return id;
   }
 

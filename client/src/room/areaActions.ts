@@ -11,7 +11,7 @@ import {
   isOverFog,
   newStroke,
   putCell,
-  shiftPoints,
+  shiftStroke,
   strokeData,
 } from "./drawing";
 import { placeToken, type MapActions } from "./map";
@@ -96,7 +96,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
       for (const stroke of strokes) {
         strokesMap.set(stroke.id, {
           ...stroke,
-          points: shiftPoints(stroke.points, dx, dy),
+          ...shiftStroke(stroke, dx, dy),
         });
       }
     });
@@ -195,7 +195,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
       }
       for (const data of clip.strokes) {
         const [id, stroke] = newStroke(
-          { ...data, points: shiftPoints(data.points, dx, dy) },
+          { ...data, ...shiftStroke(data, dx, dy) },
           overFog,
         );
         pasted.strokes.push(id);

@@ -1,13 +1,12 @@
 import { Group } from "react-konva";
 import { FEET_PER_CELL } from "../../room/grid";
-import { shapeCells, shapeOutline } from "../../room/shapes";
+import { shapeCells, shapeOutline, type AreaShape } from "../../room/shapes";
 import { StrokeLine } from "../Strokes";
 import { useStageZoom } from "../useStageZoom";
-import type { ShapeDraft } from "./shape";
 import { ToolLabel } from "./ToolLabel";
 
 interface ShapePreviewProps {
-  draft: ShapeDraft | null;
+  draft: AreaShape | null;
   color: string;
 }
 
