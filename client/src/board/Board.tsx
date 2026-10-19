@@ -1,14 +1,13 @@
 import { Box, useMantineTheme } from "@mantine/core";
-import { clamp, useElementSize, useHotkeys } from "@mantine/hooks";
+import { useElementSize, useHotkeys } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Layer, Stage } from "react-konva";
 import { usePlayer } from "../player/PlayerContext";
 import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connectRoom";
-import { clampToMap } from "../room/grid";
 import { useRoom } from "../room/RoomContext";
 import { useBackgroundImage } from "../room/useBackgroundImage";
 import { cursorArrowCss } from "./cursorArrow";
@@ -40,41 +39,11 @@ import { FogFrame } from "./tools/FogFrame";
 import { ShapePreview } from "./tools/ShapePreview";
 import { isFogTool, type Tool } from "./tools/tool";
 import { useBoardTools } from "./tools/useBoardTools";
+import { LEFT_MOUSE_BUTTON } from "./mouse";
+import { useBoardView } from "./useBoardView";
 import { useCursorBroadcast } from "./useCursorBroadcast";
 import { useDieDrop } from "./useDieDrop";
 import { useImageDrop } from "./useImageDrop";
-
-const LEFT_MOUSE_BUTTON = 0;
-const MAP_START_X = 72;
-const ZOOM_STEP = 1.1;
-const MIN_ZOOM = 0.25;
-const MAX_ZOOM = 4;
-
-function zoomAtPointer(event: KonvaEventObject<WheelEvent>) {
-  event.evt.preventDefault();
-  if (event.evt.deltaY === 0) return;
-  const stage = event.target.getStage();
-  const pointer = stage?.getPointerPosition();
-  if (!stage || !pointer) throw new Error("Wheel event without stage pointer");
-
-  const oldScale = stage.scaleX();
-  const pointOnMap = {
-    x: (pointer.x - stage.x()) / oldScale,
-    y: (pointer.y - stage.y()) / oldScale,
-  };
-  const zoomIn = event.evt.deltaY < 0;
-  const newScale = clamp(
-    zoomIn ? oldScale * ZOOM_STEP : oldScale / ZOOM_STEP,
-    MIN_ZOOM,
-    MAX_ZOOM,
-  );
-
-  stage.scale({ x: newScale, y: newScale });
-  stage.position({
-    x: pointer.x - pointOnMap.x * newScale,
-    y: pointer.y - pointOnMap.y * newScale,
-  });
-}
 
 function pointerOnMap(event: KonvaEventObject<MouseEvent>) {
   const pointer = event.target.getStage()?.getRelativePointerPosition();
@@ -116,6 +85,10 @@ export function Board({ awareness, isSynced }: BoardProps) {
     onPaste: () => changeTool("select"),
   });
   const stageRef = useRef<StageNode>(null);
+  const { zoomAtPointer, panOnlyWithMiddleButton, viewCenter } = useBoardView(
+    room,
+    stageRef,
+  );
   const cursor = useCursorBroadcast(awareness);
   const dieDrop = useDieDrop({ stageRef });
   const imageDrop = useImageDrop(stageRef);
@@ -136,23 +109,6 @@ export function Board({ awareness, isSynced }: BoardProps) {
     ["mod+V", clipboard.paste, keepDefault],
     ["Delete", clipboard.remove, keepDefault],
   ]);
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) throw new Error("Stage is not mounted");
-    stage.x(MAP_START_X);
-  }, []);
-
-  function viewCenter() {
-    const stage = stageRef.current;
-    if (!stage) throw new Error("Stage is not mounted");
-    const center = stage
-      .getAbsoluteTransform()
-      .copy()
-      .invert()
-      .point({ x: stage.width() / 2, y: stage.height() / 2 });
-    return clampToMap(center, room.mapBounds());
-  }
 
   const isSelecting = activeTool.selectsItems;
 
@@ -195,12 +151,6 @@ export function Board({ awareness, isSynced }: BoardProps) {
   function selectPlacedShape(id: string) {
     changeTool("select");
     selection.set(itemsSelection({ strokes: [id], tokens: [] }));
-  }
-
-  function panOnlyWithMiddleButton(event: KonvaEventObject<DragEvent>) {
-    const stage = event.target;
-    if (stage !== stageRef.current) return;
-    if (event.evt.button === LEFT_MOUSE_BUTTON) stage.stopDrag();
   }
 
   function handleMouseDown(event: KonvaEventObject<MouseEvent>) {
