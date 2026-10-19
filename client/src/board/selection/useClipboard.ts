@@ -5,17 +5,29 @@ import { useFogGuard } from "../../fog/useFogGuard";
 import { usePlayer } from "../../player/PlayerContext";
 import { hasGridContent, type Clip } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
-import { CELL_SIZE, mapRect } from "../../room/grid";
+import { hasShapes } from "../../room/drawing";
+import { CELL_SIZE, mapRect, type MapBounds } from "../../room/grid";
 import {
   cellOffset,
   clipBounds,
   itemsSelection,
   pixelOffset,
+  roundToCells,
 } from "./selection";
 import type { SelectionControls } from "./useSelection";
 
 function inPixels({ dx, dy }: { dx: number; dy: number }) {
   return { dx: dx * CELL_SIZE, dy: dy * CELL_SIZE };
+}
+
+function strokesOffset(
+  clip: Clip,
+  bounds: IRect,
+  target: Vector2d,
+  map: MapBounds,
+) {
+  const offset = pixelOffset(bounds, target, map);
+  return hasShapes(clip.strokes) ? roundToCells(offset) : offset;
 }
 
 interface Clipboard {
@@ -89,7 +101,7 @@ export function useClipboard({
     }
     const { dx, dy } = snapsToCells
       ? inPixels(cellOffset(bounds, target, room.mapBounds()))
-      : pixelOffset(bounds, target, room.mapBounds());
+      : strokesOffset(clip, bounds, target, room.mapBounds());
     // Players' pasted strokes land above the fog, so only cells and tokens are kept out of it.
     const destination = { ...bounds, x: bounds.x + dx, y: bounds.y + dy };
     if (hasGridContent(clip) && fogGuard.hidesRect(destination)) return;

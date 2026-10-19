@@ -12,6 +12,7 @@ import {
   NO_SELECTION,
   pixelOffset,
   resizableTokenId,
+  roundToCells,
   selectedArea,
   selectedItems,
   withoutItem,
@@ -208,6 +209,14 @@ describe("maps that do not start at zero", () => {
       dx: -200,
       dy: -100,
     });
+  });
+});
+
+describe("roundToCells", () => {
+  it("rounds a pixel offset to whole cells", () => {
+    expect(roundToCells({ dx: 0.6 * CELL_SIZE, dy: -1.4 * CELL_SIZE })).toEqual(
+      { dx: CELL_SIZE, dy: -CELL_SIZE },
+    );
   });
 });
 

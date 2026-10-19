@@ -3,7 +3,7 @@ import * as Y from "yjs";
 import { BACKGROUND_IMAGE_ID } from "./background";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
-import { isClosed, isOverFog } from "./drawing";
+import { hasShapes, isClosed, isOverFog } from "./drawing";
 import { tokenEffects } from "./effects";
 import type { Token } from "./roomStore";
 import { rollColor, rollPath } from "./rolls";
@@ -61,6 +61,12 @@ describe("drawing", () => {
     expect(shape && isClosed(shape)).toBe(true);
     room.undoManager.undo();
     expect(room.strokesMap.size).toBe(0);
+  });
+
+  it("tells shapes apart from lines", () => {
+    const line = { color: "#000000", points: [0, 0, 10, 10] };
+    expect(hasShapes([line])).toBe(false);
+    expect(hasShapes([line, { ...line, closed: true }])).toBe(true);
   });
 
   it("marks only the strokes drawn above the fog", () => {

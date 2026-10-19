@@ -9,6 +9,7 @@ import {
 import {
   CELL_SIZE,
   mapRect,
+  toCells,
   type MapBounds,
   type Square,
 } from "../../room/grid";
@@ -148,6 +149,10 @@ export function pixelOffset(bounds: IRect, position: Vector2d, map: MapBounds) {
     dx: offset(bounds.x, position.x, bounds.width, rect.x, rect.width),
     dy: offset(bounds.y, position.y, bounds.height, rect.y, rect.height),
   };
+}
+
+export function roundToCells({ dx, dy }: { dx: number; dy: number }) {
+  return { dx: toCells(dx) * CELL_SIZE, dy: toCells(dy) * CELL_SIZE };
 }
 
 export function cellOffset(area: IRect, position: Vector2d, map: MapBounds) {

@@ -4,14 +4,16 @@ import { useRef } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
 import { existing, type Items } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
-import { isOverFog, shiftPoints } from "../../room/drawing";
+import { hasShapes, isOverFog, shiftPoints } from "../../room/drawing";
 import { CELL_SIZE } from "../../room/grid";
-import { cellOffset, NO_ITEMS, squaresBounds } from "./selection";
+import { cellOffset, NO_ITEMS, roundToCells, squaresBounds } from "./selection";
 
 interface Drag {
   items: Items;
   start: Vector2d;
   gridBounds: IRect | null;
+  // Shapes stay on grid corners, so the cells they cover stay the same.
+  roundsToCells: boolean;
   others: { node: Node; start: Vector2d }[];
 }
 
@@ -44,6 +46,7 @@ export function useItemDrag(room: Room, selected: Items) {
       items,
       start: node.position(),
       gridBounds: tokens.length > 0 ? squaresBounds(tokens) : null,
+      roundsToCells: hasShapes(existing(room.strokesMap, items.strokes)),
       others: others.map((other) => ({ node: other, start: other.position() })),
     };
   }
@@ -54,11 +57,12 @@ export function useItemDrag(room: Room, selected: Items) {
   }
 
   function offset(event: KonvaEventObject<DragEvent>) {
-    const { start, gridBounds } = current();
+    const { start, gridBounds, roundsToCells } = current();
     const node = event.target;
     const dx = node.x() - start.x;
     const dy = node.y() - start.y;
-    if (!gridBounds) return { dx, dy };
+    if (!gridBounds)
+      return roundsToCells ? roundToCells({ dx, dy }) : { dx, dy };
     const cells = cellOffset(
       gridBounds,
       { x: gridBounds.x + dx, y: gridBounds.y + dy },

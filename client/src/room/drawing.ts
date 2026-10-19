@@ -20,6 +20,10 @@ export function isClosed(stroke: StrokeData) {
   return stroke.closed === true;
 }
 
+export function hasShapes(strokes: StrokeData[]) {
+  return strokes.some(isClosed);
+}
+
 export function strokeData(stroke: StrokeData, overFog: boolean): StrokeData {
   return {
     color: stroke.color,
