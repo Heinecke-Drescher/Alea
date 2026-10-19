@@ -13,10 +13,10 @@ interface ShapePreviewProps {
 export function ShapePreview({ draft, color }: ShapePreviewProps) {
   const { groupRef, zoom } = useStageZoom();
 
-  const points = draft && shapeOutline(draft.kind, draft.from, draft.to);
+  const points = draft && shapeOutline(draft);
   if (!draft || !points) return <Group ref={groupRef} listening={false} />;
 
-  const feet = shapeCells(draft.kind, draft.from, draft.to) * FEET_PER_CELL;
+  const feet = shapeCells(draft) * FEET_PER_CELL;
 
   return (
     <Group ref={groupRef} listening={false}>

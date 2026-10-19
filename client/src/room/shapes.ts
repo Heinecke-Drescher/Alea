@@ -34,7 +34,7 @@ export function copyShape(shape: AreaShape) {
 const CONE_HALF_ANGLE = Math.atan(1 / 2);
 const CIRCLE_CORNERS = 64;
 
-export function shapeCells(kind: ShapeKind, from: Vector2d, to: Vector2d) {
+export function shapeCells({ kind, from, to }: AreaShape) {
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const distance =
@@ -44,12 +44,9 @@ export function shapeCells(kind: ShapeKind, from: Vector2d, to: Vector2d) {
   return toCells(distance);
 }
 
-export function shapeOutline(
-  kind: ShapeKind,
-  from: Vector2d,
-  to: Vector2d,
-): number[] | null {
-  const cells = shapeCells(kind, from, to);
+export function shapeOutline(shape: AreaShape): number[] | null {
+  const { kind, from, to } = shape;
+  const cells = shapeCells(shape);
   if (cells === 0) return null;
   const size = cells * CELL_SIZE;
   switch (kind) {
@@ -87,8 +84,9 @@ function squareOutline(from: Vector2d, to: Vector2d, side: number) {
 }
 
 // Moves `to` to where the shape really ends, so its size stays the same when computed again.
-export function fitShape({ kind, from, to }: AreaShape): AreaShape {
-  const size = shapeCells(kind, from, to) * CELL_SIZE;
+export function fitShape(shape: AreaShape): AreaShape {
+  const { kind, from, to } = shape;
+  const size = shapeCells(shape) * CELL_SIZE;
   const direction = Math.atan2(to.y - from.y, to.x - from.x);
   const end =
     kind === "square"

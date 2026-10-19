@@ -95,7 +95,7 @@ function parseShape(value: unknown): AreaShape {
     from: point(value.from, "shape origin"),
     to: point(value.to, "shape end"),
   };
-  if (shapeCells(shape.kind, shape.from, shape.to) === 0) invalid("shape size");
+  if (shapeCells(shape) === 0) invalid("shape size");
   return shape;
 }
 

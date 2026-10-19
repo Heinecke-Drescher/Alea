@@ -59,8 +59,7 @@ export function ShapeResizer({ strokeId }: ShapeResizerProps) {
           // Another player may have removed the shape in the meantime.
           const current = room.strokesMap.get(strokeId);
           if (!current?.shape) return;
-          const { kind, from } = current.shape;
-          const outline = shapeOutline(kind, from, to);
+          const outline = shapeOutline({ ...current.shape, to });
           if (!outline || reachesFog(current, outline)) return;
           room.reshapeStroke(strokeId, to);
         }}

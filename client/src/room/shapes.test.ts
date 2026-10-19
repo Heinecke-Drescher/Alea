@@ -1,12 +1,17 @@
+import type { Vector2d } from "konva/lib/types";
 import { describe, expect, it } from "vitest";
 import { CELL_SIZE } from "./grid";
 import { toPoints } from "./points";
-import { fitShape, shapeCells, shapeOutline } from "./shapes";
+import { fitShape, shapeCells, shapeOutline, type ShapeKind } from "./shapes";
 
 const origin = { x: 100, y: 200 };
 
-function outline(...args: Parameters<typeof shapeOutline>) {
-  const points = shapeOutline(...args);
+function cells(kind: ShapeKind, to: Vector2d) {
+  return shapeCells({ kind, from: origin, to });
+}
+
+function outline(kind: ShapeKind, from: Vector2d, to: Vector2d) {
+  const points = shapeOutline({ kind, from, to });
   if (!points) throw new Error("Expected a shape");
   return toPoints(points);
 }
@@ -19,32 +24,28 @@ function cone(to: { x: number; y: number }) {
 
 describe("shapeCells", () => {
   it("rounds the distance to whole cells", () => {
-    expect(
-      shapeCells("circle", origin, { x: 100 + 2.4 * CELL_SIZE, y: 200 }),
-    ).toBe(2);
-    expect(
-      shapeCells("cone", origin, { x: 100 + 2.6 * CELL_SIZE, y: 200 }),
-    ).toBe(3);
+    expect(cells("circle", { x: 100 + 2.4 * CELL_SIZE, y: 200 })).toBe(2);
+    expect(cells("cone", { x: 100 + 2.6 * CELL_SIZE, y: 200 })).toBe(3);
   });
 
   it("measures circles and cones along the line to the pointer", () => {
     const to = { x: 100 + 3 * CELL_SIZE, y: 200 + 4 * CELL_SIZE };
-    expect(shapeCells("circle", origin, to)).toBe(5);
-    expect(shapeCells("cone", origin, to)).toBe(5);
+    expect(cells("circle", to)).toBe(5);
+    expect(cells("cone", to)).toBe(5);
   });
 
   it("measures squares by the longer side", () => {
     const to = { x: 100 + 3 * CELL_SIZE, y: 200 - 4 * CELL_SIZE };
-    expect(shapeCells("square", origin, to)).toBe(4);
+    expect(cells("square", to)).toBe(4);
   });
 });
 
 describe("shapeOutline", () => {
   it("has no shape below half a cell", () => {
     const to = { x: 100 + 0.4 * CELL_SIZE, y: 200 };
-    expect(shapeOutline("cone", origin, to)).toBeNull();
-    expect(shapeOutline("square", origin, to)).toBeNull();
-    expect(shapeOutline("circle", origin, to)).toBeNull();
+    expect(shapeOutline({ kind: "cone", from: origin, to })).toBeNull();
+    expect(shapeOutline({ kind: "square", from: origin, to })).toBeNull();
+    expect(shapeOutline({ kind: "circle", from: origin, to })).toBeNull();
   });
 
   it("makes a cone as wide at its end as it is long", () => {

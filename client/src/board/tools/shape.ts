@@ -36,7 +36,7 @@ export function useShapeTool(
     onUp() {
       const current = draftRef.current;
       updateDraft(null);
-      if (current && shapeCells(current.kind, current.from, current.to) > 0) {
+      if (current && shapeCells(current) > 0) {
         onPlaced(room.addShape(color, current, !isDm));
       }
     },

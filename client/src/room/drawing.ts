@@ -53,7 +53,7 @@ export function shapeStroke(
   shape: AreaShape,
 ): Pick<StrokeData, "points" | "closed" | "shape"> {
   const fitted = fitShape(shape);
-  const points = shapeOutline(fitted.kind, fitted.from, fitted.to);
+  const points = shapeOutline(fitted);
   if (!points) throw new Error("A shape needs a size");
   return { points, closed: true, shape: fitted };
 }
