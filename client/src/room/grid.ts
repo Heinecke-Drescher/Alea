@@ -55,6 +55,14 @@ export function cellAt(point: Vector2d) {
   };
 }
 
+export function toCells(pixels: number) {
+  return Math.round(pixels / CELL_SIZE);
+}
+
+export function snapToCorner({ x, y }: Vector2d): Vector2d {
+  return { x: toCells(x) * CELL_SIZE, y: toCells(y) * CELL_SIZE };
+}
+
 export function clampCellToMap(cell: Vector2d, map: MapBounds): Vector2d {
   return {
     x: clamp(cell.x, map.x, map.x + map.columns - 1),
@@ -167,7 +175,6 @@ function snapToCells(
   min: number,
   max: number,
 ): MapBounds {
-  const toCells = (pixels: number) => Math.round(pixels / CELL_SIZE);
   const limit = (cells: number) => clamp(cells, min, max);
   const left = toCells(box.x);
   const top = toCells(box.y);
