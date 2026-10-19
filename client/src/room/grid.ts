@@ -2,6 +2,7 @@ import { clamp } from "@mantine/hooks";
 import type { IRect, Vector2d } from "konva/lib/types";
 
 export const CELL_SIZE = 50;
+export const FEET_PER_CELL = 5;
 
 // In cells. The map can grow in every direction, so x and y may be negative.
 export interface MapBounds {

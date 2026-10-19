@@ -1,8 +1,16 @@
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Vector2d } from "konva/lib/types";
+import type { ShapeKind } from "../../room/shapes";
 
 export type Tool =
-  "select" | "paint" | "pen" | "eraser" | "measure" | "reveal" | "hide";
+  | "select"
+  | "paint"
+  | "pen"
+  | "eraser"
+  | "measure"
+  | ShapeKind
+  | "reveal"
+  | "hide";
 
 const FOG_TOOLS: Tool[] = ["reveal", "hide"];
 

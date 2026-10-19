@@ -1,7 +1,7 @@
-import { useComputedColorScheme, useMantineTheme } from "@mantine/core";
-import { Group, Label, Line, Tag, Text } from "react-konva";
-import { squareCenter } from "../../room/grid";
+import { Group, Line } from "react-konva";
+import { FEET_PER_CELL, squareCenter } from "../../room/grid";
 import { cellDistance, type Measurement } from "./measurement";
+import { ToolLabel } from "./ToolLabel";
 import { useStageZoom } from "../useStageZoom";
 
 interface DistanceMeasureProps {
@@ -10,8 +10,6 @@ interface DistanceMeasureProps {
 }
 
 export function DistanceMeasure({ measurement, color }: DistanceMeasureProps) {
-  const theme = useMantineTheme();
-  const colorScheme = useComputedColorScheme("light");
   const { groupRef, zoom } = useStageZoom();
 
   if (!measurement) return <Group ref={groupRef} listening={false} />;
@@ -20,7 +18,6 @@ export function DistanceMeasure({ measurement, color }: DistanceMeasureProps) {
   const to = squareCenter(measurement.to.x, measurement.to.y, 1);
   const cells = cellDistance(measurement);
   const rotation = (Math.atan2(to.y - from.y, to.x - from.x) * 180) / Math.PI;
-  const dark = colorScheme === "dark";
 
   return (
     <Group ref={groupRef} listening={false}>
@@ -47,22 +44,12 @@ export function DistanceMeasure({ measurement, color }: DistanceMeasureProps) {
           />
         </Group>
       ))}
-      <Group {...to} scaleX={1 / zoom} scaleY={1 / zoom}>
-        <Label x={14} y={16}>
-          <Tag
-            fill={dark ? theme.colors.dark[7] : theme.white}
-            stroke={color}
-            cornerRadius={4}
-          />
-          <Text
-            text={`${cells * 5} ft · ${cells} ${cells === 1 ? "cell" : "cells"}`}
-            fill={dark ? theme.colors.dark[0] : theme.colors.gray[9]}
-            fontSize={14}
-            fontStyle="bold"
-            padding={6}
-          />
-        </Label>
-      </Group>
+      <ToolLabel
+        at={to}
+        zoom={zoom}
+        color={color}
+        text={`${cells * FEET_PER_CELL} ft · ${cells} ${cells === 1 ? "cell" : "cells"}`}
+      />
     </Group>
   );
 }

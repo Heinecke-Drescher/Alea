@@ -6,6 +6,7 @@ import { useMeasureTool } from "./measure";
 import { usePaintTool } from "./paint";
 import { usePenTool } from "./pen";
 import { selectTool } from "./select";
+import { useShapeTool } from "./shape";
 import type { BoardTool, Tool } from "./tool";
 
 export function useBoardTools(
@@ -16,6 +17,9 @@ export function useBoardTools(
 ) {
   const { tool: pen, draftPoints } = usePenTool(room, color);
   const { tool: measure, measurement } = useMeasureTool(room);
+  const cone = useShapeTool(room, "cone");
+  const square = useShapeTool(room, "square");
+  const circle = useShapeTool(room, "circle");
   const reveal = useFogTool(room, "reveal");
   const hide = useFogTool(room, "hide");
   const tools: Record<Tool, BoardTool> = {
@@ -24,6 +28,9 @@ export function useBoardTools(
     pen,
     eraser: useEraserTool(room),
     measure,
+    cone: cone.tool,
+    square: square.tool,
+    circle: circle.tool,
     reveal: reveal.tool,
     hide: hide.tool,
   };
@@ -31,6 +38,7 @@ export function useBoardTools(
     activeTool: tools[tool],
     draftPoints,
     measurement,
+    shapeDraft: cone.draft ?? square.draft ?? circle.draft,
     fogFrame: reveal.frame ?? hide.frame,
   };
 }

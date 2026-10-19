@@ -12,12 +12,15 @@ import {
 import { modals } from "@mantine/modals";
 import {
   IconBucketDroplet,
+  IconCircle,
+  IconCone,
   IconEraser,
   IconEye,
   IconEyeOff,
   IconPencil,
   IconPointer,
   IconRuler,
+  IconSquare,
   IconTrash,
   type Icon,
 } from "@tabler/icons-react";
@@ -40,6 +43,9 @@ const TOOLS: ToolButton[] = [
   { tool: "pen", label: "Draw", icon: IconPencil },
   { tool: "eraser", label: "Erase", icon: IconEraser },
   { tool: "measure", label: "Measure distance", icon: IconRuler },
+  { tool: "cone", label: "Cone area", icon: IconCone },
+  { tool: "square", label: "Square area", icon: IconSquare },
+  { tool: "circle", label: "Circle area", icon: IconCircle },
 ];
 
 const FOG_TOOLS: ToolButton[] = [

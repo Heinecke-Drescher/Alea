@@ -32,6 +32,7 @@ import { useTokenMenu } from "./tokens/useTokenMenu";
 import { Toolbar } from "./Toolbar";
 import { DistanceMeasure } from "./tools/DistanceMeasure";
 import { FogFrame } from "./tools/FogFrame";
+import { ShapePreview } from "./tools/ShapePreview";
 import { isFogTool, type Tool } from "./tools/tool";
 import { useBoardTools } from "./tools/useBoardTools";
 import { useCursorBroadcast } from "./useCursorBroadcast";
@@ -96,12 +97,8 @@ export function Board({ awareness, isSynced }: BoardProps) {
   const [color, setColor] = useState<PaintColor>("red");
   const selection = useSelection(room);
   const colorValue = paintColorValue(theme, color);
-  const { activeTool, draftPoints, measurement, fogFrame } = useBoardTools(
-    tool,
-    selection,
-    room,
-    colorValue,
-  );
+  const { activeTool, draftPoints, measurement, shapeDraft, fogFrame } =
+    useBoardTools(tool, selection, room, colorValue);
   const { area, items } = selection;
   const itemDrag = useItemDrag(room, items);
   const tokenMenu = useTokenMenu(room, selection);
@@ -294,6 +291,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
             {isSelecting && <MapResizer />}
             <SelectionFrame area={area} onMove={selection.moveArea} />
             {isSynced && <ThrownDice viewCenter={viewCenter} />}
+            <ShapePreview draft={shapeDraft} color={colorValue} />
             <DistanceMeasure
               measurement={measurement}
               color={theme.colors[player.color][6]}
