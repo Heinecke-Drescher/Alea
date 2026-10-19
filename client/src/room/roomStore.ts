@@ -27,6 +27,7 @@ export interface Stroke {
   points: number[];
   // Strokes drawn by players stay visible above the fog.
   overFog?: true;
+  closed?: true;
 }
 
 export type StrokeData = Omit<Stroke, "id">;

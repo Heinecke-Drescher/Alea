@@ -1,8 +1,8 @@
-import { useMantineTheme } from "@mantine/core";
+import { alpha, useMantineTheme } from "@mantine/core";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
 import { Group, Line } from "react-konva";
-import { isOverFog } from "../room/drawing";
+import { isClosed, isOverFog } from "../room/drawing";
 import { useRoom } from "../room/RoomContext";
 import { strokeTouches } from "../room/strokeTouches";
 import { useY } from "../room/useY";
@@ -11,16 +11,23 @@ import { HIGHLIGHT_OPACITY, highlightColor } from "./selection/highlight";
 const STROKE_WIDTH = 4;
 const HIT_WIDTH = 16;
 const HIGHLIGHT_WIDTH = 14;
+const SHAPE_FILL_OPACITY = 0.25;
 const LINE_SHAPE = {
   tension: 0.5,
   lineCap: "round",
   lineJoin: "round",
 } as const;
+const OUTLINE_SHAPE = { closed: true, lineJoin: "round" } as const;
+
+function lineShape(closed: boolean | undefined) {
+  return closed ? OUTLINE_SHAPE : LINE_SHAPE;
+}
 
 interface StrokeLineProps {
   id?: string;
   color: string;
   points: number[];
+  closed?: boolean;
   draggable?: boolean;
 }
 
@@ -35,10 +42,16 @@ interface StrokesProps {
   onStrokeClick: (id: string, event: KonvaEventObject<MouseEvent>) => void;
 }
 
-function StrokeLine({ id, color, points, draggable }: StrokeLineProps) {
-  return (
+export function StrokeLine({
+  id,
+  color,
+  points,
+  closed,
+  draggable,
+}: StrokeLineProps) {
+  const line = (
     <Line
-      {...LINE_SHAPE}
+      {...lineShape(closed)}
       id={id}
       points={points}
       stroke={color}
@@ -46,6 +59,20 @@ function StrokeLine({ id, color, points, draggable }: StrokeLineProps) {
       hitStrokeWidth={HIT_WIDTH}
       draggable={draggable}
     />
+  );
+  if (!closed) return line;
+  // Only the outline listens, so frames can still be drawn inside a large area.
+  return (
+    <>
+      <Line
+        {...OUTLINE_SHAPE}
+        name={id}
+        points={points}
+        fill={alpha(color, SHAPE_FILL_OPACITY)}
+        listening={false}
+      />
+      {line}
+    </>
   );
 }
 
@@ -67,7 +94,7 @@ export function Strokes({
   const selected = strokes.filter(
     (stroke) =>
       selectedIds.includes(stroke.id) ||
-      (selection && strokeTouches(stroke.points, selection)),
+      (selection && strokeTouches(stroke, selection)),
   );
   return (
     <Group
@@ -83,7 +110,7 @@ export function Strokes({
     >
       {selected.map((stroke) => (
         <Line
-          {...LINE_SHAPE}
+          {...lineShape(isClosed(stroke))}
           key={`highlight-${stroke.id}`}
           name={stroke.id}
           points={stroke.points}
@@ -99,6 +126,7 @@ export function Strokes({
           id={stroke.id}
           color={stroke.color}
           points={stroke.points}
+          closed={isClosed(stroke)}
           draggable={draggable}
         />
       ))}

@@ -128,7 +128,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
 
   function strokesIn(area: IRect) {
     return Array.from(strokesMap.values()).filter((stroke) =>
-      strokeTouches(stroke.points, area),
+      strokeTouches(stroke, area),
     );
   }
 

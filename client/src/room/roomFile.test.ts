@@ -18,6 +18,7 @@ function fillRoom(target: Room) {
   target.paintCell(1, 1, "#ff0000");
   target.addStroke("#000000", [0, 0, 10, 10]);
   target.addStroke("#00ff00", [5, 5, 20, 20], true);
+  target.addShape("#0000ff", [0, 0, 50, 0, 50, 50], false);
   target.addToken("Goblin", IMAGE, { x: 3, y: 2 });
   const [token] = target.tokensMap.values();
   if (!token) throw new Error("Expected a token");
@@ -41,6 +42,7 @@ describe("map files", () => {
       strokes: expect.arrayContaining([
         { color: "#000000", points: [0, 0, 10, 10] },
         { color: "#00ff00", points: [5, 5, 20, 20], overFog: true },
+        { color: "#0000ff", points: [0, 0, 50, 0, 50, 50], closed: true },
       ]),
       tokens: [
         {
@@ -132,6 +134,13 @@ describe("map files", () => {
     [
       "a stroke with an odd point list",
       (file) => ({ ...file, strokes: [{ color: "#000", points: [0, 0, 1] }] }),
+    ],
+    [
+      "a stroke closed by something other than true",
+      (file) => ({
+        ...file,
+        strokes: [{ color: "#000", points: [0, 0, 1, 1], closed: "yes" }],
+      }),
     ],
     [
       "a token too large",

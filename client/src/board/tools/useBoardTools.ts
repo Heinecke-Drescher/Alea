@@ -17,9 +17,9 @@ export function useBoardTools(
 ) {
   const { tool: pen, draftPoints } = usePenTool(room, color);
   const { tool: measure, measurement } = useMeasureTool(room);
-  const cone = useShapeTool(room, "cone");
-  const square = useShapeTool(room, "square");
-  const circle = useShapeTool(room, "circle");
+  const cone = useShapeTool(room, "cone", color);
+  const square = useShapeTool(room, "square", color);
+  const circle = useShapeTool(room, "circle", color);
   const reveal = useFogTool(room, "reveal");
   const hide = useFogTool(room, "hide");
   const tools: Record<Tool, BoardTool> = {

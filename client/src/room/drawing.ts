@@ -16,11 +16,17 @@ export function isOverFog(stroke: StrokeData) {
   return stroke.overFog === true;
 }
 
-export function strokeData(
-  { color, points }: StrokeData,
-  overFog: boolean,
-): StrokeData {
-  return overFog ? { color, points, overFog } : { color, points };
+export function isClosed(stroke: StrokeData) {
+  return stroke.closed === true;
+}
+
+export function strokeData(stroke: StrokeData, overFog: boolean): StrokeData {
+  return {
+    color: stroke.color,
+    points: stroke.points,
+    ...(isClosed(stroke) && { closed: true }),
+    ...(overFog && { overFog: true }),
+  };
 }
 
 export function newStroke(
@@ -67,6 +73,11 @@ export function createDrawing({
     strokesMap.set(...newStroke({ color, points }, overFog));
   }
 
+  function addShape(color: string, points: number[], overFog: boolean) {
+    undoManager.stopCapturing();
+    strokesMap.set(...newStroke({ color, points, closed: true }, overFog));
+  }
+
   function removeStroke(id: string) {
     strokesMap.delete(id);
   }
@@ -83,6 +94,7 @@ export function createDrawing({
     paintCell,
     eraseCell,
     addStroke,
+    addShape,
     removeStroke,
     clearDrawings,
   };

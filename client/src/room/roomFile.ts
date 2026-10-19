@@ -88,9 +88,17 @@ function parseStroke(value: unknown): StrokeData {
   if (value.overFog !== undefined && value.overFog !== true) {
     invalid("stroke above the fog");
   }
-  return value.overFog === true
-    ? { color, points: points as number[], overFog: true as const }
-    : { color, points: points as number[] };
+  if (value.closed !== undefined && value.closed !== true) {
+    invalid("closed stroke");
+  }
+  return strokeData(
+    {
+      color,
+      points: points as number[],
+      ...(value.closed === true && { closed: true }),
+    },
+    value.overFog === true,
+  );
 }
 
 function parseToken(value: unknown, bounds: MapBounds) {

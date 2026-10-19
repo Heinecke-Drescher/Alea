@@ -1,7 +1,7 @@
-import { alpha } from "@mantine/core";
-import { Group, Line } from "react-konva";
+import { Group } from "react-konva";
 import { FEET_PER_CELL } from "../../room/grid";
 import { shapeCells, shapeOutline } from "../../room/shapes";
+import { StrokeLine } from "../Strokes";
 import { useStageZoom } from "../useStageZoom";
 import type { ShapeDraft } from "./shape";
 import { ToolLabel } from "./ToolLabel";
@@ -21,15 +21,7 @@ export function ShapePreview({ draft, color }: ShapePreviewProps) {
 
   return (
     <Group ref={groupRef} listening={false}>
-      <Line
-        points={points}
-        closed
-        stroke={color}
-        strokeWidth={3}
-        strokeScaleEnabled={false}
-        fill={alpha(color, 0.25)}
-        lineJoin="round"
-      />
+      <StrokeLine color={color} points={points} closed />
       <ToolLabel
         at={draft.to}
         zoom={zoom}

@@ -3,7 +3,7 @@ import * as Y from "yjs";
 import { BACKGROUND_IMAGE_ID } from "./background";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
-import { isOverFog } from "./drawing";
+import { isClosed, isOverFog } from "./drawing";
 import { tokenEffects } from "./effects";
 import type { Token } from "./roomStore";
 import { rollColor, rollPath } from "./rolls";
@@ -51,6 +51,15 @@ describe("drawing", () => {
     if (!stroke) throw new Error("Expected a stroke");
     expect(stroke).toMatchObject({ color: "#000000", points: [0, 0, 10, 10] });
     room.removeStroke(stroke.id);
+    expect(room.strokesMap.size).toBe(0);
+  });
+
+  it("adds shapes as closed strokes in one undo step", () => {
+    room.addShape("#000000", [0, 0, 100, 0, 50, 100], false);
+    const [shape] = room.strokesMap.values();
+    expect(shape).toMatchObject({ points: [0, 0, 100, 0, 50, 100] });
+    expect(shape && isClosed(shape)).toBe(true);
+    room.undoManager.undo();
     expect(room.strokesMap.size).toBe(0);
   });
 
@@ -495,6 +504,22 @@ describe("copy, paste and delete", () => {
     if (!copyId) throw new Error("Expected a pasted stroke");
     expect(copyId).not.toBe(id);
     expect(room.strokesMap.get(copyId)?.points).toEqual([17, 13, 27, 23]);
+  });
+
+  it("pastes shapes as shapes", () => {
+    room.addShape("#000000", [0, 0, 100, 0, 50, 100], false);
+    const [id] = room.strokesMap.keys();
+    if (!id) throw new Error("Expected a shape");
+    const clip = room.copyItems({ strokes: [id], tokens: [] });
+    const [copyId] = room.paste(clip, 10, 0).strokes;
+    const copy = room.strokesMap.get(copyId ?? "");
+    expect(copy && isClosed(copy)).toBe(true);
+  });
+
+  it("selects a shape by its closing edge", () => {
+    room.addShape("#000000", [0, 0, 100, 0, 100, 100, 0, 100], false);
+    const closingEdge = { x: -10, y: 40, width: 20, height: 20 };
+    expect(room.copyArea(closingEdge).strokes).toHaveLength(1);
   });
 
   it("copies only known stroke data from other players", () => {

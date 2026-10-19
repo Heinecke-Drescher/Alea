@@ -1,9 +1,15 @@
 import type { IRect, Vector2d } from "konva/lib/types";
+import { isClosed } from "./drawing";
 import { segments } from "./points";
+import type { StrokeData } from "./roomStore";
 
-export function strokeTouches(points: number[], area: IRect) {
+export function strokeTouches(stroke: StrokeData, area: IRect) {
+  const { points } = stroke;
   if (points.length < 4) throw new Error("A stroke needs at least two points");
-  return segments(points).some(({ from, to }) =>
+  const outline = isClosed(stroke)
+    ? [...points, ...points.slice(0, 2)]
+    : points;
+  return segments(outline).some(({ from, to }) =>
     segmentTouches(from, to, area),
   );
 }

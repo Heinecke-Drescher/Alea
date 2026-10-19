@@ -35,7 +35,7 @@ export function useItemDrag(room: Room, selected: Items) {
     // The same tokens that moveItems will move, also those whose image is missing.
     const tokens = existing(room.tokensMap, items.tokens);
     const ids = new Set(Object.values(items).flat());
-    // Highlights carry the id of their item as name.
+    // Highlights and shape fills carry the id of their item as name.
     const others = stage.find(
       (other: Node) =>
         other !== node && (ids.has(other.id()) || ids.has(other.name())),
