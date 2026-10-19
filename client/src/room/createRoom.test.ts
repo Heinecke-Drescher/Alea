@@ -26,6 +26,18 @@ beforeEach(() => {
   room = createRoom(new Y.Doc());
 });
 
+function tokenOf(id: string | undefined) {
+  const token = id && room.tokensMap.get(id);
+  if (!token) throw new Error(`Expected token ${id}`);
+  return token;
+}
+
+function strokeOf(id: string | undefined) {
+  const stroke = id && room.strokesMap.get(id);
+  if (!stroke) throw new Error(`Expected stroke ${id}`);
+  return stroke;
+}
+
 function onlyToken() {
   const [token] = room.tokensMap.values();
   if (!token) throw new Error("Expected a token");
@@ -231,16 +243,15 @@ describe("changing tokens", () => {
   it("duplicates a token next to it with its own image", () => {
     room.addToken("Goblin", IMAGE);
     const original = onlyToken();
-    const copyId = room.duplicateToken(original.id);
-    const copy = room.tokensMap.get(copyId ?? "");
+    const copy = tokenOf(room.duplicateToken(original.id));
     expect(copy).toMatchObject({
       name: "Goblin",
       size: 1,
       x: original.x + 1,
       y: original.y,
     });
-    expect(copy?.imageId).not.toBe(original.imageId);
-    expect(room.imagesMap.get(copy?.imageId ?? "")).toBe(IMAGE);
+    expect(copy.imageId).not.toBe(original.imageId);
+    expect(room.imagesMap.get(copy.imageId)).toBe(IMAGE);
   });
 
   it("undoes a duplicate in one step", () => {
@@ -263,7 +274,7 @@ describe("changing tokens", () => {
     room.addToken("Goblin", IMAGE, { x: 5, y: 5 });
     const original = onlyToken();
     const copyId = room.duplicateToken(original.id, [{ x: 6, y: 5, size: 1 }]);
-    expect(room.tokensMap.get(copyId ?? "")).toMatchObject({ x: 5, y: 6 });
+    expect(tokenOf(copyId)).toMatchObject({ x: 5, y: 6 });
   });
 });
 
@@ -304,9 +315,8 @@ describe("status effects", () => {
     room.addToken("Goblin", IMAGE);
     const { id } = onlyToken();
     room.toggleEffect(id, "unconscious");
-    const copyId = room.duplicateToken(id);
-    const copy = room.tokensMap.get(copyId ?? "");
-    expect(copy && tokenEffects(copy)).toEqual(["unconscious"]);
+    const copy = tokenOf(room.duplicateToken(id));
+    expect(tokenEffects(copy)).toEqual(["unconscious"]);
   });
 
   it("ignores effects on tokens that no longer exist", () => {
@@ -565,9 +575,9 @@ describe("copy, paste and delete", () => {
     const id = room.addShape("#000000", SQUARE, false);
     const clip = room.copyItems({ strokes: [id], tokens: [] });
     const [copyId] = room.paste(clip, 10, 0).strokes;
-    const copy = room.strokesMap.get(copyId ?? "");
-    expect(copy && isClosed(copy)).toBe(true);
-    expect(copy?.shape).toEqual({
+    const copy = strokeOf(copyId);
+    expect(isClosed(copy)).toBe(true);
+    expect(copy.shape).toEqual({
       kind: "square",
       from: { x: 10, y: 0 },
       to: { x: 110, y: 100 },
@@ -601,11 +611,6 @@ describe("copy, paste and delete", () => {
     const clip = room.copyItems({ strokes: [id], tokens: [] });
     const [belowId] = room.paste(clip, 5, 5).strokes;
     const [aboveId] = room.paste(clip, 5, 5, true).strokes;
-    const strokeOf = (strokeId: string | undefined) => {
-      const stroke = room.strokesMap.get(strokeId ?? "");
-      if (!stroke) throw new Error("Expected a pasted stroke");
-      return stroke;
-    };
     expect(isOverFog(strokeOf(belowId))).toBe(false);
     expect(isOverFog(strokeOf(aboveId))).toBe(true);
     room.moveItems({ strokes: [id], tokens: [] }, 30, 0);
