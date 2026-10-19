@@ -19,8 +19,13 @@ import { GridLines } from "./map/GridLines";
 import { MapFill } from "./map/MapFill";
 import { MapResizer } from "./map/MapResizer";
 import { paintColorValue, type PaintColor } from "./paintColors";
-import { itemsSelection, resizableTokenId } from "./selection/selection";
+import {
+  itemsSelection,
+  reshapableStrokeId,
+  resizableTokenId,
+} from "./selection/selection";
 import { SelectionFrame } from "./selection/SelectionFrame";
+import { ShapeResizer } from "./selection/ShapeResizer";
 import { useClipboard } from "./selection/useClipboard";
 import { useItemDrag } from "./selection/useItemDrag";
 import { useSelection } from "./selection/useSelection";
@@ -100,6 +105,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
   const { activeTool, draftPoints, measurement, shapeDraft, fogFrame } =
     useBoardTools(tool, selection, room, colorValue, selectPlacedShape);
   const { area, items } = selection;
+  const reshapableId = reshapableStrokeId(items);
   const itemDrag = useItemDrag(room, items);
   const tokenMenu = useTokenMenu(room, selection);
   const lastPointer = useRef<Vector2d | null>(null);
@@ -294,6 +300,9 @@ export function Board({ awareness, isSynced }: BoardProps) {
           <Layer>
             <FogFrame frame={fogFrame} />
             {isSelecting && <MapResizer />}
+            {isSelecting && reshapableId && (
+              <ShapeResizer strokeId={reshapableId} />
+            )}
             <SelectionFrame area={area} onMove={selection.moveArea} />
             {isSynced && <ThrownDice viewCenter={viewCenter} />}
             <ShapePreview draft={shapeDraft} color={colorValue} />

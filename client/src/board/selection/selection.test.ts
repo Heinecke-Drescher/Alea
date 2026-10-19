@@ -12,6 +12,7 @@ import {
   NO_SELECTION,
   pixelOffset,
   resizableTokenId,
+  reshapableStrokeId,
   roundToCells,
   selectedArea,
   selectedItems,
@@ -95,6 +96,15 @@ describe("resizableTokenId", () => {
     expect(resizableTokenId({ strokes: [], tokens: ["t", "u"] })).toBeNull();
     expect(resizableTokenId({ strokes: ["s"], tokens: ["t"] })).toBeNull();
     expect(resizableTokenId(NO_ITEMS)).toBeNull();
+  });
+});
+
+describe("reshapableStrokeId", () => {
+  it("allows reshaping only a single selected stroke", () => {
+    expect(reshapableStrokeId({ strokes: ["s"], tokens: [] })).toBe("s");
+    expect(reshapableStrokeId({ strokes: ["s", "r"], tokens: [] })).toBeNull();
+    expect(reshapableStrokeId({ strokes: ["s"], tokens: ["t"] })).toBeNull();
+    expect(reshapableStrokeId(NO_ITEMS)).toBeNull();
   });
 });
 

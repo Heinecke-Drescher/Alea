@@ -44,6 +44,11 @@ export function resizableTokenId({ strokes, tokens }: Items) {
   return id && others.length === 0 && strokes.length === 0 ? id : null;
 }
 
+export function reshapableStrokeId({ strokes, tokens }: Items) {
+  const [id, ...others] = strokes;
+  return id && others.length === 0 && tokens.length === 0 ? id : null;
+}
+
 export function withPressedItem(
   selection: Selection,
   type: ItemType,

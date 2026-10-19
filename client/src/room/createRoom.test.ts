@@ -70,6 +70,35 @@ describe("drawing", () => {
     expect(room.strokesMap.size).toBe(0);
   });
 
+  it("reshapes a shape in one undo step", () => {
+    const id = room.addShape("#000000", SQUARE, false);
+    const before = room.doc.toJSON();
+    room.reshapeStroke(id, { x: 50, y: 50 });
+    expect(room.strokesMap.get(id)).toMatchObject({
+      points: [0, 0, 50, 0, 50, 50, 0, 50],
+      shape: { kind: "square", from: { x: 0, y: 0 }, to: { x: 50, y: 50 } },
+    });
+    room.undoManager.undo();
+    expect(room.doc.toJSON()).toEqual(before);
+  });
+
+  it("adds no undo step when a reshape keeps the size", () => {
+    const id = room.addShape("#000000", SQUARE, false);
+    room.reshapeStroke(id, { x: 110, y: 90 });
+    expect(room.strokesMap.get(id)?.shape).toEqual(SQUARE);
+    room.undoManager.undo();
+    expect(room.strokesMap.size).toBe(0);
+  });
+
+  it("refuses to reshape lines and to shrink shapes to nothing", () => {
+    room.addStroke("#000000", [0, 0, 10, 10]);
+    const [lineId] = room.strokesMap.keys();
+    if (!lineId) throw new Error("Expected a stroke");
+    expect(() => room.reshapeStroke(lineId, { x: 50, y: 50 })).toThrow();
+    const id = room.addShape("#000000", SQUARE, false);
+    expect(() => room.reshapeStroke(id, SQUARE.from)).toThrow();
+  });
+
   it("tells shapes apart from lines", () => {
     const line = { color: "#000000", points: [0, 0, 10, 10] };
     expect(hasShapes([line])).toBe(false);

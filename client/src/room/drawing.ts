@@ -1,3 +1,4 @@
+import type { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import { containsCell, type MapBounds } from "./grid";
 import {
@@ -108,6 +109,19 @@ export function createDrawing({
     return id;
   }
 
+  function reshapeStroke(id: string, to: Vector2d) {
+    const stroke = strokesMap.get(id);
+    if (!stroke?.shape) {
+      throw new Error(`Stroke ${id} is not an editable shape`);
+    }
+    const end = stroke.shape.to;
+    const next = fitShape({ ...stroke.shape, to });
+    // Keeps undo free of steps that change nothing.
+    if (next.to.x === end.x && next.to.y === end.y) return;
+    undoManager.stopCapturing();
+    strokesMap.set(id, { ...stroke, ...shapeStroke(next) });
+  }
+
   function removeStroke(id: string) {
     strokesMap.delete(id);
   }
@@ -125,6 +139,7 @@ export function createDrawing({
     eraseCell,
     addStroke,
     addShape,
+    reshapeStroke,
     removeStroke,
     clearDrawings,
   };
