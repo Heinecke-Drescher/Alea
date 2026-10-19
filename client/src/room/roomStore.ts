@@ -29,6 +29,8 @@ export interface Stroke {
   overFog?: true;
 }
 
+export type StrokeData = Omit<Stroke, "id">;
+
 export interface Roll {
   id: string;
   player: string;

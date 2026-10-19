@@ -7,7 +7,13 @@ import {
   squareCenter,
   type Square,
 } from "./grid";
-import { newStroke, putCell, shiftPoints } from "./drawing";
+import {
+  isOverFog,
+  newStroke,
+  putCell,
+  shiftPoints,
+  strokeData,
+} from "./drawing";
 import { placeToken, type MapActions } from "./map";
 import type * as Y from "yjs";
 import {
@@ -15,6 +21,7 @@ import {
   type Cell,
   type RoomStore,
   type Stroke,
+  type StrokeData,
   type Token,
 } from "./roomStore";
 import { strokeTouches } from "./strokeTouches";
@@ -29,7 +36,7 @@ export interface Clip {
     size: number;
     effects: StatusEffect[];
   }[];
-  strokes: { color: string; points: number[] }[];
+  strokes: StrokeData[];
 }
 
 export type ItemType = "strokes" | "tokens";
@@ -151,7 +158,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
           ? [{ name, image, x, y, size, effects: tokenEffects(token) }]
           : [];
       }),
-      strokes: strokes.map(({ color, points }) => ({ color, points })),
+      strokes: strokes.map((stroke) => strokeData(stroke, isOverFog(stroke))),
     };
   }
 
@@ -186,10 +193,9 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
         tokensMap.set(id, { ...token, ...position, id, imageId });
         pasted.tokens.push(id);
       }
-      for (const { color, points } of clip.strokes) {
+      for (const data of clip.strokes) {
         const [id, stroke] = newStroke(
-          color,
-          shiftPoints(points, dx, dy),
+          { ...data, points: shiftPoints(data.points, dx, dy) },
           overFog,
         );
         pasted.strokes.push(id);

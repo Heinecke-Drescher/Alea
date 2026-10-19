@@ -67,6 +67,21 @@ describe("map files", () => {
     expect(other.exportMap()).toEqual(file);
   });
 
+  it("exports only known stroke data from other players", () => {
+    room.strokesMap.set("foreign", {
+      id: "foreign",
+      color: "#000000",
+      points: [0, 0, 10, 10],
+      overFog: "yes",
+      extra: 1,
+    } as never);
+    const file = room.exportMap();
+    expect(file.strokes).toEqual([
+      { color: "#000000", points: [0, 0, 10, 10] },
+    ]);
+    expect(() => parseMapFile(JSON.stringify(file))).not.toThrow();
+  });
+
   it("replaces what was on the map before", () => {
     const file = validFile();
     const other = createRoom(new Y.Doc());

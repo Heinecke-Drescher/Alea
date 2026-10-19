@@ -497,6 +497,20 @@ describe("copy, paste and delete", () => {
     expect(room.strokesMap.get(copyId)?.points).toEqual([17, 13, 27, 23]);
   });
 
+  it("copies only known stroke data from other players", () => {
+    room.strokesMap.set("foreign", {
+      id: "foreign",
+      color: "#000000",
+      points: [10, 10, 20, 20],
+      overFog: "yes",
+      extra: 1,
+    } as never);
+    const clip = room.copyItems({ strokes: ["foreign"], tokens: [] });
+    expect(clip.strokes).toEqual([
+      { color: "#000000", points: [10, 10, 20, 20] },
+    ]);
+  });
+
   it("marks pasted strokes by the one who pastes and keeps the mark when moved", () => {
     room.addStroke("#000000", [10, 10, 20, 20], true);
     const [id] = room.strokesMap.keys();

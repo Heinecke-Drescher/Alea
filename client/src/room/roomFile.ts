@@ -1,7 +1,7 @@
 import type { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import { BACKGROUND_IMAGE_ID } from "./background";
-import { isOverFog, newStroke } from "./drawing";
+import { isOverFog, newStroke, strokeData } from "./drawing";
 import { isStatusEffect, tokenEffects, type StatusEffect } from "./effects";
 import {
   containsCell,
@@ -11,7 +11,12 @@ import {
   type MapBounds,
 } from "./grid";
 import { BOUNDS_KEY, type MapActions } from "./map";
-import { cellKey, type Cell, type RoomStore } from "./roomStore";
+import {
+  cellKey,
+  type Cell,
+  type RoomStore,
+  type StrokeData,
+} from "./roomStore";
 import { embeddedImage } from "./tokens";
 
 const APP = "alea";
@@ -24,7 +29,7 @@ export interface MapFile {
   version: typeof VERSION;
   bounds: MapBounds;
   cells: Cell[];
-  strokes: { color: string; points: number[]; overFog?: true }[];
+  strokes: StrokeData[];
   tokens: {
     name: string;
     x: number;
@@ -74,7 +79,7 @@ function cellOnMap(value: unknown, bounds: MapBounds, what: string) {
   return { x, y };
 }
 
-function parseStroke(value: unknown) {
+function parseStroke(value: unknown): StrokeData {
   if (!isRecord(value)) invalid("stroke");
   const color = text(value.color, "stroke color");
   const points = list(value.points, "stroke points");
@@ -161,13 +166,7 @@ export function createMapFiles(
         color,
       })),
       strokes: Array.from(strokesMap.values(), (stroke) =>
-        isOverFog(stroke)
-          ? {
-              color: stroke.color,
-              points: stroke.points,
-              overFog: true as const,
-            }
-          : { color: stroke.color, points: stroke.points },
+        strokeData(stroke, isOverFog(stroke)),
       ),
       tokens: Array.from(tokensMap.values()).flatMap((token) => {
         const tokenImage = embeddedImage(imagesMap.get(token.imageId));
@@ -194,8 +193,8 @@ export function createMapFiles(
       settingsMap.set(BOUNDS_KEY, file.bounds);
       for (const cell of file.cells)
         cellsMap.set(cellKey(cell.x, cell.y), cell);
-      for (const { color, points, overFog } of file.strokes) {
-        strokesMap.set(...newStroke(color, points, overFog === true));
+      for (const stroke of file.strokes) {
+        strokesMap.set(...newStroke(stroke, isOverFog(stroke)));
       }
       for (const { image: tokenImage, effects, ...token } of file.tokens) {
         const id = nanoid();
