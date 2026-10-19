@@ -14,12 +14,13 @@ export function useBoardTools(
   selection: SelectionControls,
   room: Room,
   color: string,
+  onShapePlaced: (id: string) => void,
 ) {
   const { tool: pen, draftPoints } = usePenTool(room, color);
   const { tool: measure, measurement } = useMeasureTool(room);
-  const cone = useShapeTool(room, "cone", color);
-  const square = useShapeTool(room, "square", color);
-  const circle = useShapeTool(room, "circle", color);
+  const cone = useShapeTool(room, "cone", color, onShapePlaced);
+  const square = useShapeTool(room, "square", color, onShapePlaced);
+  const circle = useShapeTool(room, "circle", color, onShapePlaced);
   const reveal = useFogTool(room, "reveal");
   const hide = useFogTool(room, "hide");
   const tools: Record<Tool, BoardTool> = {

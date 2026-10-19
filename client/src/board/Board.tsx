@@ -19,7 +19,7 @@ import { GridLines } from "./map/GridLines";
 import { MapFill } from "./map/MapFill";
 import { MapResizer } from "./map/MapResizer";
 import { paintColorValue, type PaintColor } from "./paintColors";
-import { resizableTokenId } from "./selection/selection";
+import { itemsSelection, resizableTokenId } from "./selection/selection";
 import { SelectionFrame } from "./selection/SelectionFrame";
 import { useClipboard } from "./selection/useClipboard";
 import { useItemDrag } from "./selection/useItemDrag";
@@ -98,7 +98,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
   const selection = useSelection(room);
   const colorValue = paintColorValue(theme, color);
   const { activeTool, draftPoints, measurement, shapeDraft, fogFrame } =
-    useBoardTools(tool, selection, room, colorValue);
+    useBoardTools(tool, selection, room, colorValue, selectPlacedShape);
   const { area, items } = selection;
   const itemDrag = useItemDrag(room, items);
   const tokenMenu = useTokenMenu(room, selection);
@@ -184,6 +184,11 @@ export function Board({ awareness, isSynced }: BoardProps) {
     handleMouseUp();
     setTool(nextTool);
     selection.clear();
+  }
+
+  function selectPlacedShape(id: string) {
+    changeTool("select");
+    selection.set(itemsSelection({ strokes: [id], tokens: [] }));
   }
 
   function panOnlyWithMiddleButton(event: KonvaEventObject<DragEvent>) {

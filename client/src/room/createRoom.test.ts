@@ -55,8 +55,8 @@ describe("drawing", () => {
   });
 
   it("adds shapes as closed strokes in one undo step", () => {
-    room.addShape("#000000", [0, 0, 100, 0, 50, 100], false);
-    const [shape] = room.strokesMap.values();
+    const id = room.addShape("#000000", [0, 0, 100, 0, 50, 100], false);
+    const shape = room.strokesMap.get(id);
     expect(shape).toMatchObject({ points: [0, 0, 100, 0, 50, 100] });
     expect(shape && isClosed(shape)).toBe(true);
     room.undoManager.undo();

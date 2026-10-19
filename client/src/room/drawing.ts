@@ -79,7 +79,9 @@ export function createDrawing({
 
   function addShape(color: string, points: number[], overFog: boolean) {
     undoManager.stopCapturing();
-    strokesMap.set(...newStroke({ color, points, closed: true }, overFog));
+    const [id, shape] = newStroke({ color, points, closed: true }, overFog);
+    strokesMap.set(id, shape);
+    return id;
   }
 
   function removeStroke(id: string) {
