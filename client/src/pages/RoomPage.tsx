@@ -84,7 +84,7 @@ function RoomView({ roomId }: { roomId: string }) {
           <AppShell.Header>
             <Group h="100%" px="md" justify="space-between">
               <Group gap="sm">
-                <AleaMenu isSynced={isSynced} />
+                <AleaMenu isSynced={isSynced} connection={connection} />
                 {connection === "disconnected" && (
                   <Badge color="red" variant="light">
                     Not connected. Changes are not saved yet.
