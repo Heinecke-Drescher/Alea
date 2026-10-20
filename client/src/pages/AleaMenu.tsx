@@ -1,6 +1,7 @@
 import { Button, Menu, Text, Title } from "@mantine/core";
 import { IconChevronDown } from "@tabler/icons-react";
 import { Link } from "react-router";
+import { useBackgroundFile } from "../background/useBackgroundFile";
 import { useMapFiles } from "../mapFile/useMapFiles";
 import type { ConnectionState } from "../room/connectRoom";
 
@@ -11,6 +12,7 @@ interface AleaMenuProps {
 
 export function AleaMenu({ isSynced, connection }: AleaMenuProps) {
   const mapFiles = useMapFiles();
+  const background = useBackgroundFile();
 
   return (
     // A heading may hold a button, but not the other way round.
@@ -38,6 +40,15 @@ export function AleaMenu({ isSynced, connection }: AleaMenuProps) {
           <Menu.Item disabled={!isSynced} onClick={mapFiles.exportMap}>
             Export map
           </Menu.Item>
+          <Menu.Divider />
+          <Menu.Item disabled={!isSynced} onClick={background.chooseBackground}>
+            Set background…
+          </Menu.Item>
+          {background.hasBackground && (
+            <Menu.Item color="red" onClick={background.removeBackground}>
+              Remove background
+            </Menu.Item>
+          )}
           <Menu.Divider />
           {/* Without a connection, leaving would drop the changes that are not saved yet. */}
           <Menu.Item

@@ -15,7 +15,6 @@ import { useEffect, useMemo } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useParams } from "react-router";
 import { isValidRoomId } from "../../../shared/roomId";
-import { BackgroundPanel } from "../background/BackgroundPanel";
 import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
@@ -122,7 +121,6 @@ function RoomView({ roomId }: { roomId: string }) {
           <AppShell.Aside>
             <AppShell.Section grow component={ScrollArea} p="md">
               <Stack>
-                <BackgroundPanel />
                 <TokenPanel />
                 <DicePanel />
               </Stack>
