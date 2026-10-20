@@ -1,6 +1,7 @@
 import { Anchor, Button, Center, Stack, Text, Title } from "@mantine/core";
 import { useNavigate } from "react-router";
 import { createRoomId } from "../../../shared/roomId";
+import { RecentRooms } from "../recentRooms/RecentRooms";
 
 export function HomePage() {
   const navigate = useNavigate();
@@ -13,6 +14,7 @@ export function HomePage() {
         <Button size="lg" onClick={() => navigate(`/r/${createRoomId()}`)}>
           Create room
         </Button>
+        <RecentRooms />
         <Anchor href="/licenses.txt" size="xs" c="dimmed">
           Open source licenses
         </Anchor>

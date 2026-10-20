@@ -11,7 +11,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useDisclosure, useHotkeys } from "@mantine/hooks";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useParams } from "react-router";
 import { isValidRoomId } from "../../../shared/roomId";
@@ -22,6 +22,7 @@ import { DicePanel } from "../dice/DicePanel";
 import { MusicMenu } from "../music/MusicMenu";
 import { RoomContext } from "../room/RoomContext";
 import { PlayerContext } from "../player/PlayerContext";
+import { useRecentRooms } from "../recentRooms/useRecentRooms";
 import { useLocalPlayer } from "../player/useLocalPlayer";
 import { useRoomConnection } from "../room/useRoomConnection";
 import { TokenPanel } from "../tokens/TokenPanel";
@@ -61,6 +62,12 @@ function RoomView({ roomId }: { roomId: string }) {
   const { id, name, color } = localPlayer;
   const player = useMemo(() => ({ id, name, color }), [id, name, color]);
   const needsName = name === "";
+  const { visit } = useRecentRooms();
+
+  // Only rooms that really loaded are worth finding again.
+  useEffect(() => {
+    if (isSynced) visit(roomId);
+  }, [isSynced, roomId, visit]);
 
   useHotkeys([
     ["mod+Z", () => room.undoManager.undo()],
