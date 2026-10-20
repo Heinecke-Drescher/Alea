@@ -10,6 +10,8 @@ export interface DragSample {
 
 export const MAX_THROW_DISTANCE = 32 * CELL_SIZE;
 export const SWING_WINDOW_MS = 100;
+// How long a thrown die flies before it lands.
+export const ROLL_SECONDS = 1;
 const SECONDS_OF_ROLLING = 2;
 const KEPT_AFTER_BOUNCE = 0.6;
 const MAX_BOUNCES = 6;

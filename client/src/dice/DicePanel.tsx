@@ -11,6 +11,7 @@ import { DieButton } from "./DieButton";
 import { RollRow } from "./RollRow";
 import { rollSecretly, type SecretRoll } from "./secretRoll";
 import { SecretRolls } from "./SecretRolls";
+import { useShowCritical } from "./useCriticalRolls";
 
 const MAX_SECRET_ROLLS = 20;
 
@@ -43,6 +44,7 @@ export function DicePanel() {
   const [wantsSecret, setWantsSecret] = useState(false);
   const [secretRolls, setSecretRolls] = useState<SecretRoll[]>([]);
   const isSecret = player.isDm && wantsSecret;
+  const showCritical = useShowCritical();
 
   function roll(sides: DieSides) {
     // Secret rolls stay in this browser and never reach the room document.
@@ -51,6 +53,7 @@ export function DicePanel() {
       setSecretRolls((previous) =>
         [secretRoll, ...previous].slice(0, MAX_SECRET_ROLLS),
       );
+      showCritical({ ...secretRoll, delay: 0 });
       return;
     }
     room.addRoll(player.name, player.color, sides, rollDie(sides));

@@ -10,7 +10,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Group, Line, Text } from "react-konva";
 import { rollDie, type DieSides } from "../room/dice";
 import { dieShape } from "../dice/dieShapes";
-import { pathLength, pointAlong } from "../dice/throwPath";
+import { pathLength, pointAlong, ROLL_SECONDS } from "../dice/throwPath";
 import { tokenHits, type TokenHit } from "../dice/tokenHits";
 import { CELL_SIZE } from "../room/grid";
 import { dieColors } from "../dice/dieColors";
@@ -20,7 +20,6 @@ import { useY } from "../room/useY";
 import { TOKEN_BODY_NAME } from "./tokens/tokenNodes";
 
 const DIE_RADIUS = 42;
-const ROLL_SECONDS = 1;
 const FADE_SECONDS = 0.5;
 const VISIBLE_MS = 3000;
 const FLICKER_MS = 70;

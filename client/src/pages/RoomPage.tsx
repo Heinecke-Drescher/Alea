@@ -1,6 +1,7 @@
 import {
   AppShell,
   Badge,
+  Box,
   Burger,
   Button,
   Center,
@@ -17,7 +18,12 @@ import { Link, useParams } from "react-router";
 import { isValidRoomId } from "../../../shared/roomId";
 import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
+import { CriticalVideo } from "../dice/CriticalVideo";
 import { DicePanel } from "../dice/DicePanel";
+import {
+  ShowCriticalContext,
+  useCriticalRolls,
+} from "../dice/useCriticalRolls";
 import { MusicMenu } from "../music/MusicMenu";
 import { RoomContext } from "../room/RoomContext";
 import { PlayerContext } from "../player/PlayerContext";
@@ -62,6 +68,7 @@ function RoomView({ roomId }: { roomId: string }) {
   const player = useMemo(() => ({ id, name, color }), [id, name, color]);
   const needsName = name === "";
   const { visit } = useRecentRooms();
+  const criticals = useCriticalRolls(room, isSynced);
 
   // Only rooms that really loaded are worth finding again.
   useEffect(() => {
@@ -79,65 +86,78 @@ function RoomView({ roomId }: { roomId: string }) {
   return (
     <RoomContext value={room}>
       <PlayerContext value={player}>
-        <AppShell
-          header={{ height: 60 }}
-          aside={{
-            width: 320,
-            breakpoint: "sm",
-            collapsed: { mobile: !asideOpened },
-          }}
-        >
-          <AppShell.Header>
-            <Group h="100%" px="md" justify="space-between">
-              <Group gap="sm">
-                <AleaMenu isSynced={isSynced} connection={connection} />
-                {connection === "disconnected" && (
-                  <Badge color="red" variant="light">
-                    Not connected. Changes are not saved yet.
-                  </Badge>
+        <ShowCriticalContext value={criticals.show}>
+          <AppShell
+            header={{ height: 60 }}
+            aside={{
+              width: 320,
+              breakpoint: "sm",
+              collapsed: { mobile: !asideOpened },
+            }}
+          >
+            <AppShell.Header>
+              <Group h="100%" px="md" justify="space-between">
+                <Group gap="sm">
+                  <AleaMenu isSynced={isSynced} connection={connection} />
+                  {connection === "disconnected" && (
+                    <Badge color="red" variant="light">
+                      Not connected. Changes are not saved yet.
+                    </Badge>
+                  )}
+                </Group>
+                <Group gap="xs">
+                  {isSynced && !needsName && (
+                    <DmControl awareness={awareness} />
+                  )}
+                  <MusicMenu />
+                  <ColorSchemeToggle />
+                  <Button variant="subtle" color={color} onClick={editName}>
+                    {name}
+                  </Button>
+                  <Burger
+                    opened={asideOpened}
+                    onClick={toggleAside}
+                    hiddenFrom="sm"
+                    size="sm"
+                  />
+                </Group>
+              </Group>
+            </AppShell.Header>
+            <AppShell.Main>
+              <Box pos="relative">
+                <ErrorBoundary FallbackComponent={MapError}>
+                  <Board awareness={awareness} isSynced={isSynced} />
+                </ErrorBoundary>
+                {criticals.critical && (
+                  <CriticalVideo
+                    key={criticals.critical.id}
+                    critical={criticals.critical}
+                    onDone={criticals.clear}
+                  />
                 )}
-              </Group>
-              <Group gap="xs">
-                {isSynced && !needsName && <DmControl awareness={awareness} />}
-                <MusicMenu />
-                <ColorSchemeToggle />
-                <Button variant="subtle" color={color} onClick={editName}>
-                  {name}
-                </Button>
-                <Burger
-                  opened={asideOpened}
-                  onClick={toggleAside}
-                  hiddenFrom="sm"
-                  size="sm"
-                />
-              </Group>
-            </Group>
-          </AppShell.Header>
-          <AppShell.Main>
-            <ErrorBoundary FallbackComponent={MapError}>
-              <Board awareness={awareness} isSynced={isSynced} />
-            </ErrorBoundary>
-          </AppShell.Main>
-          <AppShell.Aside>
-            <AppShell.Section grow component={ScrollArea} p="md">
-              <Stack>
-                <TokenPanel />
-                <DicePanel />
-              </Stack>
-            </AppShell.Section>
-          </AppShell.Aside>
-        </AppShell>
-        <PlayerNameModal
-          opened={needsName || isEditingName}
-          currentName={name}
-          currentColor={localPlayer.pickedColor}
-          onSave={(newName, newColor) => {
-            localPlayer.setName(newName);
-            localPlayer.setColor(newColor);
-            stopEditingName();
-          }}
-          onCancel={needsName ? null : stopEditingName}
-        />
+              </Box>
+            </AppShell.Main>
+            <AppShell.Aside>
+              <AppShell.Section grow component={ScrollArea} p="md">
+                <Stack>
+                  <TokenPanel />
+                  <DicePanel />
+                </Stack>
+              </AppShell.Section>
+            </AppShell.Aside>
+          </AppShell>
+          <PlayerNameModal
+            opened={needsName || isEditingName}
+            currentName={name}
+            currentColor={localPlayer.pickedColor}
+            onSave={(newName, newColor) => {
+              localPlayer.setName(newName);
+              localPlayer.setColor(newColor);
+              stopEditingName();
+            }}
+            onCancel={needsName ? null : stopEditingName}
+          />
+        </ShowCriticalContext>
       </PlayerContext>
     </RoomContext>
   );
