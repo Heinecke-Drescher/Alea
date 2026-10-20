@@ -1,4 +1,4 @@
-import { SimpleGrid, Stack, Switch, Text } from "@mantine/core";
+import { Box, SimpleGrid, Stack, Switch, Text } from "@mantine/core";
 import { motion } from "motion/react";
 import { useState } from "react";
 import { DIE_SIDES, rollDie, type DieSides } from "../room/dice";
@@ -19,6 +19,19 @@ function RollPlayer({ roll }: { roll: Roll }) {
     <Text span c={rollColor(roll)} fw={600}>
       {roll.player}
     </Text>
+  );
+}
+
+function RollEntry({ roll }: { roll: Roll }) {
+  return (
+    <RollRow
+      label={
+        <>
+          <RollPlayer roll={roll} /> · d{roll.sides}
+        </>
+      }
+      value={roll.value}
+    />
   );
 }
 
@@ -69,38 +82,28 @@ export function DicePanel() {
           : "Drag a die onto the map to roll it there, or click to roll"}
       </Text>
       {isSecret && <SecretRolls rolls={secretRolls} />}
-      {lastRoll && (
-        <motion.div
-          key={lastRoll.id}
-          initial={{ opacity: 0 }}
-          animate={{
-            opacity: 1,
-            rotate: [0, -20, 20, -10, 0],
-            scale: [0.6, 1.15, 1],
-          }}
-          transition={{ duration: 0.5 }}
-        >
-          <Stack gap={0} align="center">
-            <Text c="dimmed">
-              <RollPlayer roll={lastRoll} /> · d{lastRoll.sides}
-            </Text>
-            <Text fz={48} fw={700}>
-              {lastRoll.value}
-            </Text>
-          </Stack>
-        </motion.div>
-      )}
       <Stack gap={4}>
+        {lastRoll && (
+          <motion.div
+            key={lastRoll.id}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.4 }}
+          >
+            {/* A neutral background keeps every player color readable; the stripe shows who rolled. */}
+            <Box
+              bg="var(--mantine-color-default-hover)"
+              bdrs="sm"
+              style={{
+                borderLeft: `4px solid var(--mantine-color-${rollColor(lastRoll)}-6)`,
+              }}
+            >
+              <RollEntry roll={lastRoll} />
+            </Box>
+          </motion.div>
+        )}
         {olderRolls.map((olderRoll) => (
-          <RollRow
-            key={olderRoll.id}
-            label={
-              <>
-                <RollPlayer roll={olderRoll} /> · d{olderRoll.sides}
-              </>
-            }
-            value={olderRoll.value}
-          />
+          <RollEntry key={olderRoll.id} roll={olderRoll} />
         ))}
       </Stack>
     </Stack>

@@ -8,7 +8,7 @@ interface RollRowProps {
 
 export function RollRow({ label, value }: RollRowProps) {
   return (
-    <Group justify="space-between" wrap="nowrap">
+    <Group justify="space-between" wrap="nowrap" px="xs">
       <Text c="dimmed" fz={20} truncate>
         {label}
       </Text>
