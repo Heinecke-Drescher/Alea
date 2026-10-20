@@ -19,13 +19,13 @@ import { BackgroundPanel } from "../background/BackgroundPanel";
 import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
-import { MapFileButtons } from "../mapFile/MapFileButtons";
 import { MusicMenu } from "../music/MusicMenu";
 import { RoomContext } from "../room/RoomContext";
 import { PlayerContext } from "../player/PlayerContext";
 import { useLocalPlayer } from "../player/useLocalPlayer";
 import { useRoomConnection } from "../room/useRoomConnection";
 import { TokenPanel } from "../tokens/TokenPanel";
+import { AleaMenu } from "./AleaMenu";
 import { ColorSchemeToggle } from "./ColorSchemeToggle";
 import { DmControl } from "./DmControl";
 import { PlayerNameModal } from "./PlayerNameModal";
@@ -84,7 +84,7 @@ function RoomView({ roomId }: { roomId: string }) {
           <AppShell.Header>
             <Group h="100%" px="md" justify="space-between">
               <Group gap="sm">
-                <Title order={3}>Alea</Title>
+                <AleaMenu isSynced={isSynced} />
                 {connection === "disconnected" && (
                   <Badge color="red" variant="light">
                     Not connected. Changes are not saved yet.
@@ -116,7 +116,6 @@ function RoomView({ roomId }: { roomId: string }) {
             <AppShell.Section grow component={ScrollArea} p="md">
               <Stack>
                 <BackgroundPanel />
-                <MapFileButtons />
                 <TokenPanel />
                 <DicePanel />
               </Stack>

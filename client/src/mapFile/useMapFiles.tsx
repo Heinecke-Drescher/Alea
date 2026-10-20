@@ -1,7 +1,7 @@
-import { Button, FileButton, Group, Text } from "@mantine/core";
+import { Text } from "@mantine/core";
+import { useFileDialog } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
-import { useRef } from "react";
 import { usePlayer } from "../player/PlayerContext";
 import type { Room } from "../room/createRoom";
 import { useRoom } from "../room/RoomContext";
@@ -32,19 +32,20 @@ function confirmImport(onConfirm: () => void) {
   });
 }
 
-export function MapFileButtons() {
+export function useMapFiles() {
   const room = useRoom();
   const dm = useDm();
   const { isDm } = usePlayer();
-  const resetRef = useRef<() => void>(null);
-  const canImport = dm === null || isDm;
+  const fileDialog = useFileDialog({
+    multiple: false,
+    accept: ".json,application/json",
+    onChange: (files) => {
+      const file = files?.[0];
+      if (file) void importFile(file);
+    },
+  });
 
-  async function importFile(file: File | null) {
-    // Without a reset, picking the same file again fires no change.
-    const reset = resetRef.current;
-    if (!reset) throw new Error("Import button is not mounted");
-    reset();
-    if (!file) return;
+  async function importFile(file: File) {
     let map: MapFile;
     try {
       map = parseMapFile(await file.text());
@@ -59,24 +60,9 @@ export function MapFileButtons() {
     confirmImport(() => room.importMap(map));
   }
 
-  return (
-    <Group gap="xs" grow>
-      <Button variant="light" onClick={() => downloadMap(room)}>
-        Export map
-      </Button>
-      {canImport && (
-        <FileButton
-          resetRef={resetRef}
-          accept=".json,application/json"
-          onChange={(file) => void importFile(file)}
-        >
-          {(props) => (
-            <Button variant="light" {...props}>
-              Import map…
-            </Button>
-          )}
-        </FileButton>
-      )}
-    </Group>
-  );
+  return {
+    canImport: dm === null || isDm,
+    exportMap: () => downloadMap(room),
+    importMap: fileDialog.open,
+  };
 }
