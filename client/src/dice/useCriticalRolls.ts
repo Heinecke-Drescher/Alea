@@ -21,7 +21,12 @@ export function useCriticalRolls(room: Room, isSynced: boolean) {
       setCritical({ id, video: natural20Video, delay });
     }
   }, []);
-  const clear = useCallback(() => setCritical(null), []);
+  // Late callbacks of a replaced video must not close the next one.
+  const clear = useCallback(
+    (id: string) =>
+      setCritical((current) => (current?.id === id ? null : current)),
+    [],
+  );
 
   // A thrown die lands after its flight, so the video starts then.
   useNewRolls(room.rollsArray, isSynced, (roll) => {

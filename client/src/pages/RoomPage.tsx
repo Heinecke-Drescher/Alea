@@ -27,7 +27,7 @@ import {
 import { MusicMenu } from "../music/MusicMenu";
 import { RoomContext } from "../room/RoomContext";
 import { PlayerContext } from "../player/PlayerContext";
-import { useRecentRooms } from "../recentRooms/useRecentRooms";
+import { recordVisit } from "../recentRooms/useRecentRooms";
 import { useLocalPlayer } from "../player/useLocalPlayer";
 import { useRoomConnection } from "../room/useRoomConnection";
 import { TokenPanel } from "../tokens/TokenPanel";
@@ -67,13 +67,12 @@ function RoomView({ roomId }: { roomId: string }) {
   const { id, name, color } = localPlayer;
   const player = useMemo(() => ({ id, name, color }), [id, name, color]);
   const needsName = name === "";
-  const { visit } = useRecentRooms();
   const criticals = useCriticalRolls(room, isSynced);
 
   // Only rooms that really loaded are worth finding again.
   useEffect(() => {
-    if (isSynced) visit(roomId);
-  }, [isSynced, roomId, visit]);
+    if (isSynced) recordVisit(roomId);
+  }, [isSynced, roomId]);
 
   useHotkeys([
     ["mod+Z", () => room.undoManager.undo()],

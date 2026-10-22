@@ -12,6 +12,7 @@ interface AleaMenuProps {
 
 export function AleaMenu({ isSynced, connection }: AleaMenuProps) {
   const mapFiles = useMapFiles();
+  const isDisconnected = connection === "disconnected";
   const background = useBackgroundFile();
 
   return (
@@ -50,11 +51,15 @@ export function AleaMenu({ isSynced, connection }: AleaMenuProps) {
             </Menu.Item>
           )}
           <Menu.Divider />
-          {/* Without a connection, leaving would drop the changes that are not saved yet. */}
+          {/* Without a connection, leaving would drop the changes that are not saved yet.
+              A link ignores `disabled`, so the click itself is stopped too. */}
           <Menu.Item
             component={Link}
             to="/"
-            disabled={connection === "disconnected"}
+            disabled={isDisconnected}
+            onClick={(event) => {
+              if (isDisconnected) event.preventDefault();
+            }}
           >
             Leave room
           </Menu.Item>

@@ -5,19 +5,20 @@ import classes from "./CriticalVideo.module.css";
 
 interface CriticalVideoProps {
   critical: Critical;
-  onDone: () => void;
+  onDone: (id: string) => void;
 }
 
 export function CriticalVideo({ critical, onDone }: CriticalVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isStarted, setIsStarted] = useState(false);
+  const { id, delay } = critical;
 
-  useHotkeys([["Escape", () => isStarted && onDone()]]);
+  useHotkeys([["Escape", () => isStarted && onDone(id)]]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsStarted(true), critical.delay * 1000);
+    const timer = setTimeout(() => setIsStarted(true), delay * 1000);
     return () => clearTimeout(timer);
-  }, [critical.delay]);
+  }, [delay]);
 
   useEffect(() => {
     if (!isStarted) return;
@@ -26,20 +27,24 @@ export function CriticalVideo({ critical, onDone }: CriticalVideoProps) {
     // Browsers may refuse sound before the viewer has clicked anything; then it plays muted.
     video.play().catch(() => {
       video.muted = true;
-      return video.play().catch(onDone);
+      return video.play().catch(() => onDone(id));
     });
-  }, [isStarted, onDone]);
+  }, [isStarted, id, onDone]);
 
   // Mounted hidden during the delay, so the video loads while the die is still flying.
   return (
-    <div className={classes.overlay} hidden={!isStarted} onClick={onDone}>
+    <div
+      className={classes.overlay}
+      hidden={!isStarted}
+      onClick={() => onDone(id)}
+    >
       <video
         ref={videoRef}
         className={classes.video}
         src={critical.video}
         preload="auto"
         playsInline
-        onEnded={onDone}
+        onEnded={() => onDone(id)}
       />
     </div>
   );

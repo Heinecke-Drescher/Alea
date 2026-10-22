@@ -1,4 +1,4 @@
-import { useLocalStorage } from "@mantine/hooks";
+import { readLocalStorageValue, useLocalStorage } from "@mantine/hooks";
 import { useCallback } from "react";
 import {
   NO_RECENT_ROOMS,
@@ -8,23 +8,31 @@ import {
   type RecentRooms,
 } from "./recentRoomList";
 
+const STORAGE = {
+  key: "alea-recent-rooms",
+  defaultValue: NO_RECENT_ROOMS,
+  deserialize: parseRecentRooms,
+};
+
 export function useRecentRooms() {
   const [recent, setRecent] = useLocalStorage<RecentRooms>({
-    key: "alea-recent-rooms",
-    defaultValue: NO_RECENT_ROOMS,
+    ...STORAGE,
     getInitialValueInEffect: false,
-    deserialize: parseRecentRooms,
   });
 
-  // Stable, so a room can record its visit in an effect without running it again.
-  const visit = useCallback(
-    (id: string) => setRecent((current) => visitRoom(current, id, Date.now())),
-    [setRecent],
-  );
   const remove = useCallback(
     (id: string) => setRecent((current) => removeRoom(current, id)),
     [setRecent],
   );
 
-  return { rooms: recent.rooms, visit, remove };
+  return { rooms: recent.rooms, remove };
+}
+
+// A plain call instead of the hook, so an open room does not re-render when the list changes.
+export function recordVisit(id: string) {
+  const stored = readLocalStorageValue<RecentRooms>(STORAGE);
+  localStorage.setItem(
+    STORAGE.key,
+    JSON.stringify(visitRoom(stored, id, Date.now())),
+  );
 }
