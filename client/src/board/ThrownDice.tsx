@@ -10,9 +10,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Group, Line, Text } from "react-konva";
 import { rollDie, type DieSides } from "../room/dice";
 import { dieShape } from "../dice/dieShapes";
-import { pathLength, pointAlong, ROLL_SECONDS } from "../dice/throwPath";
+import {
+  pathLength,
+  pointAlong,
+  ROLL_SECONDS,
+  throwInDirection,
+} from "../dice/throwPath";
 import { tokenHits, type TokenHit } from "../dice/tokenHits";
-import { CELL_SIZE } from "../room/grid";
+import { CELL_SIZE, type MapBounds } from "../room/grid";
 import { dieColors } from "../dice/dieColors";
 import { rollColor, rollPath } from "../room/rolls";
 import { useRoom } from "../room/RoomContext";
@@ -27,16 +32,15 @@ const KNOCK_DISTANCE = CELL_SIZE;
 const KNOCK_TURN = 35;
 const KNOCK_SECONDS = 0.25;
 const SETTLE_SECONDS = 0.8;
+const CLICK_THROW_MIN_CELLS = 2;
+const CLICK_THROW_MAX_CELLS = 5;
 
-function beforeFlyIn(x: number, y: number) {
-  return {
-    x: x - 120,
-    y: y - 160,
-    rotation: -720,
-    scaleX: 0.3,
-    scaleY: 0.3,
-    opacity: 0,
-  };
+function randomThrow(start: Vector2d, bounds: MapBounds) {
+  const angle = Math.random() * 2 * Math.PI;
+  const cells =
+    CLICK_THROW_MIN_CELLS +
+    Math.random() * (CLICK_THROW_MAX_CELLS - CLICK_THROW_MIN_CELLS);
+  return throwInDirection(start, angle, cells * CELL_SIZE, bounds);
 }
 
 function atPathStart(path: number[]) {
@@ -47,23 +51,6 @@ function atPathStart(path: number[]) {
     scaleY: 1,
     opacity: 1,
   };
-}
-
-function flyIn(group: GroupNode, x: number, y: number, onLanded: () => void) {
-  const tween = new Tween({
-    node: group,
-    duration: ROLL_SECONDS,
-    easing: Easings.BackEaseOut,
-    x,
-    y,
-    rotation: 0,
-    scaleX: 1,
-    scaleY: 1,
-    opacity: 1,
-    onFinish: onLanded,
-  });
-  tween.play();
-  return () => tween.destroy();
 }
 
 function easeOut(progress: number) {
@@ -177,14 +164,13 @@ function ThrownDie({
   const room = useRoom();
   const theme = useMantineTheme();
   const colors = dieColors(theme, color);
-  // Clicked dice have no position; each viewer throws them into their own view.
-  // Both are fixed when the die appears, so later renders cannot restart the roll.
-  const [{ x, y }] = useState(() => position ?? viewCenter());
-  const [rollingPath] = useState(path);
+  // Clicked dice have no path; each viewer throws them from their own view in a random direction.
+  // Fixed when the die appears, so later renders cannot restart the roll.
+  const [rollingPath] = useState(
+    () => path ?? randomThrow(position ?? viewCenter(), room.mapBounds()),
+  );
   const [hits] = useState(() =>
-    rollingPath
-      ? tokenHits(rollingPath, Array.from(room.tokensMap.values()), DIE_RADIUS)
-      : [],
+    tokenHits(rollingPath, Array.from(room.tokensMap.values()), DIE_RADIUS),
   );
   const groupRef = useRef<GroupNode>(null);
   const textRef = useRef<TextNode>(null);
@@ -225,9 +211,7 @@ function ThrownDie({
         stopKnocks.push(knockToken(stage, hit));
       }
     };
-    const stopRolling = rollingPath
-      ? rollAlong(group, rollingPath, knockReached, land)
-      : flyIn(group, x, y, land);
+    const stopRolling = rollAlong(group, rollingPath, knockReached, land);
     return () => {
       clearInterval(flicker);
       clearTimeout(fadeTimer);
@@ -235,13 +219,10 @@ function ThrownDie({
       fade?.destroy();
       for (const stopKnock of stopKnocks) stopKnock();
     };
-  }, [id, sides, value, x, y, rollingPath, hits, onDone]);
+  }, [id, sides, value, rollingPath, hits, onDone]);
 
   return (
-    <Group
-      ref={groupRef}
-      {...(rollingPath ? atPathStart(rollingPath) : beforeFlyIn(x, y))}
-    >
+    <Group ref={groupRef} {...atPathStart(rollingPath)}>
       <Line
         points={dieShape(sides, DIE_RADIUS)}
         closed

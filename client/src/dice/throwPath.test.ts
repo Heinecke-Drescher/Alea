@@ -4,6 +4,7 @@ import {
   MAX_THROW_DISTANCE,
   pathLength,
   pointAlong,
+  throwInDirection,
   throwPath,
 } from "./throwPath";
 
@@ -63,6 +64,23 @@ describe("dragVelocity", () => {
   it("has no swing without movement over time", () => {
     expect(dragVelocity([])).toEqual({ x: 0, y: 0 });
     expect(dragVelocity([{ x: 5, y: 5, time: 10 }])).toEqual({ x: 0, y: 0 });
+  });
+});
+
+describe("throwInDirection", () => {
+  it("rolls the given distance in the given direction", () => {
+    expect(rounded(throwInDirection({ x: 100, y: 100 }, 0, 150, map))).toEqual([
+      100, 100, 250, 100,
+    ]);
+    expect(
+      rounded(throwInDirection({ x: 100, y: 100 }, Math.PI / 2, 150, map)),
+    ).toEqual([100, 100, 100, 250]);
+  });
+
+  it("bounces off an edge like a dragged throw", () => {
+    expect(
+      rounded(throwInDirection({ x: 100, y: 100 }, Math.PI, 150, map)),
+    ).toEqual([100, 100, 0, 100, 30, 100]);
   });
 });
 

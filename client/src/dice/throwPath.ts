@@ -62,6 +62,17 @@ export function dragVelocity(samples: DragSample[]): Vector2d {
   };
 }
 
+export function throwInDirection(
+  start: Vector2d,
+  angle: number,
+  distance: number,
+  bounds: MapBounds,
+) {
+  const speed = distance / SECONDS_OF_ROLLING;
+  const velocity = { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
+  return throwPath(start, velocity, bounds);
+}
+
 export function throwPath(
   drop: Vector2d,
   velocity: Vector2d,
