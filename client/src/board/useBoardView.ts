@@ -1,13 +1,14 @@
 import { clamp } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
-import type { Vector2d } from "konva/lib/types";
-import { useEffect, type RefObject } from "react";
+import type { IRect, Vector2d } from "konva/lib/types";
+import type { RefObject } from "react";
 import type { Room } from "../room/createRoom";
-import { clampToMap } from "../room/grid";
+import { clampToMap, mapRect } from "../room/grid";
 import { LEFT_MOUSE_BUTTON } from "./mouse";
 
-const MAP_START_X = 72;
+// Keeps the fitted map clear of the toolbar and the fit button; the same on every side, so the map stays centered.
+export const VIEW_MARGIN = 72;
 const ZOOM_STEP = 1.1;
 export const MIN_ZOOM = 0.25;
 export const MAX_ZOOM = 4;
@@ -46,6 +47,24 @@ export function zoomedView(
   };
 }
 
+export function fittedView(
+  map: IRect,
+  stage: { width: number; height: number },
+): View {
+  const width = stage.width - 2 * VIEW_MARGIN;
+  const height = stage.height - 2 * VIEW_MARGIN;
+  const scale = clamp(
+    Math.min(width / map.width, height / map.height),
+    MIN_ZOOM,
+    MAX_ZOOM,
+  );
+  return {
+    scale,
+    x: stage.width / 2 - (map.x + map.width / 2) * scale,
+    y: stage.height / 2 - (map.y + map.height / 2) * scale,
+  };
+}
+
 export function wheelPixels(
   {
     deltaX,
@@ -70,12 +89,6 @@ export function useBoardView(
     if (!stage) throw new Error("Stage is not mounted");
     return stage;
   }
-
-  useEffect(() => {
-    const stage = stageRef.current;
-    if (!stage) throw new Error("Stage is not mounted");
-    stage.x(MAP_START_X);
-  }, [stageRef]);
 
   // Like drawing tools: the wheel or two fingers pan, Ctrl + wheel zooms.
   // Pinching a trackpad arrives as a wheel event with Ctrl.
@@ -115,5 +128,12 @@ export function useBoardView(
     return clampToMap(center, room.mapBounds());
   }
 
-  return { panOrZoom, panOnlyWithMiddleButton, viewCenter };
+  function fitMap() {
+    const stage = mountedStage();
+    const { scale, x, y } = fittedView(mapRect(room.mapBounds()), stage.size());
+    stage.scale({ x: scale, y: scale });
+    stage.position({ x, y });
+  }
+
+  return { panOrZoom, panOnlyWithMiddleButton, viewCenter, fitMap };
 }

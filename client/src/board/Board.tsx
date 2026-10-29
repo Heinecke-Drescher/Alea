@@ -1,9 +1,16 @@
-import { Box, useMantineTheme } from "@mantine/core";
+import {
+  ActionIcon,
+  Box,
+  Paper,
+  Tooltip,
+  useMantineTheme,
+} from "@mantine/core";
 import { useElementSize, useHotkeys } from "@mantine/hooks";
+import { IconZoomScan } from "@tabler/icons-react";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
-import { useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Layer, Stage } from "react-konva";
 import type { Critical } from "../dice/criticalRoll";
 import { usePlayer } from "../player/PlayerContext";
@@ -96,14 +103,22 @@ export function Board({
     onPaste: () => changeTool("select"),
   });
   const stageRef = useRef<StageNode>(null);
-  const { panOrZoom, panOnlyWithMiddleButton, viewCenter } = useBoardView(
-    room,
-    stageRef,
-  );
+  const { panOrZoom, panOnlyWithMiddleButton, viewCenter, fitMap } =
+    useBoardView(room, stageRef);
   const cursor = useCursorBroadcast(awareness);
   const dieDrop = useDieDrop({ stageRef });
   const imageDrop = useImageDrop(stageRef);
   const backgroundImage = useBackgroundImage();
+  const hasSize = width > 0 && height > 0;
+  const fitOnOpen = useEffectEvent(fitMap);
+  const fittedWhenSynced = useRef<boolean | null>(null);
+
+  // Once the board has its size, and again once the room's own map has loaded; never later.
+  useEffect(() => {
+    if (!hasSize || fittedWhenSynced.current === isSynced) return;
+    fittedWhenSynced.current = isSynced;
+    fitOnOpen();
+  }, [hasSize, isSynced]);
 
   // Keeps the browser's own copy and paste working, e.g. for text in the dice history.
   const keepDefault = { preventDefault: false };
@@ -119,6 +134,8 @@ export function Board({
     ["mod+X", clipboard.cut, keepDefault],
     ["mod+V", clipboard.paste, keepDefault],
     ["Delete", clipboard.remove, keepDefault],
+    // The physical key, since Shift+1 types another character on many layouts.
+    ["shift+Digit1", fitMap, { usePhysicalKeys: true }],
   ]);
 
   const isSelecting = activeTool.selectsItems;
@@ -289,6 +306,25 @@ export function Board({
             <Cursors awareness={awareness} />
           </Layer>
         </Stage>
+        <Paper
+          pos="absolute"
+          bottom={12}
+          right={12}
+          p={4}
+          shadow="sm"
+          withBorder
+        >
+          <Tooltip label="Fit map (Shift+1)" position="left">
+            <ActionIcon
+              variant="subtle"
+              size="lg"
+              aria-label="Fit map"
+              onClick={fitMap}
+            >
+              <IconZoomScan size={20} />
+            </ActionIcon>
+          </Tooltip>
+        </Paper>
         <Toolbar
           activeTool={tool}
           onToolChange={changeTool}
