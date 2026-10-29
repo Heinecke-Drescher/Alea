@@ -24,6 +24,7 @@ import {
   type StrokeData,
   type Token,
 } from "./roomStore";
+import { assertSpace } from "./roomSpace";
 import { strokeTouches } from "./strokeTouches";
 
 export interface Clip {
@@ -173,6 +174,13 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
   function paste(clip: Clip, dx: number, dy: number, overFog = false) {
     if (hasGridContent(clip) && !isWholeCells(dx, dy)) {
       throw new Error("Cells and tokens can only be pasted in whole cells");
+    }
+    if (clip.tokens.length > 0) {
+      const imageBytes = clip.tokens.reduce(
+        (sum, token) => sum + token.image.length,
+        0,
+      );
+      assertSpace(doc, imageBytes, "the copied tokens");
     }
     undoManager.stopCapturing();
     const pasted: Items = { strokes: [], tokens: [] };

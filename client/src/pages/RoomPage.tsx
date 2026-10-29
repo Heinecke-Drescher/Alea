@@ -18,6 +18,7 @@ import { isValidRoomId } from "../../../shared/roomId";
 import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
+import { showRoomSpaceError } from "../images/showRoomSpaceError";
 import {
   ShowCriticalContext,
   useCriticalRolls,
@@ -72,10 +73,18 @@ function RoomView({ roomId }: { roomId: string }) {
     if (isSynced) recordVisit(roomId);
   }, [isSynced, roomId]);
 
+  function undoOrRedo(step: () => void) {
+    try {
+      step();
+    } catch (error) {
+      showRoomSpaceError(error);
+    }
+  }
+
   useHotkeys([
-    ["mod+Z", () => room.undoManager.undo()],
-    ["mod+Y", () => room.undoManager.redo()],
-    ["mod+shift+Z", () => room.undoManager.redo()],
+    ["mod+Z", () => undoOrRedo(room.undo)],
+    ["mod+Y", () => undoOrRedo(room.redo)],
+    ["mod+shift+Z", () => undoOrRedo(room.redo)],
   ]);
 
   if (isFull) return <RoomFull />;

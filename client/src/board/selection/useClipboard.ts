@@ -2,8 +2,9 @@ import { notifications } from "@mantine/notifications";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef, type RefObject } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
+import { showRoomSpaceError } from "../../images/showRoomSpaceError";
 import { usePlayer } from "../../player/PlayerContext";
-import { hasGridContent, type Clip } from "../../room/areaActions";
+import { hasGridContent, type Clip, type Items } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
 import { hasShapes } from "../../room/drawing";
 import { CELL_SIZE, mapRect, type MapBounds } from "../../room/grid";
@@ -106,7 +107,13 @@ export function useClipboard({
     const destination = { ...bounds, x: bounds.x + dx, y: bounds.y + dy };
     if (hasGridContent(clip) && fogGuard.hidesRect(destination)) return;
     onPaste();
-    const pasted = room.paste(clip, dx, dy, !isDm);
+    let pasted: Items;
+    try {
+      pasted = room.paste(clip, dx, dy, !isDm);
+    } catch (error) {
+      showRoomSpaceError(error);
+      return;
+    }
     // A frame around the paste would also catch what was there before.
     if (isArea) {
       selection.clear();

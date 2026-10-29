@@ -21,7 +21,12 @@ import {
   type RoomStore,
   type StrokeData,
 } from "./roomStore";
-import { megabytes, storedBytes } from "./roomSpace";
+import {
+  megabytes,
+  ROOM_SPACE_BYTES,
+  RoomSpaceError,
+  storedBytes,
+} from "./roomSpace";
 import { isShapeKind, shapeCells, type AreaShape } from "./shapes";
 import { embeddedImage } from "./tokens";
 
@@ -297,9 +302,9 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
     Y.applyUpdate(copy, Y.encodeStateAsUpdate(doc));
     writeMap(createRoomStore(copy), file);
     const bytes = storedBytes(copy);
-    if (bytes <= MAX_ROOM_BYTES) return;
-    throw new Error(
-      `With this map the room would need ${megabytes(bytes)} MB, but it can hold at most ${megabytes(MAX_ROOM_BYTES)} MB. Use smaller or fewer images.`,
+    if (bytes <= ROOM_SPACE_BYTES) return;
+    throw new RoomSpaceError(
+      `With this map the room would need ${megabytes(bytes)} MB, but it can hold at most ${megabytes(ROOM_SPACE_BYTES)} MB. Use smaller or fewer images.`,
     );
   }
 

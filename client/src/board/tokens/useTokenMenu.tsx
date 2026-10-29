@@ -13,6 +13,7 @@ import {
   useContextMenu,
 } from "mantine-contextmenu";
 import { useFogGuard } from "../../fog/useFogGuard";
+import { showRoomSpaceError } from "../../images/showRoomSpaceError";
 import type { Room } from "../../room/createRoom";
 import { STATUS_EFFECTS, tokenEffects } from "../../room/effects";
 import type { Token } from "../../room/roomStore";
@@ -28,7 +29,13 @@ export function useTokenMenu(room: Room, selection: SelectionControls) {
   const fogGuard = useFogGuard();
 
   function duplicate(token: Token) {
-    const copyId = room.duplicateToken(token.id, fogGuard.blockedSquares());
+    let copyId: string | undefined;
+    try {
+      copyId = room.duplicateToken(token.id, fogGuard.blockedSquares());
+    } catch (error) {
+      showRoomSpaceError(error);
+      return;
+    }
     if (copyId) {
       selection.set(itemsSelection({ ...NO_ITEMS, tokens: [copyId] }));
     } else if (room.tokensMap.has(token.id)) {
