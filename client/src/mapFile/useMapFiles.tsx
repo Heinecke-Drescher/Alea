@@ -5,7 +5,7 @@ import { notifications } from "@mantine/notifications";
 import { usePlayer } from "../player/PlayerContext";
 import type { Room } from "../room/createRoom";
 import { useRoom } from "../room/RoomContext";
-import { parseMapFile, type MapFile } from "../room/roomFile";
+import { checkMapFileSize, parseMapFile, type MapFile } from "../room/roomFile";
 import { useDm } from "../room/useDm";
 
 function downloadMap(room: Room) {
@@ -48,6 +48,7 @@ export function useMapFiles() {
   async function importFile(file: File) {
     let map: MapFile;
     try {
+      checkMapFileSize(file.size);
       map = parseMapFile(await file.text());
     } catch (error) {
       notifications.show({

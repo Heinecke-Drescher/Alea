@@ -158,10 +158,14 @@ function parseToken(value: unknown, bounds: MapBounds) {
   };
 }
 
-export function parseMapFile(json: string): MapFile {
-  if (json.length > MAX_ROOM_BYTES) {
+// Checked before reading, so a huge file chosen by mistake is never loaded.
+export function checkMapFileSize(bytes: number) {
+  if (bytes > MAX_ROOM_BYTES) {
     invalid(`larger than ${megabytes(MAX_ROOM_BYTES)} MB`);
   }
+}
+
+export function parseMapFile(json: string): MapFile {
   let value: unknown;
   try {
     value = JSON.parse(json);

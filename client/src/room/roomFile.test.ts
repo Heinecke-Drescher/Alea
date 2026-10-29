@@ -5,7 +5,7 @@ import { BACKGROUND_IMAGE_ID } from "./background";
 import { createRoom, type Room } from "./createRoom";
 import { DEFAULT_MAP_BOUNDS } from "./grid";
 import { MAP_IMAGE_KEY } from "./mapImage";
-import { parseMapFile, type MapFile } from "./roomFile";
+import { checkMapFileSize, parseMapFile, type MapFile } from "./roomFile";
 import { megabytes } from "./roomSpace";
 import type { AreaShape } from "./shapes";
 
@@ -254,9 +254,13 @@ describe("map files", () => {
     expect(() => parseMapFile(json)).toThrow("not a valid map file");
   });
 
-  it("rejects files that are no JSON or too large", () => {
+  it("rejects files that are no JSON", () => {
     expect(() => parseMapFile("not json")).toThrow("not a valid map file");
-    expect(() => parseMapFile(" ".repeat(MAX_ROOM_BYTES + 1))).toThrow(
+  });
+
+  it("rejects files larger than a room may be", () => {
+    expect(() => checkMapFileSize(MAX_ROOM_BYTES)).not.toThrow();
+    expect(() => checkMapFileSize(MAX_ROOM_BYTES + 1)).toThrow(
       `larger than ${megabytes(MAX_ROOM_BYTES)} MB`,
     );
   });
