@@ -16,5 +16,6 @@ export async function addTokenFromFile(
   { cell, blocked }: Placement = {},
 ) {
   const imageDataUrl = await createImage(file, TOKEN_IMAGE_SIZE);
+  room.assertSpaceForImage(imageDataUrl);
   room.addToken(file.name.replace(/\.[^.]+$/, ""), imageDataUrl, cell, blocked);
 }

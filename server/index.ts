@@ -5,6 +5,7 @@ import { Database } from "@hocuspocus/extension-database";
 import { Throttle } from "@hocuspocus/extension-throttle";
 import { Server } from "@hocuspocus/server";
 import sirv from "sirv";
+import { MAX_ROOM_BYTES } from "../shared/roomLimits.ts";
 import { ROOM_FULL_MESSAGE } from "../shared/roomMessages.ts";
 import { isSameOrigin } from "./origin.ts";
 import { createRoomStorage } from "./roomStorage.ts";
@@ -16,7 +17,7 @@ if (!Number.isInteger(port) || port <= 0) {
 const dataDirectory = path.resolve(process.env.DATA_DIR ?? "data");
 const MAX_MESSAGE_BYTES = 10 * 1024 ** 2;
 const storage = createRoomStorage(path.join(dataDirectory, "rooms"), {
-  maxBytes: 5 * 1024 ** 2,
+  maxBytes: MAX_ROOM_BYTES,
   // At most 10 GB of rooms, a quarter of the server's disk.
   maxRooms: 2000,
 });

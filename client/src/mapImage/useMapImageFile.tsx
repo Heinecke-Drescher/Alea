@@ -9,6 +9,7 @@ import { useImageFileDialog } from "../images/useImageFileDialog";
 import { usePlayer } from "../player/PlayerContext";
 import type { Room } from "../room/createRoom";
 import { CONTENT_OUTSIDE_MESSAGE } from "../room/map";
+import { MAP_IMAGE_KEY } from "../room/mapImage";
 import { useRoom } from "../room/RoomContext";
 import { useDm } from "../room/useDm";
 import { useMapImage } from "../room/useMapImage";
@@ -59,7 +60,9 @@ export function useMapImageFile() {
     multiple: false,
     onFile: async (file) => {
       const size = await imageSize(file);
-      openMapImageDialog(room, await createImage(file, LARGE_IMAGE_SIZE), size);
+      const image = await createImage(file, LARGE_IMAGE_SIZE);
+      room.assertSpaceForImage(image, MAP_IMAGE_KEY);
+      openMapImageDialog(room, image, size);
     },
   });
 

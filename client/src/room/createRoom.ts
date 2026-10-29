@@ -9,6 +9,7 @@ import { createMapImage } from "./mapImage";
 import { createMusic } from "./music";
 import { createRolls } from "./rolls";
 import { createMapFiles } from "./roomFile";
+import { createRoomSpace } from "./roomSpace";
 import { createRoomStore } from "./roomStore";
 import { createTokens } from "./tokens";
 
@@ -30,5 +31,6 @@ export function createRoom(doc: Y.Doc) {
     ...createDm(store),
     ...createFog(store),
     ...createMapFiles(store, map),
+    ...createRoomSpace(store),
   };
 }

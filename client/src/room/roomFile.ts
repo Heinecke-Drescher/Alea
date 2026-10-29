@@ -1,5 +1,6 @@
 import type { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
+import { MAX_ROOM_BYTES } from "../../../shared/roomLimits";
 import { BACKGROUND_IMAGE_ID } from "./background";
 import { isOverFog, newStroke, shapeStroke, strokeData } from "./drawing";
 import { isStatusEffect, tokenEffects, type StatusEffect } from "./effects";
@@ -23,8 +24,7 @@ import { embeddedImage } from "./tokens";
 
 const APP = "alea";
 const VERSION = 1;
-// The server saves at most this much per room.
-export const MAX_MAP_FILE_BYTES = 5 * 1024 ** 2;
+export const MAX_MAP_FILE_BYTES = MAX_ROOM_BYTES;
 
 export interface MapFile {
   app: typeof APP;
