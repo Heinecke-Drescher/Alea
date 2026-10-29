@@ -16,6 +16,7 @@ import { Cells } from "./map/Cells";
 import { FogOfWar } from "./map/FogOfWar";
 import { GridLines } from "./map/GridLines";
 import { MapFill } from "./map/MapFill";
+import { MapImage } from "./map/MapImage";
 import { MapResizer } from "./map/MapResizer";
 import { paintColorValue, type PaintColor } from "./paintColors";
 import {
@@ -211,6 +212,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
         >
           <Layer listening={false}>
             <MapFill />
+            <MapImage />
             <Cells selection={area} />
             <GridLines />
           </Layer>
