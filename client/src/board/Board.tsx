@@ -79,6 +79,7 @@ export function Board({
   // Releasing the DM role while a fog tool is active falls back to selecting.
   const tool = player.isDm || !isFogTool(chosenTool) ? chosenTool : "select";
   const [color, setColor] = useState<PaintColor>("red");
+  const [landings] = useState(() => new Map<string, Vector2d>());
   const selection = useSelection(room);
   const colorValue = paintColorValue(theme, color);
   const { activeTool, draftPoints, measurement, shapeDraft, fogFrame } =
@@ -265,11 +266,14 @@ export function Board({
               <ShapeResizer strokeId={reshapableId} />
             )}
             <SelectionFrame area={area} onMove={selection.moveArea} />
-            {isSynced && <ThrownDice viewCenter={viewCenter} />}
+            {isSynced && (
+              <ThrownDice viewCenter={viewCenter} landings={landings} />
+            )}
             {critical && (
               <Natural20Scene
                 key={critical.id}
                 critical={critical}
+                landings={landings}
                 onDone={onCriticalDone}
               />
             )}

@@ -21,6 +21,7 @@ import {
 } from "../dice/natural20Burst";
 import { mapRect } from "../room/grid";
 import { toPoints } from "../room/points";
+import { ROLL_SECONDS } from "../dice/throwPath";
 import { useRoom } from "../room/RoomContext";
 import { LEFT_MOUSE_BUTTON } from "./mouse";
 
@@ -52,17 +53,22 @@ interface Scene {
 
 interface Natural20SceneProps {
   critical: Critical;
+  landings: ReadonlyMap<string, Vector2d>;
   onDone: (id: string) => void;
 }
 
-export function Natural20Scene({ critical, onDone }: Natural20SceneProps) {
+export function Natural20Scene({
+  critical,
+  landings,
+  onDone,
+}: Natural20SceneProps) {
   const room = useRoom();
   const theme = useMantineTheme();
   const groupRef = useRef<GroupNode>(null);
   const scene = useRef<Scene | null>(null);
   // The whole map when the scene starts.
   const [area, setArea] = useState<IRect | null>(null);
-  const { id, color, delay } = critical;
+  const { id, color, thrown } = critical;
   const colors = dieColors(theme, color);
 
   useHotkeys([["Escape", () => area && onDone(id)]]);
@@ -70,10 +76,11 @@ export function Natural20Scene({ critical, onDone }: Natural20SceneProps) {
   useEffect(() => {
     const timer = setTimeout(
       () => setArea(mapRect(room.mapBounds())),
-      delay * 1000,
+      // A thrown die lands first.
+      thrown ? ROLL_SECONDS * 1000 : 0,
     );
     return () => clearTimeout(timer);
-  }, [delay, room]);
+  }, [thrown, room]);
 
   useEffect(() => {
     if (!area) return;
@@ -83,7 +90,10 @@ export function Natural20Scene({ critical, onDone }: Natural20SceneProps) {
     const spacing = twentySpacing(area);
     const radius = spacing * DIE_SIZE;
     const center = { x: area.x + area.width / 2, y: area.y + area.height / 2 };
-    let dice = burstDice(center, twentyTargets(center, spacing), area, radius);
+    // Secret rolls are not on the map, and a thrown die can be gone, e.g. after the map
+    // was reset or the roll was pushed out of the history; those burst from the middle.
+    const landed = (thrown && landings.get(id)) || center;
+    let dice = burstDice(landed, twentyTargets(center, spacing), area, radius);
     let delays: number[] | null = null;
 
     const animation = new Animation((frame) => {
@@ -120,7 +130,7 @@ export function Natural20Scene({ critical, onDone }: Natural20SceneProps) {
     return () => {
       animation.stop();
     };
-  }, [area, id, onDone]);
+  }, [area, id, thrown, landings, onDone]);
 
   function drawScene(context: Context) {
     if (!scene.current) return;

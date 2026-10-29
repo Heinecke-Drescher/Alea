@@ -148,6 +148,7 @@ interface ThrownDieProps {
   position: Vector2d | undefined;
   path: number[] | null;
   viewCenter: () => Vector2d;
+  landings: Map<string, Vector2d>;
   onDone: (id: string) => void;
 }
 
@@ -159,6 +160,7 @@ function ThrownDie({
   position,
   path,
   viewCenter,
+  landings,
   onDone,
 }: ThrownDieProps) {
   const room = useRoom();
@@ -174,6 +176,14 @@ function ThrownDie({
   );
   const groupRef = useRef<GroupNode>(null);
   const textRef = useRef<TextNode>(null);
+
+  // Known as soon as the path is, so a natural 20 can burst from there.
+  useEffect(() => {
+    landings.set(id, pointAlong(rollingPath, pathLength(rollingPath)));
+    return () => {
+      landings.delete(id);
+    };
+  }, [landings, id, rollingPath]);
 
   useEffect(() => {
     const group = groupRef.current;
@@ -247,8 +257,14 @@ function ThrownDie({
   );
 }
 
+interface ThrownDiceProps {
+  viewCenter: () => Vector2d;
+  // Where each thrown die lands, by roll id.
+  landings: Map<string, Vector2d>;
+}
+
 // Mounted once the room is synced, so rolls loaded from the server are not thrown again.
-export function ThrownDice({ viewCenter }: { viewCenter: () => Vector2d }) {
+export function ThrownDice({ viewCenter, landings }: ThrownDiceProps) {
   const room = useRoom();
   const rolls = useY(room.rollsArray);
   const [earlierRollIds] = useState(
@@ -275,6 +291,7 @@ export function ThrownDice({ viewCenter }: { viewCenter: () => Vector2d }) {
             position={roll.position}
             path={rollPath(roll)}
             viewCenter={viewCenter}
+            landings={landings}
             onDone={markDone}
           />
         ) : null,

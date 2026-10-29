@@ -3,7 +3,6 @@ import type { Room } from "../room/createRoom";
 import type { DieSides } from "../room/dice";
 import { rollColor } from "../room/rolls";
 import { useNewRolls } from "../room/useNewRolls";
-import { ROLL_SECONDS } from "./throwPath";
 import { isFresh, isNatural20, type Critical } from "./criticalRoll";
 
 interface CriticalInput {
@@ -11,16 +10,16 @@ interface CriticalInput {
   sides: DieSides;
   value: number;
   color: ReturnType<typeof rollColor>;
-  delay: number;
+  thrown: boolean;
 }
 
 export function useCriticalRolls(room: Room, isSynced: boolean) {
   const [critical, setCritical] = useState<Critical | null>(null);
 
   const show = useCallback(
-    ({ id, sides, value, color, delay }: CriticalInput) => {
+    ({ id, sides, value, color, thrown }: CriticalInput) => {
       if (isNatural20(sides, value)) {
-        setCritical({ id, color, delay });
+        setCritical({ id, color, thrown });
       }
     },
     [],
@@ -32,10 +31,9 @@ export function useCriticalRolls(room: Room, isSynced: boolean) {
     [],
   );
 
-  // A thrown die lands after its flight, so the scene starts then.
   useNewRolls(room.rollsArray, isSynced, (roll) => {
     if (isFresh(roll.at, Date.now()))
-      show({ ...roll, color: rollColor(roll), delay: ROLL_SECONDS });
+      show({ ...roll, color: rollColor(roll), thrown: true });
   });
 
   return { critical, show, clear };

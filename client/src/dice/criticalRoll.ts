@@ -15,6 +15,6 @@ export function isFresh(at: number, now: number) {
 export interface Critical {
   id: string;
   color: ReturnType<typeof rollColor>;
-  // Seconds to wait, so a die thrown onto the map lands first.
-  delay: number;
+  // A thrown die is on the map; secret rolls are not.
+  thrown: boolean;
 }
