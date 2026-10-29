@@ -1,52 +1,78 @@
 # Alea
 
-A shared map and dice roller for tabletop groups. Create a room, send the link
-to your players and play together in real time.
+A shared map and dice roller for tabletop groups. Start Alea on your computer,
+send the link to your friends and play together in real time in the browser.
 
-- Grid map with zoom and pan; resize it by dragging its edges
-- Tokens with your own images: drag them around, rename, resize, remove
-- Paint cells, draw freehand lines, erase, clear the map
-- Select, move, copy and paste parts of the map, with undo and redo
-- See where the other players point
-- Dice from d4 to d100 with a shared roll history
-- Rooms are saved to disk and survive restarts
+## Features
 
-## Requirements
+- Grid map: resize it, put a map image on it, set a background around it
+- Tokens with your own images: drag them in, move, resize, rename, mark as dead
+  or unconscious
+- Paint cells, draw, erase, measure distances, place cone, square and circle
+  areas
+- Fog of war for the dungeon master
+- Dice from d4 to d100: click to roll, or throw them onto the map; secret rolls
+  for the dungeon master
+- Shared music from a YouTube link
+- Copy, paste and undo; see where the other players point
+- Export a map to a file and import it into any room
 
-- Node.js 24 or newer
+## Host a game for your friends
 
-## Development
+You need [Node.js](https://nodejs.org/) 24 or newer.
 
-```bash
-npm install
-npm run dev
-```
+1. Download the ZIP of the
+   [latest release](https://github.com/Heinecke-Drescher/Alea/releases/latest)
+   and unpack it (or `git clone` the repository).
+2. In that folder, run:
 
-Open http://localhost:5173. `npm run dev` starts the website (Vite) and the
-sync server together.
+   ```bash
+   npm ci
+   npm run build
+   npm start
+   ```
 
-Other scripts:
+   Open http://localhost:3000 and create a room.
 
-| Command                | What it does                     |
-| ---------------------- | -------------------------------- |
-| `npm test`             | Runs the tests in watch mode     |
-| `npm run typecheck`    | Checks the TypeScript types      |
-| `npm run lint`         | Lints the code with oxlint       |
-| `npm run format`       | Formats all files with Prettier  |
-| `npm run format:check` | Checks formatting without fixing |
+3. To let your friends in over the internet, install
+   [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)
+   and start a [Quick Tunnel](https://try.cloudflare.com/) next to Alea:
 
-## Production
+   ```bash
+   cloudflared tunnel --url http://localhost:3000
+   ```
 
-```bash
-npm run build
-npm start
-```
+   It prints an address like `https://….trycloudflare.com`. Open your room
+   through that address and send its link to your friends.
 
-Open http://localhost:3000. A single process serves the website and the sync
-server.
+Good to know:
 
-Restart the server after every build. It reads the list of website files once
-at startup.
+- The tunnel address changes every time you start it.
+- Anyone who knows the address can open Alea while the tunnel runs, so stop it
+  (Ctrl+C) when you are done.
+- Rooms are saved in the `data` folder and are still there next time.
+- In your home network, or in a virtual network such as Hamachi or ZeroTier,
+  your friends can also open `http://<your-ip>:3000` without a tunnel. Your
+  firewall has to let Node.js in for that network; Windows often counts
+  virtual networks as public.
+
+## Controls
+
+| Action               | How                                                           |
+| -------------------- | ------------------------------------------------------------- |
+| Move the map         | Mouse wheel, two fingers or drag with the middle mouse button |
+| Zoom                 | Ctrl + mouse wheel or pinch                                   |
+| Show the whole map   | Shift+1 or the button at the bottom right                     |
+| Add to the selection | Ctrl + click                                                  |
+| Copy, cut, paste     | Ctrl+C, Ctrl+X, Ctrl+V                                        |
+| Delete the selection | Delete                                                        |
+| Undo, redo           | Ctrl+Z, Ctrl+Y                                                |
+| Token menu           | Right-click a token                                           |
+
+On a Mac, use ⌘ instead of Ctrl.
+
+<details>
+<summary>Run Alea on a server</summary>
 
 On a Linux server, [`deploy/alea.service`](deploy/alea.service) runs Alea as a
 systemd service: code in `/opt/alea`, rooms in `/var/lib/alea/data`, user
@@ -58,9 +84,12 @@ sudo systemctl enable --now alea alea-cleanup.timer
 ```
 
 To update to the latest version, run `sudo sh /opt/alea/deploy/update.sh`.
+If you build by hand, restart the server afterwards; it reads the list of
+website files once at startup.
 
-For HTTPS, put a reverse proxy in front of it. With [Caddy](https://caddyserver.com/),
-which gets the certificate by itself, the whole `Caddyfile` is:
+For HTTPS, put a reverse proxy in front of it. With
+[Caddy](https://caddyserver.com/), which gets the certificate by itself, the
+whole `Caddyfile` is:
 
 ```
 alea.example.com {
@@ -68,39 +97,39 @@ alea.example.com {
 }
 ```
 
-## Configuration
-
 | Variable   | Default  | Meaning                           |
 | ---------- | -------- | --------------------------------- |
 | `PORT`     | `3000`   | Port of the server                |
 | `DATA_DIR` | `./data` | Folder where the rooms are stored |
 
-The server refuses to start if a value is invalid.
+The server refuses to start if a value is invalid. Each room is one file in
+`<DATA_DIR>/rooms/`; to back up or move all rooms, copy that folder.
 
-## Playing over the internet
+</details>
 
-Everyone in your local network can open `http://<your-ip>:3000`.
-
-For a quick test over the internet, start a
-[Cloudflare Quick Tunnel](https://try.cloudflare.com/) next to `npm start`:
+<details>
+<summary>Development</summary>
 
 ```bash
-cloudflared tunnel --url http://localhost:3000
+npm install
+npm run dev
 ```
 
-It prints a public `https://….trycloudflare.com` address. Anyone who knows that
-address can open the site while the tunnel runs, so stop it when you are done.
+Open http://localhost:5173. `npm run dev` starts the website (Vite) and the
+sync server together.
 
-## Data
+| Command                | What it does                     |
+| ---------------------- | -------------------------------- |
+| `npm test`             | Runs the tests in watch mode     |
+| `npm run typecheck`    | Checks the TypeScript types      |
+| `npm run lint`         | Lints the code with oxlint       |
+| `npm run format`       | Formats all files with Prettier  |
+| `npm run format:check` | Checks formatting without fixing |
 
-- Each room is stored as one file in `data/rooms/<room-id>.ydoc`.
-- To back up or move all rooms, copy the `data` folder.
-- To delete a room, delete its file while the server is stopped.
+| Folder    | Contents                                        |
+| --------- | ----------------------------------------------- |
+| `client/` | The website: React, Mantine and Konva           |
+| `server/` | The sync server: Hocuspocus with file storage   |
+| `shared/` | Code used by both: room ids and the room limits |
 
-## Project structure
-
-| Folder    | Contents                                                     |
-| --------- | ------------------------------------------------------------ |
-| `client/` | The website: React, Mantine and Konva                        |
-| `server/` | The sync server: Hocuspocus with file storage                |
-| `shared/` | Code used by both, such as dice rolls and room id validation |
+</details>
