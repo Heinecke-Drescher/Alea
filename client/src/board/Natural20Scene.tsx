@@ -36,10 +36,14 @@ const OUTLINE_WIDTH = 0.05;
 // Far beyond any view, so a click anywhere ends the scene instead of using the active tool.
 const CLICK_CATCHER_SIZE = 1e6;
 const SLOGAN = "LET'S GO";
-// It lands like a stamp: from large to its size within this time.
-const STAMP_SECONDS = 0.2;
-const STAMP_START_SCALE = 2.5;
 const SLOGAN_TILT = -8;
+// The letters pop up one after another, then sway a little.
+const LETTER_DELAY_SECONDS = 0.05;
+const LETTER_POP_SECONDS = 0.3;
+const LETTER_OVERSHOOT = 1.7;
+const SWAY_SPEED = 8;
+const SWAY_OFFSET = 0.6;
+const SWAY_HEIGHT = 0.06;
 
 interface Scene {
   center: Vector2d;
@@ -49,6 +53,14 @@ interface Scene {
   glow: number;
   // Seconds since the number was finished, negative before.
   holding: number;
+}
+
+function easeOutBack(progress: number) {
+  return (
+    1 +
+    (LETTER_OVERSHOOT + 1) * (progress - 1) ** 3 +
+    LETTER_OVERSHOOT * (progress - 1) ** 2
+  );
 }
 
 interface Natural20SceneProps {
@@ -178,22 +190,42 @@ export function Natural20Scene({
     canvas: CanvasRenderingContext2D,
     { center, spacing, holding }: Scene,
   ) {
-    const stamped = Math.min(holding / STAMP_SECONDS, 1);
-    const scale = 1 + (STAMP_START_SCALE - 1) * (1 - stamped) ** 3;
     canvas.save();
-    canvas.globalAlpha *= stamped;
     canvas.translate(center.x + 5.5 * spacing, center.y + 3.6 * spacing);
     canvas.rotate((SLOGAN_TILT * Math.PI) / 180);
-    canvas.scale(scale, scale);
-    canvas.font = `italic 900 ${spacing * 1.1}px ${theme.fontFamily}`;
-    canvas.textAlign = "right";
-    canvas.textBaseline = "top";
+    const size = spacing * 1.1;
+    canvas.font = `italic 900 ${size}px ${theme.fontFamily}`;
+    canvas.textAlign = "center";
+    canvas.textBaseline = "middle";
     canvas.lineJoin = "round";
     canvas.lineWidth = spacing * 0.15;
     canvas.strokeStyle = colors.fill;
-    canvas.strokeText(SLOGAN, 0, 0);
     canvas.fillStyle = "white";
-    canvas.fillText(SLOGAN, 0, 0);
+    const width = canvas.measureText(SLOGAN).width;
+    const eachLetter = (draw: (letter: string) => void) => {
+      [...SLOGAN].forEach((letter, i) => {
+        const popped = Math.min(
+          (holding - i * LETTER_DELAY_SECONDS) / LETTER_POP_SECONDS,
+          1,
+        );
+        if (popped <= 0) return;
+        // Measured up to and with the letter, so the font's spacing between letter pairs stays.
+        const right = canvas.measureText(SLOGAN.slice(0, i + 1)).width;
+        const sway = Math.sin(holding * SWAY_SPEED + i * SWAY_OFFSET) * popped;
+        canvas.save();
+        canvas.translate(
+          right - canvas.measureText(letter).width / 2 - width,
+          size / 2 + sway * spacing * SWAY_HEIGHT,
+        );
+        const scale = easeOutBack(popped);
+        canvas.scale(scale, scale);
+        draw(letter);
+        canvas.restore();
+      });
+    };
+    // All outlines first, so no outline covers the neighbouring letter.
+    eachLetter((letter) => canvas.strokeText(letter, 0, 0));
+    eachLetter((letter) => canvas.fillText(letter, 0, 0));
     canvas.restore();
   }
 
