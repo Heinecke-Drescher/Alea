@@ -45,20 +45,32 @@ export function useMapFiles() {
     },
   });
 
+  function showImportError(file: File, error: unknown) {
+    notifications.show({
+      color: "red",
+      title: `Could not import ${file.name}`,
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+
   async function importFile(file: File) {
     let map: MapFile;
     try {
       checkMapFileSize(file.size);
       map = parseMapFile(await file.text());
+      room.assertSpaceForMap(map);
     } catch (error) {
-      notifications.show({
-        color: "red",
-        title: `Could not import ${file.name}`,
-        message: error instanceof Error ? error.message : String(error),
-      });
+      showImportError(file, error);
       return;
     }
-    confirmImport(() => room.importMap(map));
+    // Checked again on import: others may have filled the room while the dialog was open.
+    confirmImport(() => {
+      try {
+        room.importMap(map);
+      } catch (error) {
+        showImportError(file, error);
+      }
+    });
   }
 
   return {

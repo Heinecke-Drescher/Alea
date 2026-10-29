@@ -1,5 +1,6 @@
 import type { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
+import * as Y from "yjs";
 import { MAX_ROOM_BYTES } from "../../../shared/roomLimits";
 import { BACKGROUND_IMAGE_ID } from "./background";
 import { isOverFog, newStroke, shapeStroke, strokeData } from "./drawing";
@@ -15,16 +16,20 @@ import { BOUNDS_KEY, type MapActions } from "./map";
 import { MAP_IMAGE_KEY, validMapImage, type MapImage } from "./mapImage";
 import {
   cellKey,
+  createRoomStore,
   type Cell,
   type RoomStore,
   type StrokeData,
 } from "./roomStore";
-import { megabytes } from "./roomSpace";
+import { megabytes, storedBytes } from "./roomSpace";
 import { isShapeKind, shapeCells, type AreaShape } from "./shapes";
 import { embeddedImage } from "./tokens";
 
 const APP = "alea";
 const VERSION = 1;
+// Only guards against huge files chosen by mistake. The JSON text of cells and strokes is larger
+// than their binary form in the room, so whether a map fits is measured on the room itself.
+export const MAX_MAP_FILE_BYTES = 2 * MAX_ROOM_BYTES;
 
 export interface MapFile {
   app: typeof APP;
@@ -160,8 +165,8 @@ function parseToken(value: unknown, bounds: MapBounds) {
 
 // Checked before reading, so a huge file chosen by mistake is never loaded.
 export function checkMapFileSize(bytes: number) {
-  if (bytes > MAX_ROOM_BYTES) {
-    invalid(`larger than ${megabytes(MAX_ROOM_BYTES)} MB`);
+  if (bytes > MAX_MAP_FILE_BYTES) {
+    invalid(`larger than ${megabytes(MAX_MAP_FILE_BYTES)} MB`);
   }
 }
 
@@ -198,7 +203,7 @@ export function parseMapFile(json: string): MapFile {
   };
 }
 
-export function createMapFiles(
+function writeMap(
   {
     doc,
     tokensMap,
@@ -207,10 +212,53 @@ export function createMapFiles(
     strokesMap,
     fogMap,
     settingsMap,
-    undoManager,
   }: RoomStore,
-  { mapBounds }: MapActions,
+  file: MapFile,
 ) {
+  doc.transact(() => {
+    cellsMap.clear();
+    strokesMap.clear();
+    tokensMap.clear();
+    imagesMap.clear();
+    fogMap.clear();
+    settingsMap.set(BOUNDS_KEY, file.bounds);
+    settingsMap.delete(MAP_IMAGE_KEY);
+    for (const cell of file.cells) cellsMap.set(cellKey(cell.x, cell.y), cell);
+    for (const stroke of file.strokes) {
+      strokesMap.set(...newStroke(stroke, isOverFog(stroke)));
+    }
+    for (const { image: tokenImage, effects, ...token } of file.tokens) {
+      const id = nanoid();
+      const imageId = nanoid();
+      imagesMap.set(imageId, tokenImage);
+      tokensMap.set(id, {
+        ...token,
+        id,
+        imageId,
+        ...(effects.length > 0 && { effects }),
+      });
+    }
+    if (file.background) imagesMap.set(BACKGROUND_IMAGE_ID, file.background);
+    if (file.mapImage) {
+      imagesMap.set(MAP_IMAGE_KEY, file.mapImage.image);
+      settingsMap.set(MAP_IMAGE_KEY, file.mapImage.bounds);
+    }
+    for (const { x, y } of file.fog) fogMap.set(cellKey(x, y), { x, y });
+  });
+}
+
+export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
+  const {
+    doc,
+    tokensMap,
+    imagesMap,
+    cellsMap,
+    strokesMap,
+    fogMap,
+    settingsMap,
+    undoManager,
+  } = store;
+
   function exportMap(): MapFile {
     const mapImage = validMapImage(
       imagesMap.get(MAP_IMAGE_KEY),
@@ -242,42 +290,26 @@ export function createMapFiles(
     };
   }
 
+  // Tried on a copy first, so a map that would overfill the room never reaches the server,
+  // which would disconnect everyone.
+  function assertSpaceForMap(file: MapFile) {
+    const copy = new Y.Doc();
+    Y.applyUpdate(copy, Y.encodeStateAsUpdate(doc));
+    writeMap(createRoomStore(copy), file);
+    const bytes = storedBytes(copy);
+    if (bytes <= MAX_ROOM_BYTES) return;
+    throw new Error(
+      `With this map the room would need ${megabytes(bytes)} MB, but it can hold at most ${megabytes(MAX_ROOM_BYTES)} MB. Use smaller or fewer images.`,
+    );
+  }
+
   // One undo step, so undo brings back the whole map as it was before.
   function importMap(file: MapFile) {
+    assertSpaceForMap(file);
     undoManager.stopCapturing();
-    doc.transact(() => {
-      cellsMap.clear();
-      strokesMap.clear();
-      tokensMap.clear();
-      imagesMap.clear();
-      fogMap.clear();
-      settingsMap.set(BOUNDS_KEY, file.bounds);
-      settingsMap.delete(MAP_IMAGE_KEY);
-      for (const cell of file.cells)
-        cellsMap.set(cellKey(cell.x, cell.y), cell);
-      for (const stroke of file.strokes) {
-        strokesMap.set(...newStroke(stroke, isOverFog(stroke)));
-      }
-      for (const { image: tokenImage, effects, ...token } of file.tokens) {
-        const id = nanoid();
-        const imageId = nanoid();
-        imagesMap.set(imageId, tokenImage);
-        tokensMap.set(id, {
-          ...token,
-          id,
-          imageId,
-          ...(effects.length > 0 && { effects }),
-        });
-      }
-      if (file.background) imagesMap.set(BACKGROUND_IMAGE_ID, file.background);
-      if (file.mapImage) {
-        imagesMap.set(MAP_IMAGE_KEY, file.mapImage.image);
-        settingsMap.set(MAP_IMAGE_KEY, file.mapImage.bounds);
-      }
-      for (const { x, y } of file.fog) fogMap.set(cellKey(x, y), { x, y });
-    });
+    writeMap(store, file);
     undoManager.stopCapturing();
   }
 
-  return { exportMap, importMap };
+  return { exportMap, importMap, assertSpaceForMap };
 }

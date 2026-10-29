@@ -6,17 +6,17 @@ export function megabytes(bytes: number) {
   return (bytes / 1024 ** 2).toFixed(1);
 }
 
-export function createRoomSpace({ doc, imagesMap }: RoomStore) {
-  // Measured on a copy: undo keeps deleted images in this document, but the server drops them.
-  function usedBytes() {
-    const copy = new Y.Doc();
-    Y.applyUpdate(copy, Y.encodeStateAsUpdate(doc));
-    return Y.encodeStateAsUpdate(copy).byteLength;
-  }
+// Measured on a copy: undo keeps deleted content in a document, but the server drops it.
+export function storedBytes(doc: Y.Doc) {
+  const copy = new Y.Doc();
+  Y.applyUpdate(copy, Y.encodeStateAsUpdate(doc));
+  return Y.encodeStateAsUpdate(copy).byteLength;
+}
 
+export function createRoomSpace({ doc, imagesMap }: RoomStore) {
   // Throws a message for the player, so a full room shows up before the server refuses to save it.
   function assertSpaceForImage(image: string, replacedImageId?: string) {
-    const used = usedBytes();
+    const used = storedBytes(doc);
     const replaced =
       replacedImageId === undefined
         ? 0

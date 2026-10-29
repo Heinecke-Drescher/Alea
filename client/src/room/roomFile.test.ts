@@ -5,7 +5,12 @@ import { BACKGROUND_IMAGE_ID } from "./background";
 import { createRoom, type Room } from "./createRoom";
 import { DEFAULT_MAP_BOUNDS } from "./grid";
 import { MAP_IMAGE_KEY } from "./mapImage";
-import { checkMapFileSize, parseMapFile, type MapFile } from "./roomFile";
+import {
+  checkMapFileSize,
+  MAX_MAP_FILE_BYTES,
+  parseMapFile,
+  type MapFile,
+} from "./roomFile";
 import { megabytes } from "./roomSpace";
 import type { AreaShape } from "./shapes";
 
@@ -259,9 +264,29 @@ describe("map files", () => {
   });
 
   it("rejects files larger than a room may be", () => {
-    expect(() => checkMapFileSize(MAX_ROOM_BYTES)).not.toThrow();
-    expect(() => checkMapFileSize(MAX_ROOM_BYTES + 1)).toThrow(
-      `larger than ${megabytes(MAX_ROOM_BYTES)} MB`,
+    expect(() => checkMapFileSize(MAX_MAP_FILE_BYTES)).not.toThrow();
+    expect(() => checkMapFileSize(MAX_MAP_FILE_BYTES + 1)).toThrow(
+      `larger than ${megabytes(MAX_MAP_FILE_BYTES)} MB`,
     );
+  });
+});
+
+describe("space for an imported map", () => {
+  function image(length: number) {
+    return `data:image/webp;base64,${"A".repeat(length)}`;
+  }
+
+  it("refuses a map that would overfill the room and keeps the room as it was", () => {
+    const file = { ...validFile(), background: image(MAX_ROOM_BYTES) };
+    const before = room.exportMap();
+    expect(() => room.importMap(file)).toThrow("can hold at most");
+    expect(room.exportMap()).toEqual(before);
+  });
+
+  it("counts only what stays, since the import replaces the old map", () => {
+    // The new background alone is larger than the space left before the import.
+    const file = { ...validFile(), background: image(200_000) };
+    room.imagesMap.set(BACKGROUND_IMAGE_ID, image(MAX_ROOM_BYTES - 100_000));
+    expect(() => room.importMap(file)).not.toThrow();
   });
 });
