@@ -5,6 +5,7 @@ import { createDm } from "./dm";
 import { createDrawing } from "./drawing";
 import { createFog } from "./fog";
 import { createMapActions } from "./map";
+import { createMapImage } from "./mapImage";
 import { createMusic } from "./music";
 import { createRolls } from "./rolls";
 import { createMapFiles } from "./roomFile";
@@ -24,6 +25,7 @@ export function createRoom(doc: Y.Doc) {
     ...createTokens(store, map),
     ...createAreaActions(store, map),
     ...createBackground(store),
+    ...createMapImage(store, map),
     ...createMusic(store),
     ...createDm(store),
     ...createFog(store),

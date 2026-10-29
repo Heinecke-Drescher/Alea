@@ -11,6 +11,7 @@ import {
   type MapBounds,
 } from "./grid";
 import { BOUNDS_KEY, type MapActions } from "./map";
+import { MAP_IMAGE_KEY, validMapImage, type MapImage } from "./mapImage";
 import {
   cellKey,
   type Cell,
@@ -40,6 +41,7 @@ export interface MapFile {
     image: string;
   }[];
   background: string | null;
+  mapImage?: MapImage;
   fog: Vector2d[];
 }
 
@@ -126,6 +128,18 @@ function parseStroke(value: unknown): StrokeData {
   );
 }
 
+function parseMapImage(value: unknown): MapImage {
+  if (!isRecord(value)) invalid("map image");
+  const { bounds } = value;
+  if (!isRecord(bounds) || !isValidMapBounds(bounds as unknown as MapBounds)) {
+    invalid("map image size");
+  }
+  return {
+    image: image(value.image, "map image"),
+    bounds: bounds as unknown as MapBounds,
+  };
+}
+
 function parseToken(value: unknown, bounds: MapBounds) {
   if (!isRecord(value)) invalid("token");
   const { x, y } = cellOnMap(value, bounds, "token");
@@ -171,6 +185,9 @@ export function parseMapFile(json: string): MapFile {
     tokens: list(value.tokens, "tokens").map((token) => parseToken(token, map)),
     background:
       value.background === null ? null : image(value.background, "background"),
+    ...(value.mapImage !== undefined && {
+      mapImage: parseMapImage(value.mapImage),
+    }),
     fog: list(value.fog, "fog").map((cell) => cellOnMap(cell, map, "fog")),
   };
 }
@@ -189,6 +206,10 @@ export function createMapFiles(
   { mapBounds }: MapActions,
 ) {
   function exportMap(): MapFile {
+    const mapImage = validMapImage(
+      imagesMap.get(MAP_IMAGE_KEY),
+      settingsMap.get(MAP_IMAGE_KEY),
+    );
     return {
       app: APP,
       version: VERSION,
@@ -210,6 +231,7 @@ export function createMapFiles(
         ];
       }),
       background: embeddedImage(imagesMap.get(BACKGROUND_IMAGE_ID)),
+      ...(mapImage && { mapImage }),
       fog: Array.from(fogMap.values(), ({ x, y }) => ({ x, y })),
     };
   }
@@ -224,6 +246,7 @@ export function createMapFiles(
       imagesMap.clear();
       fogMap.clear();
       settingsMap.set(BOUNDS_KEY, file.bounds);
+      settingsMap.delete(MAP_IMAGE_KEY);
       for (const cell of file.cells)
         cellsMap.set(cellKey(cell.x, cell.y), cell);
       for (const stroke of file.strokes) {
@@ -241,6 +264,10 @@ export function createMapFiles(
         });
       }
       if (file.background) imagesMap.set(BACKGROUND_IMAGE_ID, file.background);
+      if (file.mapImage) {
+        imagesMap.set(MAP_IMAGE_KEY, file.mapImage.image);
+        settingsMap.set(MAP_IMAGE_KEY, file.mapImage.bounds);
+      }
       for (const { x, y } of file.fog) fogMap.set(cellKey(x, y), { x, y });
     });
     undoManager.stopCapturing();

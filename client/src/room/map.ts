@@ -58,5 +58,5 @@ export function createMapActions({
     );
   }
 
-  return { mapBounds, resize };
+  return { mapBounds, resize, fitsInto };
 }

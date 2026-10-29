@@ -81,8 +81,8 @@ export function createRoomStore(doc: Y.Doc) {
   const rolesMap = doc.getMap<DungeonMaster>("roles");
   const fogMap = doc.getMap<{ x: number; y: number }>("fog");
   // Tracks only local changes, so undo never reverts other players' work. Rolls, music and roles
-  // stay final. Map bounds are tracked only so an import can be undone as a whole; resizing stays
-  // outside undo, as undoing it could push others' new content off the map.
+  // stay final. Map bounds are tracked only so an import or a map image can be undone as a whole;
+  // resizing stays outside undo, as undoing it could push others' new content off the map.
   const undoManager = new Y.UndoManager([
     tokensMap,
     imagesMap,

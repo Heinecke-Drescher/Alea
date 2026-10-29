@@ -3,6 +3,7 @@ import * as Y from "yjs";
 import { BACKGROUND_IMAGE_ID } from "./background";
 import { createRoom, type Room } from "./createRoom";
 import { DEFAULT_MAP_BOUNDS } from "./grid";
+import { MAP_IMAGE_KEY } from "./mapImage";
 import { parseMapFile, type MapFile } from "./roomFile";
 import type { AreaShape } from "./shapes";
 
@@ -140,6 +141,27 @@ describe("map files", () => {
     expect(room.imagesMap.has(BACKGROUND_IMAGE_ID)).toBe(false);
   });
 
+  it("brings a map image into another room", () => {
+    room.setMapImage(IMAGE, 20, 15);
+    const file = parseMapFile(JSON.stringify(room.exportMap()));
+    expect(file.mapImage).toEqual({
+      image: IMAGE,
+      bounds: { x: 0, y: 0, columns: 20, rows: 15 },
+    });
+    const other = createRoom(new Y.Doc());
+    other.importMap(file);
+    expect(other.exportMap()).toEqual(file);
+  });
+
+  it("removes the old map image when the file has none", () => {
+    const file = validFile();
+    const other = createRoom(new Y.Doc());
+    other.setMapImage(IMAGE, 20, 15);
+    other.importMap(file);
+    expect(other.imagesMap.has(MAP_IMAGE_KEY)).toBe(false);
+    expect(other.settingsMap.has(MAP_IMAGE_KEY)).toBe(false);
+  });
+
   it.each<[string, (file: MapFile) => unknown]>([
     ["another app", (file) => ({ ...file, app: "other" })],
     ["a newer version", (file) => ({ ...file, version: 2 })],
@@ -211,6 +233,20 @@ describe("map files", () => {
       }),
     ],
     ["fog off the map", (file) => ({ ...file, fog: [{ x: -10, y: 0 }] })],
+    [
+      "a map image from the web",
+      (file) => ({
+        ...file,
+        mapImage: { image: "https://example.com/map.png", bounds: file.bounds },
+      }),
+    ],
+    [
+      "a map image of invalid size",
+      (file) => ({
+        ...file,
+        mapImage: { image: IMAGE, bounds: { ...file.bounds, rows: 3 } },
+      }),
+    ],
   ])("rejects a file with %s", (_, change) => {
     const json = JSON.stringify(change(validFile()));
     expect(() => parseMapFile(json)).toThrow("not a valid map file");
