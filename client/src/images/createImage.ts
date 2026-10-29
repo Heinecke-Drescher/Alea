@@ -5,6 +5,11 @@ export type ImageSize = Pick<
   "width" | "height" | "maxWidth" | "maxHeight" | "resize"
 >;
 
+// For backgrounds and map images: large enough to look sharp on big screens, small enough to
+// sync quickly to every player.
+export const LARGE_IMAGE_SIZE = { maxWidth: 2500, maxHeight: 2500 };
+export const LARGE_IMAGE_FILE_MEGABYTES = 20;
+
 export async function createImage(
   file: File,
   size: ImageSize,

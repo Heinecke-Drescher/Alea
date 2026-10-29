@@ -3,6 +3,7 @@ import { IconChevronDown } from "@tabler/icons-react";
 import { Link } from "react-router";
 import { useBackgroundFile } from "../background/useBackgroundFile";
 import { useMapFiles } from "../mapFile/useMapFiles";
+import { useMapImageFile } from "../mapImage/useMapImageFile";
 import type { ConnectionState } from "../room/connectRoom";
 
 interface AleaMenuProps {
@@ -14,6 +15,7 @@ export function AleaMenu({ isSynced, connection }: AleaMenuProps) {
   const mapFiles = useMapFiles();
   const isDisconnected = connection === "disconnected";
   const background = useBackgroundFile();
+  const mapImage = useMapImageFile();
 
   return (
     // A heading may hold a button, but not the other way round.
@@ -48,6 +50,16 @@ export function AleaMenu({ isSynced, connection }: AleaMenuProps) {
           {background.hasBackground && (
             <Menu.Item color="red" onClick={background.removeBackground}>
               Remove background
+            </Menu.Item>
+          )}
+          {mapImage.canSet && (
+            <Menu.Item disabled={!isSynced} onClick={mapImage.chooseMapImage}>
+              Set map image…
+            </Menu.Item>
+          )}
+          {mapImage.canSet && mapImage.hasMapImage && (
+            <Menu.Item color="red" onClick={mapImage.removeMapImage}>
+              Remove map image
             </Menu.Item>
           )}
           <Menu.Divider />

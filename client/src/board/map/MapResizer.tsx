@@ -7,6 +7,7 @@ import { Rect, Transformer } from "react-konva";
 import { useRoom } from "../../room/RoomContext";
 import { useMapBounds } from "../../room/useMapBounds";
 import { mapRect, snapMapBounds, type MapBounds } from "../../room/grid";
+import { CONTENT_OUTSIDE_MESSAGE } from "../../room/map";
 import { highlightColor } from "../selection/highlight";
 
 export function MapResizer() {
@@ -65,7 +66,7 @@ export function MapResizer() {
           showBounds(bounds);
           notifications.show({
             color: "red",
-            message: "Move or delete what is outside the new size first.",
+            message: CONTENT_OUTSIDE_MESSAGE,
           });
         }}
       />

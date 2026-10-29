@@ -10,6 +10,8 @@ import {
 import { OUTSIDE_UNDO, type RoomStore } from "./roomStore";
 
 export const BOUNDS_KEY = "bounds";
+export const CONTENT_OUTSIDE_MESSAGE =
+  "Move or delete what is outside the new size first.";
 
 export type MapActions = ReturnType<typeof createMapActions>;
 

@@ -2,10 +2,8 @@ import { notifications } from "@mantine/notifications";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
 import type { DragEvent, RefObject } from "react";
-import {
-  BACKGROUND_FILE_MEGABYTES,
-  setBackgroundFromFile,
-} from "../background/setBackgroundFromFile";
+import { setBackgroundFromFile } from "../background/setBackgroundFromFile";
+import { LARGE_IMAGE_FILE_MEGABYTES } from "../images/createImage";
 import { useFogGuard } from "../fog/useFogGuard";
 import { handleImageFile, validImages } from "../images/imageFiles";
 import { cellAt, containsCell, dropCells } from "../room/grid";
@@ -41,7 +39,7 @@ export function useImageDrop(stageRef: RefObject<StageNode | null>) {
   }
 
   function setBackground(files: File[]) {
-    const [image, ...ignored] = validImages(files, BACKGROUND_FILE_MEGABYTES);
+    const [image, ...ignored] = validImages(files, LARGE_IMAGE_FILE_MEGABYTES);
     if (!image) return;
     void handleImageFile(image, async () => {
       await setBackgroundFromFile(room, image);

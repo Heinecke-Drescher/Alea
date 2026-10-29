@@ -21,6 +21,10 @@ export function validMapImage(
   return { image: dataUrl, bounds };
 }
 
+export function mapImageRows(width: number, height: number, columns: number) {
+  return Math.round((columns * height) / width);
+}
+
 export function createMapImage(
   { doc, imagesMap, settingsMap, undoManager }: RoomStore,
   { mapBounds, fitsInto }: MapActions,

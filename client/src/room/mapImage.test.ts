@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
 import { DEFAULT_MAP_BOUNDS } from "./grid";
-import { MAP_IMAGE_KEY, validMapImage } from "./mapImage";
+import { MAP_IMAGE_KEY, mapImageRows, validMapImage } from "./mapImage";
 
 const IMAGE = "data:image/webp;base64,AAAA";
 
@@ -53,6 +53,12 @@ describe("map image", () => {
     room.removeMapImage();
     expect(mapImage()).toBeNull();
     expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 24, rows: 16 });
+  });
+
+  it("takes the rows from the image's aspect ratio, rounded", () => {
+    expect(mapImageRows(2000, 1500, 20)).toBe(15);
+    expect(mapImageRows(2000, 1530, 20)).toBe(15);
+    expect(mapImageRows(2000, 1560, 20)).toBe(16);
   });
 
   it("ignores images from the web and invalid places", () => {
