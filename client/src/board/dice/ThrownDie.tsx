@@ -1,37 +1,31 @@
 import { useMantineTheme } from "@mantine/core";
+import { Animation } from "konva/lib/Animation";
 import type { Group as GroupNode } from "konva/lib/Group";
-import type { Node } from "konva/lib/Node";
-import type { Stage } from "konva/lib/Stage";
 import type { Text as TextNode } from "konva/lib/shapes/Text";
 import type { Vector2d } from "konva/lib/types";
-import { Animation } from "konva/lib/Animation";
-import { Easings, Tween } from "konva/lib/Tween";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Tween } from "konva/lib/Tween";
+import { useEffect, useRef, useState } from "react";
 import { Group, Line, Text } from "react-konva";
-import { rollDie, type DieSides } from "../room/dice";
-import { dieShape } from "../dice/dieShapes";
+import { dieColors } from "../../dice/dieColors";
+import { dieShape } from "../../dice/dieShapes";
 import {
   pathLength,
   pointAlong,
   ROLL_SECONDS,
   throwInDirection,
-} from "../dice/throwPath";
-import { tokenHits, type TokenHit } from "../dice/tokenHits";
-import { CELL_SIZE, type MapBounds } from "../room/grid";
-import { dieColors } from "../dice/dieColors";
-import { rollColor, rollPath } from "../room/rolls";
-import { useRoom } from "../room/RoomContext";
-import { useY } from "../room/useY";
-import { TOKEN_BODY_NAME } from "./tokens/tokenNodes";
+} from "../../dice/throwPath";
+import { tokenHits } from "../../dice/tokenHits";
+import { rollDie } from "../../room/dice";
+import { CELL_SIZE, type MapBounds } from "../../room/grid";
+import { rollColor, rollPath } from "../../room/rolls";
+import { useRoom } from "../../room/RoomContext";
+import type { Roll } from "../../room/roomStore";
+import { knockToken } from "./knockToken";
 
 const DIE_RADIUS = 42;
 const FADE_SECONDS = 0.5;
 const VISIBLE_MS = 3000;
 const FLICKER_MS = 70;
-const KNOCK_DISTANCE = CELL_SIZE;
-const KNOCK_TURN = 35;
-const KNOCK_SECONDS = 0.25;
-const SETTLE_SECONDS = 0.8;
 const CLICK_THROW_MIN_CELLS = 2;
 const CLICK_THROW_MAX_CELLS = 5;
 
@@ -87,89 +81,29 @@ function rollAlong(
   return () => animation.stop();
 }
 
-function pushAndReturn(
-  node: Node,
-  away: Record<string, number>,
-  home: Record<string, number>,
-) {
-  let isBack = false;
-  let back: Tween | undefined;
-  const push = new Tween({
-    node,
-    duration: KNOCK_SECONDS,
-    easing: Easings.EaseOut,
-    ...away,
-    onFinish: () => {
-      back = new Tween({
-        node,
-        duration: SETTLE_SECONDS,
-        easing: Easings.ElasticEaseOut,
-        ...home,
-        onFinish: () => {
-          isBack = true;
-        },
-      });
-      back.play();
-    },
-  });
-  push.play();
-  return () => {
-    push.destroy();
-    back?.destroy();
-    if (!isBack) node.setAttrs(home);
-  };
-}
-
-function knockToken(stage: Stage, { tokenId, direction }: TokenHit) {
-  const token = stage.findOne<GroupNode>(`#${tokenId}`);
-  // The token may have been removed since the throw.
-  if (!token) return () => {};
-  const body = token.findOne(`.${TOKEN_BODY_NAME}`);
-  if (!body) throw new Error(`Token ${tokenId} has no body`);
-  // Only the body moves, around its fixed place in the middle of the token,
-  // so the token's own position stays with React and dragging.
-  const middle = body.offsetX();
-  return pushAndReturn(
-    body,
-    {
-      x: middle + direction.x * KNOCK_DISTANCE,
-      y: middle + direction.y * KNOCK_DISTANCE,
-      rotation: direction.x < 0 ? -KNOCK_TURN : KNOCK_TURN,
-    },
-    { x: middle, y: middle, rotation: 0 },
-  );
-}
-
 interface ThrownDieProps {
-  id: string;
-  sides: DieSides;
-  value: number;
-  color: ReturnType<typeof rollColor>;
-  position: Vector2d | undefined;
-  path: number[] | null;
+  roll: Roll;
   viewCenter: () => Vector2d;
   landings: Map<string, Vector2d>;
   onDone: (id: string) => void;
 }
 
-function ThrownDie({
-  id,
-  sides,
-  value,
-  color,
-  position,
-  path,
+export function ThrownDie({
+  roll,
   viewCenter,
   landings,
   onDone,
 }: ThrownDieProps) {
+  const { id, sides, value } = roll;
   const room = useRoom();
   const theme = useMantineTheme();
-  const colors = dieColors(theme, color);
+  const colors = dieColors(theme, rollColor(roll));
   // Clicked dice have no path; each viewer throws them from their own view in a random direction.
   // Fixed when the die appears, so later renders cannot restart the roll.
   const [rollingPath] = useState(
-    () => path ?? randomThrow(position ?? viewCenter(), room.mapBounds()),
+    () =>
+      rollPath(roll) ??
+      randomThrow(roll.position ?? viewCenter(), room.mapBounds()),
   );
   const [hits] = useState(() =>
     tokenHits(rollingPath, Array.from(room.tokensMap.values()), DIE_RADIUS),
@@ -253,48 +187,6 @@ function ThrownDie({
         fontStyle="bold"
         fill={colors.text}
       />
-    </Group>
-  );
-}
-
-interface ThrownDiceProps {
-  viewCenter: () => Vector2d;
-  landings: Map<string, Vector2d>;
-}
-
-// Mounted once the room is synced, so rolls loaded from the server are not thrown again.
-export function ThrownDice({ viewCenter, landings }: ThrownDiceProps) {
-  const room = useRoom();
-  const rolls = useY(room.rollsArray);
-  const [earlierRollIds] = useState(
-    () => new Set(room.rollsArray.toArray().map((roll) => roll.id)),
-  );
-  const [doneRollIds, setDoneRollIds] = useState<ReadonlySet<string>>(
-    new Set(),
-  );
-  const markDone = useCallback(
-    (id: string) => setDoneRollIds((ids) => new Set(ids).add(id)),
-    [],
-  );
-
-  return (
-    <Group listening={false}>
-      {rolls.map((roll) =>
-        !earlierRollIds.has(roll.id) && !doneRollIds.has(roll.id) ? (
-          <ThrownDie
-            key={roll.id}
-            id={roll.id}
-            sides={roll.sides}
-            value={roll.value}
-            color={rollColor(roll)}
-            position={roll.position}
-            path={rollPath(roll)}
-            viewCenter={viewCenter}
-            landings={landings}
-            onDone={markDone}
-          />
-        ) : null,
-      )}
     </Group>
   );
 }

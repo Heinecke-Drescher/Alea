@@ -39,7 +39,7 @@ import { useClipboard } from "./selection/useClipboard";
 import { useItemDrag } from "./selection/useItemDrag";
 import { useSelection } from "./selection/useSelection";
 import { Strokes } from "./Strokes";
-import { ThrownDice } from "./ThrownDice";
+import { ThrownDice } from "./dice/ThrownDice";
 import { EffectTooltip } from "./tokens/EffectTooltip";
 import { Tokens } from "./tokens/Tokens";
 import { useTokenMenu } from "./tokens/useTokenMenu";
