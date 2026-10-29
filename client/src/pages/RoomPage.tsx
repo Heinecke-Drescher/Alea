@@ -1,7 +1,6 @@
 import {
   AppShell,
   Badge,
-  Box,
   Burger,
   Button,
   Center,
@@ -18,7 +17,6 @@ import { Link, useParams } from "react-router";
 import { isValidRoomId } from "../../../shared/roomId";
 import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
-import { CriticalVideo } from "../dice/CriticalVideo";
 import { DicePanel } from "../dice/DicePanel";
 import {
   ShowCriticalContext,
@@ -123,18 +121,14 @@ function RoomView({ roomId }: { roomId: string }) {
               </Group>
             </AppShell.Header>
             <AppShell.Main>
-              <Box pos="relative">
-                <ErrorBoundary FallbackComponent={MapError}>
-                  <Board awareness={awareness} isSynced={isSynced} />
-                </ErrorBoundary>
-                {criticals.critical && (
-                  <CriticalVideo
-                    key={criticals.critical.id}
-                    critical={criticals.critical}
-                    onDone={criticals.clear}
-                  />
-                )}
-              </Box>
+              <ErrorBoundary FallbackComponent={MapError}>
+                <Board
+                  awareness={awareness}
+                  isSynced={isSynced}
+                  critical={criticals.critical}
+                  onCriticalDone={criticals.clear}
+                />
+              </ErrorBoundary>
             </AppShell.Main>
             <AppShell.Aside>
               <AppShell.Section grow component={ScrollArea} p="md">

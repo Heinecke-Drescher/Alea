@@ -5,6 +5,7 @@ import type { Stage as StageNode } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
 import { useRef, useState } from "react";
 import { Layer, Stage } from "react-konva";
+import type { Critical } from "../dice/criticalRoll";
 import { usePlayer } from "../player/PlayerContext";
 import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connectRoom";
@@ -18,6 +19,7 @@ import { GridLines } from "./map/GridLines";
 import { MapFill } from "./map/MapFill";
 import { MapImage } from "./map/MapImage";
 import { MapResizer } from "./map/MapResizer";
+import { Natural20Scene } from "./Natural20Scene";
 import { paintColorValue, type PaintColor } from "./paintColors";
 import {
   itemsSelection,
@@ -59,9 +61,16 @@ function isAddKeyPressed(event: KonvaEventObject<MouseEvent>) {
 interface BoardProps {
   awareness: Awareness | null;
   isSynced: boolean;
+  critical: Critical | null;
+  onCriticalDone: (id: string) => void;
 }
 
-export function Board({ awareness, isSynced }: BoardProps) {
+export function Board({
+  awareness,
+  isSynced,
+  critical,
+  onCriticalDone,
+}: BoardProps) {
   const room = useRoom();
   const player = usePlayer();
   const { ref: sizeRef, width, height } = useElementSize();
@@ -257,6 +266,13 @@ export function Board({ awareness, isSynced }: BoardProps) {
             )}
             <SelectionFrame area={area} onMove={selection.moveArea} />
             {isSynced && <ThrownDice viewCenter={viewCenter} />}
+            {critical && (
+              <Natural20Scene
+                key={critical.id}
+                critical={critical}
+                onDone={onCriticalDone}
+              />
+            )}
             <ShapePreview draft={shapeDraft} color={colorValue} />
             <DistanceMeasure
               measurement={measurement}

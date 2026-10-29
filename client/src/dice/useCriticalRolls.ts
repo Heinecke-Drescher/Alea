@@ -1,36 +1,41 @@
 import { createContext, useCallback, useContext, useState } from "react";
 import type { Room } from "../room/createRoom";
 import type { DieSides } from "../room/dice";
+import { rollColor } from "../room/rolls";
 import { useNewRolls } from "../room/useNewRolls";
 import { ROLL_SECONDS } from "./throwPath";
 import { isFresh, isNatural20, type Critical } from "./criticalRoll";
-import natural20Video from "./natural20.mp4";
 
 interface CriticalInput {
   id: string;
   sides: DieSides;
   value: number;
+  color: ReturnType<typeof rollColor>;
   delay: number;
 }
 
 export function useCriticalRolls(room: Room, isSynced: boolean) {
   const [critical, setCritical] = useState<Critical | null>(null);
 
-  const show = useCallback(({ id, sides, value, delay }: CriticalInput) => {
-    if (isNatural20(sides, value)) {
-      setCritical({ id, video: natural20Video, delay });
-    }
-  }, []);
-  // Late callbacks of a replaced video must not close the next one.
+  const show = useCallback(
+    ({ id, sides, value, color, delay }: CriticalInput) => {
+      if (isNatural20(sides, value)) {
+        setCritical({ id, color, delay });
+      }
+    },
+    [],
+  );
+  // Late callbacks of a replaced scene must not close the next one.
   const clear = useCallback(
     (id: string) =>
       setCritical((current) => (current?.id === id ? null : current)),
     [],
   );
 
-  // A thrown die lands after its flight, so the video starts then.
+  // A thrown die lands after its flight, so the scene starts then.
   useNewRolls(room.rollsArray, isSynced, (roll) => {
-    if (isFresh(roll.at, Date.now())) show({ ...roll, delay: ROLL_SECONDS });
+    if (isFresh(roll.at, Date.now()))
+      show({ ...roll, color: rollColor(roll), delay: ROLL_SECONDS });
   });
 
   return { critical, show, clear };

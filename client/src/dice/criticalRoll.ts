@@ -1,4 +1,5 @@
 import type { DieSides } from "../room/dice";
+import type { rollColor } from "../room/rolls";
 
 // Older rolls arrive after a reconnect; their moment has passed.
 const FRESH_MILLISECONDS = 10_000;
@@ -13,7 +14,7 @@ export function isFresh(at: number, now: number) {
 
 export interface Critical {
   id: string;
-  video: string;
+  color: ReturnType<typeof rollColor>;
   // Seconds to wait, so a die thrown onto the map lands first.
   delay: number;
 }

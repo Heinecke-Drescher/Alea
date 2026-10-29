@@ -53,7 +53,7 @@ export function DicePanel() {
       setSecretRolls((previous) =>
         [secretRoll, ...previous].slice(0, MAX_SECRET_ROLLS),
       );
-      showCritical({ ...secretRoll, delay: 0 });
+      showCritical({ ...secretRoll, color: player.color, delay: 0 });
       return;
     }
     room.addRoll(player.name, player.color, sides, rollDie(sides));
