@@ -96,7 +96,7 @@ export function Board({
     onPaste: () => changeTool("select"),
   });
   const stageRef = useRef<StageNode>(null);
-  const { zoomAtPointer, panOnlyWithMiddleButton, viewCenter } = useBoardView(
+  const { panOrZoom, panOnlyWithMiddleButton, viewCenter } = useBoardView(
     room,
     stageRef,
   );
@@ -213,7 +213,11 @@ export function Board({
           ref={stageRef}
           draggable
           onDragStart={panOnlyWithMiddleButton}
-          onWheel={zoomAtPointer}
+          onWheel={(event) => {
+            panOrZoom(event);
+            // The map moved under a still pointer, so tools and cursors follow as if it had moved.
+            handleMouseMove(event);
+          }}
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
