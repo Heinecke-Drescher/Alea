@@ -19,6 +19,7 @@ import {
   IconEyeOff,
   IconPencil,
   IconPointer,
+  IconResize,
   IconRuler,
   IconSquare,
   IconTrash,
@@ -46,6 +47,7 @@ const TOOLS: ToolButton[] = [
   { tool: "cone", label: "Cone area", icon: IconCone },
   { tool: "square", label: "Square area", icon: IconSquare },
   { tool: "circle", label: "Circle area", icon: IconCircle },
+  { tool: "resize", label: "Resize map", icon: IconResize },
 ];
 
 const FOG_TOOLS: ToolButton[] = [

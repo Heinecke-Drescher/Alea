@@ -249,7 +249,7 @@ export function Board({ awareness, isSynced }: BoardProps) {
           </Layer>
           <Layer>
             <FogFrame frame={fogFrame} />
-            {isSelecting && <MapResizer />}
+            {tool === "resize" && <MapResizer />}
             {isSelecting && reshapableId && (
               <ShapeResizer strokeId={reshapableId} />
             )}

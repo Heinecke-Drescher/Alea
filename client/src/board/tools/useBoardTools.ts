@@ -5,6 +5,7 @@ import { useFogTool } from "./fog";
 import { useMeasureTool } from "./measure";
 import { usePaintTool } from "./paint";
 import { usePenTool } from "./pen";
+import { resizeTool } from "./resize";
 import { selectTool } from "./select";
 import { useShapeTool } from "./shape";
 import type { BoardTool, Tool } from "./tool";
@@ -32,6 +33,7 @@ export function useBoardTools(
     cone: cone.tool,
     square: square.tool,
     circle: circle.tool,
+    resize: resizeTool,
     reveal: reveal.tool,
     hide: hide.tool,
   };

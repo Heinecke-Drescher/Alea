@@ -8,6 +8,7 @@ export type Tool =
   | "pen"
   | "eraser"
   | "measure"
+  | "resize"
   | ShapeKind
   | "reveal"
   | "hide";
