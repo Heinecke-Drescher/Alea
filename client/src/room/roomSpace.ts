@@ -2,7 +2,7 @@ import * as Y from "yjs";
 import { MAX_ROOM_BYTES } from "../../../shared/roomLimits";
 import type { RoomStore } from "./roomStore";
 
-function megabytes(bytes: number) {
+export function megabytes(bytes: number) {
   return (bytes / 1024 ** 2).toFixed(1);
 }
 

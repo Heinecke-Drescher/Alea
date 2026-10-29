@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
+import { MAX_ROOM_BYTES } from "../../../shared/roomLimits";
 import { BACKGROUND_IMAGE_ID } from "./background";
 import { createRoom, type Room } from "./createRoom";
 import { DEFAULT_MAP_BOUNDS } from "./grid";
 import { MAP_IMAGE_KEY } from "./mapImage";
 import { parseMapFile, type MapFile } from "./roomFile";
+import { megabytes } from "./roomSpace";
 import type { AreaShape } from "./shapes";
 
 const IMAGE = "data:image/webp;base64,AAAA";
@@ -254,8 +256,8 @@ describe("map files", () => {
 
   it("rejects files that are no JSON or too large", () => {
     expect(() => parseMapFile("not json")).toThrow("not a valid map file");
-    expect(() => parseMapFile(" ".repeat(5 * 1024 ** 2 + 1))).toThrow(
-      "larger than 5 MB",
+    expect(() => parseMapFile(" ".repeat(MAX_ROOM_BYTES + 1))).toThrow(
+      `larger than ${megabytes(MAX_ROOM_BYTES)} MB`,
     );
   });
 });

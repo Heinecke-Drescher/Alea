@@ -19,12 +19,12 @@ import {
   type RoomStore,
   type StrokeData,
 } from "./roomStore";
+import { megabytes } from "./roomSpace";
 import { isShapeKind, shapeCells, type AreaShape } from "./shapes";
 import { embeddedImage } from "./tokens";
 
 const APP = "alea";
 const VERSION = 1;
-export const MAX_MAP_FILE_BYTES = MAX_ROOM_BYTES;
 
 export interface MapFile {
   app: typeof APP;
@@ -159,7 +159,9 @@ function parseToken(value: unknown, bounds: MapBounds) {
 }
 
 export function parseMapFile(json: string): MapFile {
-  if (json.length > MAX_MAP_FILE_BYTES) invalid("larger than 5 MB");
+  if (json.length > MAX_ROOM_BYTES) {
+    invalid(`larger than ${megabytes(MAX_ROOM_BYTES)} MB`);
+  }
   let value: unknown;
   try {
     value = JSON.parse(json);
