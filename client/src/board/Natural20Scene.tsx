@@ -3,6 +3,7 @@ import { useHotkeys } from "@mantine/hooks";
 import { Animation } from "konva/lib/Animation";
 import type { Context } from "konva/lib/Context";
 import type { Group as GroupNode } from "konva/lib/Group";
+import { Easings } from "konva/lib/Tween";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
 import { Group, Rect, Shape } from "react-konva";
@@ -37,10 +38,8 @@ const OUTLINE_WIDTH = 0.05;
 const CLICK_CATCHER_SIZE = 1e6;
 const SLOGAN = "LET'S GO";
 const SLOGAN_TILT = -8;
-// The letters pop up one after another, then sway a little.
 const LETTER_DELAY_SECONDS = 0.05;
 const LETTER_POP_SECONDS = 0.3;
-const LETTER_OVERSHOOT = 1.7;
 const SWAY_SPEED = 8;
 const SWAY_OFFSET = 0.6;
 const SWAY_HEIGHT = 0.06;
@@ -49,18 +48,9 @@ interface Scene {
   center: Vector2d;
   spacing: number;
   dice: GatheredDie[];
-  // 0 to 1; the finished number lights up once.
   glow: number;
   // Seconds since the number was finished, negative before.
   holding: number;
-}
-
-function easeOutBack(progress: number) {
-  return (
-    1 +
-    (LETTER_OVERSHOOT + 1) * (progress - 1) ** 3 +
-    LETTER_OVERSHOOT * (progress - 1) ** 2
-  );
 }
 
 interface Natural20SceneProps {
@@ -78,7 +68,6 @@ export function Natural20Scene({
   const theme = useMantineTheme();
   const groupRef = useRef<GroupNode>(null);
   const scene = useRef<Scene | null>(null);
-  // The whole map when the scene starts.
   const [area, setArea] = useState<IRect | null>(null);
   const { id, color, thrown } = critical;
   const colors = dieColors(theme, color);
@@ -185,7 +174,6 @@ export function Natural20Scene({
     }
   }
 
-  // Below the number, ending a little right of it.
   function drawSlogan(
     canvas: CanvasRenderingContext2D,
     { center, spacing, holding }: Scene,
@@ -217,7 +205,7 @@ export function Natural20Scene({
           right - canvas.measureText(letter).width / 2 - width,
           size / 2 + sway * spacing * SWAY_HEIGHT,
         );
-        const scale = easeOutBack(popped);
+        const scale = Easings.BackEaseOut(popped, 0, 1, 1);
         canvas.scale(scale, scale);
         draw(letter);
         canvas.restore();

@@ -263,7 +263,7 @@ describe("map files", () => {
     expect(() => parseMapFile("not json")).toThrow("not a valid map file");
   });
 
-  it("rejects files larger than a room may be", () => {
+  it("rejects files too large to read", () => {
     expect(() => checkMapFileSize(MAX_MAP_FILE_BYTES)).not.toThrow();
     expect(() => checkMapFileSize(MAX_MAP_FILE_BYTES + 1)).toThrow(
       `larger than ${megabytes(MAX_MAP_FILE_BYTES)} MB`,

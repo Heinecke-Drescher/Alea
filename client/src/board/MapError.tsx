@@ -9,8 +9,7 @@ export function MapError({ error, resetErrorBoundary }: FallbackProps) {
           {error instanceof Error ? error.message : String(error)}
         </Text>
         <Text size="sm">
-          Remove the broken token or background in the side panel, then try
-          again.
+          Remove the broken token, background or map image, then try again.
         </Text>
         <Button color="red" variant="light" onClick={resetErrorBoundary}>
           Try again

@@ -1,3 +1,4 @@
+import { clamp } from "@mantine/hooks";
 import type { IRect, Vector2d } from "konva/lib/types";
 
 export interface BurstDie {
@@ -7,7 +8,6 @@ export interface BurstDie {
   vy: number;
   rotation: number;
   spin: number;
-  // Its place in the finished number.
   target: Vector2d;
 }
 
@@ -42,7 +42,6 @@ export function twentySpacing(area: IRect) {
   );
 }
 
-// Places in a grid of the given spacing that together spell 20 around the center.
 export function twentyTargets(center: Vector2d, spacing: number): Vector2d[] {
   const left = center.x - ((TWENTY_COLUMNS - 1) * spacing) / 2;
   const top = center.y - ((TWENTY_ROWS - 1) * spacing) / 2;
@@ -66,10 +65,6 @@ function between(min: number, max: number) {
   return min + Math.random() * (max - min);
 }
 
-function inside(position: number, min: number, max: number) {
-  return Math.min(Math.max(position, min), max);
-}
-
 // Spread evenly around the circle with a little jitter, so no direction stays empty.
 // A rolled die outside the area bursts from the nearest point inside it.
 export function burstDice(
@@ -78,8 +73,8 @@ export function burstDice(
   area: IRect,
   radius: number,
 ): BurstDie[] {
-  const x = inside(start.x, area.x + radius, area.x + area.width - radius);
-  const y = inside(start.y, area.y + radius, area.y + area.height - radius);
+  const x = clamp(start.x, area.x + radius, area.x + area.width - radius);
+  const y = clamp(start.y, area.y + radius, area.y + area.height - radius);
   const diagonal = Math.hypot(area.width, area.height);
   return targets.map((target, i) => {
     const angle = ((i + Math.random()) / targets.length) * 2 * Math.PI;
@@ -100,20 +95,19 @@ export function burstDice(
 function bounce(position: number, velocity: number, min: number, max: number) {
   if (position < min) {
     return {
-      position: inside(2 * min - position, min, max),
+      position: clamp(2 * min - position, min, max),
       velocity: Math.abs(velocity) * KEPT_AFTER_BOUNCE,
     };
   }
   if (position > max) {
     return {
-      position: inside(2 * max - position, min, max),
+      position: clamp(2 * max - position, min, max),
       velocity: -Math.abs(velocity) * KEPT_AFTER_BOUNCE,
     };
   }
   return { position, velocity };
 }
 
-// Moves a die for a short time step and bounces it off the edges of the area.
 export function moveBurstDie(
   die: BurstDie,
   seconds: number,
@@ -160,7 +154,6 @@ const KEPT_MOMENTUM = 0.5;
 export const GATHER_SECONDS =
   CATCH_SPREAD_SECONDS + FLIGHT_SECONDS + POP_SECONDS;
 
-// Seconds after gathering began at which each die is caught.
 export function catchDelays(dice: BurstDie[]): number[] {
   const distances = dice.map((die) =>
     Math.hypot(die.target.x - die.x, die.target.y - die.y),
@@ -185,7 +178,7 @@ function hermite(start: number, slope: number, end: number, progress: number) {
 // Curves from the die's flight into its place without a kink, comes to rest upright
 // and pops once on arrival.
 export function gatheredDie(caught: BurstDie, seconds: number): GatheredDie {
-  const progress = Math.min(Math.max(seconds / FLIGHT_SECONDS, 0), 1);
+  const progress = clamp(seconds / FLIGHT_SECONDS, 0, 1);
   const keep = KEPT_MOMENTUM * FLIGHT_SECONDS;
   // Where its turning would come to rest by itself, rounded to upright.
   const upright =

@@ -259,7 +259,6 @@ function ThrownDie({
 
 interface ThrownDiceProps {
   viewCenter: () => Vector2d;
-  // Where each thrown die lands, by roll id.
   landings: Map<string, Vector2d>;
 }
 
