@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   CELL_SIZE,
+  cellsAlong,
   clampCellToMap,
   clampToMap,
   dropCells,
@@ -18,6 +19,51 @@ const box = (x: number, y: number, width: number, height: number) => ({
   y: y * CELL_SIZE,
   width: width * CELL_SIZE,
   height: height * CELL_SIZE,
+});
+
+describe("cellsAlong", () => {
+  const at = (x: number, y: number) => ({
+    x: x * CELL_SIZE,
+    y: y * CELL_SIZE,
+  });
+
+  it("returns the cell of a point that does not move", () => {
+    expect(cellsAlong(at(1.5, 1.5), at(1.2, 1.8))).toEqual([{ x: 1, y: 1 }]);
+  });
+
+  it("returns every cell of a straight line in both directions", () => {
+    const cells = [
+      { x: 0, y: 2 },
+      { x: 1, y: 2 },
+      { x: 2, y: 2 },
+      { x: 3, y: 2 },
+    ];
+    expect(cellsAlong(at(0.5, 2.5), at(3.5, 2.5))).toEqual(cells);
+    expect(cellsAlong(at(3.5, 2.5), at(0.5, 2.5))).toEqual(cells.reverse());
+  });
+
+  it("returns the cells a slanted line crosses, without gaps at corners", () => {
+    expect(cellsAlong(at(0.5, 0.5), at(2.5, 1.5))).toEqual([
+      { x: 0, y: 0 },
+      { x: 1, y: 0 },
+      { x: 1, y: 1 },
+      { x: 2, y: 1 },
+    ]);
+  });
+
+  it("works with negative cells", () => {
+    expect(cellsAlong(at(-0.5, -0.5), at(-0.5, -2.5))).toEqual([
+      { x: -1, y: -1 },
+      { x: -1, y: -2 },
+      { x: -1, y: -3 },
+    ]);
+  });
+
+  it("ends in the cell of the end point", () => {
+    const cells = cellsAlong({ x: 3, y: 7 }, { x: 487.3, y: 91.9 });
+    expect(cells.at(-1)).toEqual({ x: 9, y: 1 });
+    expect(cells).toHaveLength(11);
+  });
 });
 
 describe("clampCellToMap", () => {

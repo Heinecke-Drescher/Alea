@@ -56,6 +56,33 @@ export function cellAt(point: Vector2d) {
   };
 }
 
+// Every cell the line from one point to the other passes through (Amanatides and Woo).
+export function cellsAlong(from: Vector2d, to: Vector2d): Vector2d[] {
+  const cell = cellAt(from);
+  const end = cellAt(to);
+  const cells = [{ ...cell }];
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const stepX = Math.sign(dx);
+  const stepY = Math.sign(dy);
+  const deltaX = Math.abs(CELL_SIZE / dx);
+  const deltaY = Math.abs(CELL_SIZE / dy);
+  let nextX = ((cell.x + (stepX > 0 ? 1 : 0)) * CELL_SIZE - from.x) / dx;
+  let nextY = ((cell.y + (stepY > 0 ? 1 : 0)) * CELL_SIZE - from.y) / dy;
+  while (cell.x !== end.x || cell.y !== end.y) {
+    // Rounding must not step past the end cell.
+    if (cell.y === end.y || (cell.x !== end.x && nextX < nextY)) {
+      cell.x += stepX;
+      nextX += deltaX;
+    } else {
+      cell.y += stepY;
+      nextY += deltaY;
+    }
+    cells.push({ ...cell });
+  }
+  return cells;
+}
+
 export function toCells(pixels: number) {
   return Math.round(pixels / CELL_SIZE);
 }

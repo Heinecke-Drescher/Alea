@@ -1,17 +1,21 @@
+import type { Vector2d } from "konva/lib/types";
 import { useRef } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
 import type { Room } from "../../room/createRoom";
-import { cellAt } from "../../room/grid";
+import { cellsAlong } from "../../room/grid";
 import type { BoardTool, ToolPointer } from "./tool";
 
 export function useEraserTool(room: Room): BoardTool {
-  const pressed = useRef(false);
+  // Mouse events skip cells when moving fast, so every cell since the last point is erased.
+  const lastPoint = useRef<Vector2d | null>(null);
   const fogGuard = useFogGuard();
 
   function erase({ point, event }: ToolPointer) {
-    const cell = cellAt(point);
     // Concurrent resizing can leave cells outside the map that still need erasing.
-    if (!fogGuard.hidesCell(cell.x, cell.y)) room.eraseCell(cell.x, cell.y);
+    for (const cell of cellsAlong(lastPoint.current ?? point, point)) {
+      if (!fogGuard.hidesCell(cell.x, cell.y)) room.eraseCell(cell.x, cell.y);
+    }
+    lastPoint.current = point;
     const stage = event.target.getStage();
     const pointer = stage?.getPointerPosition();
     if (!stage || !pointer)
@@ -25,14 +29,13 @@ export function useEraserTool(room: Room): BoardTool {
     listensToStrokes: true,
     onDown(pointer) {
       room.undoManager.stopCapturing();
-      pressed.current = true;
       erase(pointer);
     },
     onMove(pointer) {
-      if (pressed.current) erase(pointer);
+      if (lastPoint.current) erase(pointer);
     },
     onUp() {
-      pressed.current = false;
+      lastPoint.current = null;
     },
   };
 }
