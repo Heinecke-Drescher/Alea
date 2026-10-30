@@ -13,8 +13,8 @@ import {
   pointAlong,
   ROLL_SECONDS,
   throwInDirection,
-} from "../../dice/throwPath";
-import { tokenHits } from "../../dice/tokenHits";
+} from "./throwPath";
+import { tokenHits } from "./tokenHits";
 import { rollDie } from "../../room/dice";
 import { CELL_SIZE, type MapBounds } from "../../room/grid";
 import { rollColor, rollPath } from "../../room/rolls";

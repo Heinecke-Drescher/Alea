@@ -1,7 +1,7 @@
 import type { Vector2d } from "konva/lib/types";
-import { CELL_SIZE, squareCenter } from "../room/grid";
-import { segments } from "../room/points";
-import type { Token } from "../room/roomStore";
+import { CELL_SIZE, squareCenter } from "../../room/grid";
+import { segments } from "../../room/points";
+import type { Token } from "../../room/roomStore";
 
 export interface TokenHit {
   tokenId: string;

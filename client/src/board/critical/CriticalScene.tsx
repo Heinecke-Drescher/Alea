@@ -6,7 +6,7 @@ import type { IRect, Vector2d } from "konva/lib/types";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Group, Rect, Shape } from "react-konva";
 import type { Critical } from "../../dice/criticalRoll";
-import { ROLL_SECONDS } from "../../dice/throwPath";
+import { ROLL_SECONDS } from "../dice/throwPath";
 import { mapRect } from "../../room/grid";
 import { useRoom } from "../../room/RoomContext";
 import { LEFT_MOUSE_BUTTON } from "../mouse";

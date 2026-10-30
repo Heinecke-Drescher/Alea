@@ -2,7 +2,7 @@ import type { Group as GroupNode } from "konva/lib/Group";
 import type { Node } from "konva/lib/Node";
 import type { Stage } from "konva/lib/Stage";
 import { Easings, Tween } from "konva/lib/Tween";
-import type { TokenHit } from "../../dice/tokenHits";
+import type { TokenHit } from "./tokenHits";
 import { CELL_SIZE } from "../../room/grid";
 import { TOKEN_BODY_NAME } from "../tokens/tokenNodes";
 

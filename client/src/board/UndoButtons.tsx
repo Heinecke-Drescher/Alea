@@ -1,7 +1,7 @@
 import { ActionIcon, Tooltip } from "@mantine/core";
 import { IconArrowBackUp, IconArrowForwardUp } from "@tabler/icons-react";
 import { useRoom } from "../room/RoomContext";
-import { undoStep, useUndoState } from "./useUndo";
+import { undoStep, useUndoState } from "../undo/useUndo";
 
 // Its own component, so only these buttons render again when the undo history changes.
 export function UndoButtons() {

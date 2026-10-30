@@ -1,6 +1,11 @@
 import type { Vector2d } from "konva/lib/types";
-import { CELL_SIZE, clampToMap, mapRect, type MapBounds } from "../room/grid";
-import { segments, toPoints } from "../room/points";
+import {
+  CELL_SIZE,
+  clampToMap,
+  mapRect,
+  type MapBounds,
+} from "../../room/grid";
+import { segments, toPoints } from "../../room/points";
 
 export interface DragSample {
   x: number;

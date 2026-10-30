@@ -6,7 +6,7 @@ import {
   SWING_WINDOW_MS,
   throwPath,
   type DragSample,
-} from "../dice/throwPath";
+} from "./dice/throwPath";
 import { usePlayer } from "../player/PlayerContext";
 import { rollDie } from "../room/dice";
 import { cellAt, containsCell } from "../room/grid";

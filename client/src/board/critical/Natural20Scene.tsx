@@ -11,7 +11,7 @@ import {
   twentySpacing,
   twentyTargets,
   type GatheredDie,
-} from "../../dice/natural20Burst";
+} from "./natural20Burst";
 import { toPoints } from "../../room/points";
 import {
   CriticalScene,

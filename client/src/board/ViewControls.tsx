@@ -1,6 +1,6 @@
 import { ActionIcon, Divider, Group, Paper, Tooltip } from "@mantine/core";
 import { IconZoomScan } from "@tabler/icons-react";
-import { UndoButtons } from "../undo/UndoButtons";
+import { UndoButtons } from "./UndoButtons";
 
 export function ViewControls({ onFitMap }: { onFitMap: () => void }) {
   return (

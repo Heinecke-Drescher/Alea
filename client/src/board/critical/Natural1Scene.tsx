@@ -19,7 +19,7 @@ import {
   TUMBLE_SECONDS,
   tumblePose,
   type DiePose,
-} from "../../dice/natural1Tumble";
+} from "./natural1Tumble";
 import { toPoints } from "../../room/points";
 import {
   CriticalScene,

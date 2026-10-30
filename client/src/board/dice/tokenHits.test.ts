@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import type { Token } from "../room/roomStore";
+import type { Token } from "../../room/roomStore";
 import { tokenHits } from "./tokenHits";
 
 function token(id: string, x: number, y: number, size = 1): Token {
