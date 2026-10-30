@@ -31,6 +31,7 @@ import { squareCenter } from "../room/grid";
 import { useBackgroundImage } from "../room/useBackgroundImage";
 import { cursorArrowCss } from "./cursorArrow";
 import { Cursors } from "./Cursors";
+import { Pings } from "./Pings";
 import { Cells } from "./map/Cells";
 import { FogOfWar } from "./map/FogOfWar";
 import { GridLines } from "./map/GridLines";
@@ -54,6 +55,7 @@ import { useSelection } from "./selection/useSelection";
 import { Strokes } from "./Strokes";
 import { ThrownDice } from "./dice/ThrownDice";
 import { EffectTooltip } from "./tokens/EffectTooltip";
+import { isOnToken } from "./tokens/tokenNodes";
 import { Tokens } from "./tokens/Tokens";
 import { useTokenMenu } from "./tokens/useTokenMenu";
 import { Toolbar } from "./Toolbar";
@@ -65,6 +67,7 @@ import { useBoardTools } from "./tools/useBoardTools";
 import { LEFT_MOUSE_BUTTON } from "./mouse";
 import { useBoardView } from "./useBoardView";
 import { useCursorBroadcast } from "./useCursorBroadcast";
+import { usePingBroadcast } from "./usePingBroadcast";
 import { useDieDrop } from "./useDieDrop";
 import { useImageDrop } from "./useImageDrop";
 import { useTokenDrop } from "./useTokenDrop";
@@ -129,6 +132,7 @@ export function Board({
   const { panOrZoom, panOnlyWithMiddleButton, viewCenter, fitMap, centerOn } =
     useBoardView(room, stageRef);
   const cursor = useCursorBroadcast(awareness);
+  const sendPing = usePingBroadcast(awareness);
   const dieDrop = useDieDrop({ stageRef });
   const imageDrop = useImageDrop(stageRef);
   const tokenDrop = useTokenDrop(stageRef, selectToken);
@@ -286,6 +290,11 @@ export function Board({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
+          onDblClick={(event) => {
+            // Double clicks on tokens are kept free for something else.
+            if (tool !== "select" || isOnToken(event.target)) return;
+            sendPing(pointerOnMap(event));
+          }}
           onContextMenu={(event) => boardMenu.open(event, pointerOnMap(event))}
         >
           <Layer listening={false}>
@@ -358,6 +367,7 @@ export function Board({
               measurement={measurement}
               color={theme.colors[player.color][6]}
             />
+            <Pings awareness={awareness} />
             <Cursors awareness={awareness} />
           </Layer>
         </Stage>

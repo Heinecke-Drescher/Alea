@@ -10,7 +10,7 @@ import type { Token } from "../../room/roomStore";
 import { CELL_SIZE } from "../../room/grid";
 import { HIGHLIGHT_OPACITY, highlightColor } from "../selection/highlight";
 import { TokenEffects } from "./TokenEffects";
-import { TOKEN_BODY_NAME } from "./tokenNodes";
+import { TOKEN_BODY_NAME, TOKEN_NAME } from "./tokenNodes";
 
 const HIGHLIGHT_RING = 10;
 
@@ -55,6 +55,7 @@ export function TokenView({
   return (
     <Group
       id={token.id}
+      name={TOKEN_NAME}
       x={token.x * CELL_SIZE}
       y={token.y * CELL_SIZE}
       draggable
