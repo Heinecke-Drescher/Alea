@@ -55,6 +55,12 @@ export function useClipboard({
   const { isDm } = usePlayer();
   const { area, items } = selection;
 
+  function copyItems(chosen: Items) {
+    const clip = room.copyItems(chosen);
+    if (!hasGridContent(clip) && clip.strokes.length === 0) return;
+    clipboard.current = { clip, bounds: clipBounds(clip), isArea: false };
+  }
+
   function copy() {
     if (area) {
       clipboard.current = {
@@ -64,18 +70,21 @@ export function useClipboard({
       };
       return;
     }
-    const clip = room.copyItems(items);
-    if (!hasGridContent(clip) && clip.strokes.length === 0) return;
-    clipboard.current = { clip, bounds: clipBounds(clip), isArea: false };
+    copyItems(items);
+  }
+
+  function removeItems(chosen: Items) {
+    room.deleteItems(chosen);
+    selection.clear();
   }
 
   function remove() {
     if (area) {
       room.deleteArea(area);
+      selection.clear();
     } else {
-      room.deleteItems(items);
+      removeItems(items);
     }
-    selection.clear();
   }
 
   function cut() {
@@ -83,12 +92,17 @@ export function useClipboard({
     remove();
   }
 
-  function paste() {
+  function cutItems(chosen: Items) {
+    copyItems(chosen);
+    removeItems(chosen);
+  }
+
+  function pasteAt(at: Vector2d | null) {
     if (!clipboard.current) return;
     const { clip, bounds, isArea } = clipboard.current;
     const snapsToCells = isArea || hasGridContent(clip);
     // Before the mouse has been over the map, paste where the copy came from.
-    const target = pointer.current ?? bounds;
+    const target = at ?? bounds;
     const map = mapRect(room.mapBounds());
     if (
       snapsToCells &&
@@ -122,5 +136,14 @@ export function useClipboard({
     }
   }
 
-  return { copy, cut, paste, remove };
+  return {
+    copy,
+    cut,
+    paste: () => pasteAt(pointer.current),
+    pasteAt,
+    remove,
+    copyItems,
+    cutItems,
+    hasClip: () => clipboard.current !== null,
+  };
 }

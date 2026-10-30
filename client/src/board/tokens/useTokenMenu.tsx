@@ -2,8 +2,10 @@ import { useMantineTheme } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
   IconCheck,
+  IconClipboardCopy,
   IconCopy,
   IconCursorText,
+  IconScissors,
   IconTrash,
 } from "@tabler/icons-react";
 import type { KonvaEventObject } from "konva/lib/Node";
@@ -20,10 +22,16 @@ import type { Token } from "../../room/roomStore";
 import { openRenameDialog } from "../../tokens/openRenameDialog";
 import { EFFECT_COLORS, EFFECT_ICONS, EFFECT_LABELS } from "./effectIcons";
 import { itemsSelection, NO_ITEMS } from "../selection/selection";
+import { shortcut } from "../selection/useBoardMenu";
+import type { useClipboard } from "../selection/useClipboard";
 import { showMenuAt } from "./showMenuAt";
 import type { SelectionControls } from "../selection/useSelection";
 
-export function useTokenMenu(room: Room, selection: SelectionControls) {
+export function useTokenMenu(
+  room: Room,
+  selection: SelectionControls,
+  clipboard: ReturnType<typeof useClipboard>,
+) {
   const { showContextMenu } = useContextMenu();
   const theme = useMantineTheme();
   const fogGuard = useFogGuard();
@@ -47,7 +55,10 @@ export function useTokenMenu(room: Room, selection: SelectionControls) {
   }
 
   function open(token: Token, event: KonvaEventObject<MouseEvent>) {
-    selection.set(itemsSelection({ ...NO_ITEMS, tokens: [token.id] }));
+    // The board has a menu of its own.
+    event.cancelBubble = true;
+    const only = { ...NO_ITEMS, tokens: [token.id] };
+    selection.set(itemsSelection(only));
     const effects = tokenEffects(token);
     showMenuAt(
       showContextMenu,
@@ -94,8 +105,25 @@ export function useTokenMenu(room: Room, selection: SelectionControls) {
           })}
           <ContextMenuDivider />
           <ContextMenuItem
+            title="Copy"
+            icon={<IconClipboardCopy size={16} />}
+            iconRight={shortcut("Ctrl+C")}
+            onClick={() => clipboard.copyItems(only)}
+            onHide={close}
+            submenuProps={{}}
+          />
+          <ContextMenuItem
+            title="Cut"
+            icon={<IconScissors size={16} />}
+            iconRight={shortcut("Ctrl+X")}
+            onClick={() => clipboard.cutItems(only)}
+            onHide={close}
+            submenuProps={{}}
+          />
+          <ContextMenuItem
             title="Delete"
             icon={<IconTrash size={16} />}
+            iconRight={shortcut("Del")}
             color="red"
             onClick={() => {
               room.removeToken(token.id);

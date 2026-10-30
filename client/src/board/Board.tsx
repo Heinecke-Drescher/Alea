@@ -39,6 +39,7 @@ import {
 } from "./selection/selection";
 import { SelectionFrame } from "./selection/SelectionFrame";
 import { ShapeResizer } from "./selection/ShapeResizer";
+import { useBoardMenu } from "./selection/useBoardMenu";
 import { useClipboard } from "./selection/useClipboard";
 import { useItemDrag } from "./selection/useItemDrag";
 import { useSelection } from "./selection/useSelection";
@@ -98,7 +99,6 @@ export function Board({
   const { area, items } = selection;
   const reshapableId = reshapableStrokeId(items);
   const itemDrag = useItemDrag(room, items);
-  const tokenMenu = useTokenMenu(room, selection);
   const lastPointer = useRef<Vector2d | null>(null);
   const clipboard = useClipboard({
     room,
@@ -106,6 +106,8 @@ export function Board({
     pointer: lastPointer,
     onPaste: () => changeTool("select"),
   });
+  const tokenMenu = useTokenMenu(room, selection, clipboard);
+  const boardMenu = useBoardMenu(selection, clipboard);
   const stageRef = useRef<StageNode>(null);
   const { panOrZoom, panOnlyWithMiddleButton, viewCenter, fitMap } =
     useBoardView(room, stageRef);
@@ -243,7 +245,7 @@ export function Board({
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
-          onContextMenu={(event) => event.evt.preventDefault()}
+          onContextMenu={(event) => boardMenu.open(event, pointerOnMap(event))}
         >
           <Layer listening={false}>
             <MapFill />
