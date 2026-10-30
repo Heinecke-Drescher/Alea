@@ -100,6 +100,18 @@ function point(value: unknown, what: string): Vector2d {
   return { x, y };
 }
 
+function parseBounds(value: unknown, what: string): MapBounds {
+  if (!isRecord(value)) invalid(what);
+  const bounds = {
+    x: integer(value.x, what),
+    y: integer(value.y, what),
+    columns: integer(value.columns, what),
+    rows: integer(value.rows, what),
+  };
+  if (!isValidMapBounds(bounds)) invalid(what);
+  return bounds;
+}
+
 function parseShape(value: unknown): AreaShape {
   if (!isRecord(value) || !isShapeKind(value.kind)) invalid("shape kind");
   const shape = {
@@ -140,13 +152,9 @@ function parseStroke(value: unknown): StrokeData {
 
 function parseMapImage(value: unknown): MapImage {
   if (!isRecord(value)) invalid("map image");
-  const { bounds } = value;
-  if (!isRecord(bounds) || !isValidMapBounds(bounds as unknown as MapBounds)) {
-    invalid("map image size");
-  }
   return {
     image: image(value.image, "map image"),
-    bounds: bounds as unknown as MapBounds,
+    bounds: parseBounds(value.bounds, "map image size"),
   };
 }
 
@@ -184,11 +192,7 @@ export function parseMapFile(json: string): MapFile {
   }
   if (!isRecord(value) || value.app !== APP) invalid("not made by Alea");
   if (value.version !== VERSION) invalid(`unknown version ${value.version}`);
-  const { bounds } = value;
-  if (!isRecord(bounds) || !isValidMapBounds(bounds as unknown as MapBounds)) {
-    invalid("map size");
-  }
-  const map = bounds as unknown as MapBounds;
+  const map = parseBounds(value.bounds, "map size");
   return {
     app: APP,
     version: VERSION,

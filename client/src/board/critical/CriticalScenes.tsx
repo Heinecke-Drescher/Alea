@@ -1,7 +1,15 @@
 import type { Vector2d } from "konva/lib/types";
-import type { Critical } from "../../dice/criticalRoll";
+import type { ComponentType } from "react";
+import type { CriticalKind, Critical } from "../../dice/criticalRoll";
+import type { CriticalSceneProps } from "./CriticalScene";
 import { Natural1Scene } from "./Natural1Scene";
 import { Natural20Scene } from "./Natural20Scene";
+
+// A new kind of critical roll does not compile until it has a scene.
+const SCENES: Record<CriticalKind, ComponentType<CriticalSceneProps>> = {
+  natural20: Natural20Scene,
+  natural1: Natural1Scene,
+};
 
 interface CriticalScenesProps {
   critical: Critical | null;
@@ -15,7 +23,7 @@ export function CriticalScenes({
   onDone,
 }: CriticalScenesProps) {
   if (!critical) return null;
-  const Scene = critical.kind === "natural20" ? Natural20Scene : Natural1Scene;
+  const Scene = SCENES[critical.kind];
   return (
     <Scene
       key={critical.id}

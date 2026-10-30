@@ -259,6 +259,18 @@ describe("map files", () => {
     expect(() => parseMapFile(json)).toThrow("not a valid map file");
   });
 
+  it("keeps only the known fields of the map size", () => {
+    const file = validFile();
+    const json = JSON.stringify({
+      ...file,
+      bounds: { ...file.bounds, extra: "<script>" },
+      mapImage: { image: IMAGE, bounds: { ...file.bounds, extra: 1 } },
+    });
+    const parsed = parseMapFile(json);
+    expect(parsed.bounds).toEqual(file.bounds);
+    expect(parsed.mapImage?.bounds).toEqual(file.bounds);
+  });
+
   it("rejects files that are no JSON", () => {
     expect(() => parseMapFile("not json")).toThrow("not a valid map file");
   });
