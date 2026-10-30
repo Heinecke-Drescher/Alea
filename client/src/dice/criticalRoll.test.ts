@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { isFresh, isNatural20 } from "./criticalRoll";
+import { criticalKind, isFresh } from "./criticalRoll";
 
-describe("isNatural20", () => {
-  it("finds only a 20 on the d20", () => {
-    expect(isNatural20(20, 20)).toBe(true);
-    expect(isNatural20(20, 1)).toBe(false);
-    expect(isNatural20(100, 20)).toBe(false);
+describe("criticalKind", () => {
+  it("finds a natural 20 and a natural 1 only on the d20", () => {
+    expect(criticalKind(20, 20)).toBe("natural20");
+    expect(criticalKind(20, 1)).toBe("natural1");
+    expect(criticalKind(20, 2)).toBeNull();
+    expect(criticalKind(100, 20)).toBeNull();
+    expect(criticalKind(6, 1)).toBeNull();
   });
 });
 

@@ -3,7 +3,7 @@ import type { Room } from "../room/createRoom";
 import type { DieSides } from "../room/dice";
 import { rollColor } from "../room/rolls";
 import { useNewRolls } from "../room/useNewRolls";
-import { isFresh, isNatural20, type Critical } from "./criticalRoll";
+import { criticalKind, isFresh, type Critical } from "./criticalRoll";
 
 interface CriticalInput {
   id: string;
@@ -18,9 +18,8 @@ export function useCriticalRolls(room: Room, isSynced: boolean) {
 
   const show = useCallback(
     ({ id, sides, value, color, thrown }: CriticalInput) => {
-      if (isNatural20(sides, value)) {
-        setCritical({ id, color, thrown });
-      }
+      const kind = criticalKind(sides, value);
+      if (kind) setCritical({ id, kind, color, thrown });
     },
     [],
   );

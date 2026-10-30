@@ -1,5 +1,4 @@
 import { useMantineTheme } from "@mantine/core";
-import { Easings } from "konva/lib/Tween";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { dieColors } from "../../dice/dieColors";
 import { dieShape } from "../../dice/dieShapes";
@@ -19,6 +18,7 @@ import {
   type CriticalAnimation,
   type CriticalSceneProps,
 } from "./CriticalScene";
+import { drawSlogan } from "./drawSlogan";
 
 const BURST_SECONDS = 1.2;
 const HOLD_SECONDS = 1.5;
@@ -28,11 +28,6 @@ const DIE_SIZE = 0.45;
 const OUTLINE_WIDTH = 0.05;
 const SLOGAN = "LET'S GO";
 const SLOGAN_TILT = -8;
-const LETTER_DELAY_SECONDS = 0.05;
-const LETTER_POP_SECONDS = 0.3;
-const SWAY_SPEED = 8;
-const SWAY_OFFSET = 0.6;
-const SWAY_HEIGHT = 0.06;
 
 interface Scene {
   center: Vector2d;
@@ -81,7 +76,21 @@ export function Natural20Scene(props: CriticalSceneProps) {
       draw(canvas) {
         if (!scene) return;
         drawDice(canvas, scene);
-        if (scene.holding >= 0) drawSlogan(canvas, scene);
+        if (scene.holding < 0) return;
+        drawSlogan(
+          canvas,
+          {
+            text: SLOGAN,
+            x: center.x + 5.5 * spacing,
+            y: center.y + 3.6 * spacing,
+            align: 1,
+            size: spacing * 1.1,
+            tilt: SLOGAN_TILT,
+            fontFamily: theme.fontFamily,
+            outline: colors.fill,
+          },
+          scene.holding,
+        );
       },
     };
   }
@@ -118,49 +127,6 @@ export function Natural20Scene(props: CriticalSceneProps) {
       canvas.fillText("20", 0, 0);
       canvas.restore();
     }
-  }
-
-  function drawSlogan(
-    canvas: CanvasRenderingContext2D,
-    { center, spacing, holding }: Scene,
-  ) {
-    canvas.save();
-    canvas.translate(center.x + 5.5 * spacing, center.y + 3.6 * spacing);
-    canvas.rotate((SLOGAN_TILT * Math.PI) / 180);
-    const size = spacing * 1.1;
-    canvas.font = `italic 900 ${size}px ${theme.fontFamily}`;
-    canvas.textAlign = "center";
-    canvas.textBaseline = "middle";
-    canvas.lineJoin = "round";
-    canvas.lineWidth = spacing * 0.15;
-    canvas.strokeStyle = colors.fill;
-    canvas.fillStyle = "white";
-    const width = canvas.measureText(SLOGAN).width;
-    const eachLetter = (draw: (letter: string) => void) => {
-      [...SLOGAN].forEach((letter, i) => {
-        const popped = Math.min(
-          (holding - i * LETTER_DELAY_SECONDS) / LETTER_POP_SECONDS,
-          1,
-        );
-        if (popped <= 0) return;
-        // Measured up to and with the letter, so the font's spacing between letter pairs stays.
-        const right = canvas.measureText(SLOGAN.slice(0, i + 1)).width;
-        const sway = Math.sin(holding * SWAY_SPEED + i * SWAY_OFFSET) * popped;
-        canvas.save();
-        canvas.translate(
-          right - canvas.measureText(letter).width / 2 - width,
-          size / 2 + sway * spacing * SWAY_HEIGHT,
-        );
-        const scale = Easings.BackEaseOut(popped, 0, 1, 1);
-        canvas.scale(scale, scale);
-        draw(letter);
-        canvas.restore();
-      });
-    };
-    // All outlines first, so no outline covers the neighbouring letter.
-    eachLetter((letter) => canvas.strokeText(letter, 0, 0));
-    eachLetter((letter) => canvas.fillText(letter, 0, 0));
-    canvas.restore();
   }
 
   return <CriticalScene {...props} fadeStart={FADE_START} start={start} />;

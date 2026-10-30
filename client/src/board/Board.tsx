@@ -26,6 +26,7 @@ import { GridLines } from "./map/GridLines";
 import { MapFill } from "./map/MapFill";
 import { MapImage } from "./map/MapImage";
 import { MapResizer } from "./map/MapResizer";
+import { Natural1Scene } from "./critical/Natural1Scene";
 import { Natural20Scene } from "./critical/Natural20Scene";
 import { paintColorValue, type PaintColor } from "./paintColors";
 import {
@@ -290,8 +291,16 @@ export function Board({
             {isSynced && (
               <ThrownDice viewCenter={viewCenter} landings={landings} />
             )}
-            {critical && (
+            {critical?.kind === "natural20" && (
               <Natural20Scene
+                key={critical.id}
+                critical={critical}
+                landings={landings}
+                onDone={onCriticalDone}
+              />
+            )}
+            {critical?.kind === "natural1" && (
+              <Natural1Scene
                 key={critical.id}
                 critical={critical}
                 landings={landings}
