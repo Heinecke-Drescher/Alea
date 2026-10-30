@@ -1,21 +1,8 @@
 # Alea
 
-A shared map and dice roller for tabletop groups. Start Alea on your computer,
-send the link to your friends and play together in real time in the browser.
-
-## Features
-
-- Grid map: resize it, put a map image on it, set a background around it
-- Tokens with your own images: drag them in, move, resize, rename, mark as dead
-  or unconscious
-- Paint cells, draw, erase, measure distances, place cone, square and circle
-  areas
-- Fog of war for the dungeon master
-- Dice from d4 to d100: click to roll, or throw them onto the map; secret rolls
-  for the dungeon master
-- Shared music from a YouTube link
-- Copy, paste and undo; see where the other players point
-- Export a map to a file and import it into any room
+A shared map and dice roller for tabletop groups: tokens, drawings, fog of war
+and scenes, in real time in the browser. Start Alea on your computer and send
+the link to your friends.
 
 ## Host a game for your friends
 
@@ -55,25 +42,6 @@ Good to know:
   your friends can also open `http://<your-ip>:3000` without a tunnel. Your
   firewall has to let Node.js in for that network; Windows often counts
   virtual networks as public.
-
-## Controls
-
-| Action               | How                                                           |
-| -------------------- | ------------------------------------------------------------- |
-| Move the map         | Mouse wheel, two fingers or drag with the middle mouse button |
-| Zoom                 | Ctrl + mouse wheel, pinch or the buttons at the bottom right  |
-| Show the whole map   | Shift+1 or the button at the bottom right                     |
-| Ping a spot          | Double-click the map with the select tool                     |
-| Add to the selection | Ctrl + click                                                  |
-| Copy, cut, paste     | Ctrl+C, Ctrl+X, Ctrl+V or right-click the map                 |
-| Delete the selection | Delete                                                        |
-| Undo, redo           | Ctrl+Z, Ctrl+Y or the buttons at the bottom right             |
-| Token menu           | Right-click a token                                           |
-| Find a token         | Click it in the sidebar                                       |
-| Copy a token         | Drag it from the sidebar onto the map                         |
-| Rename a token       | Double-click its name in the sidebar                          |
-
-On a Mac, use ⌘ instead of Ctrl.
 
 <details>
 <summary>Run Alea on a server</summary>
