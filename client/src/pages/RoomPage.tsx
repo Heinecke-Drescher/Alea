@@ -11,7 +11,7 @@ import {
   Title,
 } from "@mantine/core";
 import { useDisclosure, useHotkeys } from "@mantine/hooks";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useParams } from "react-router";
 import { isValidRoomId } from "../../../shared/roomId";
@@ -29,6 +29,7 @@ import { recordVisit } from "../recentRooms/useRecentRooms";
 import { useLocalPlayer } from "../player/useLocalPlayer";
 import { useRoomConnection } from "../room/useRoomConnection";
 import { FocusTokenContext } from "../tokens/focusToken";
+import { SelectedTokensContext } from "../tokens/selectedTokens";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
@@ -69,6 +70,7 @@ function RoomView({ roomId }: { roomId: string }) {
   const needsName = name === "";
   const criticals = useCriticalRolls(room, isSynced);
   const board = useRef<BoardHandle>(null);
+  const [selectedTokens, setSelectedTokens] = useState<readonly string[]>([]);
   // Without a board, e.g. while the map shows an error, there is nothing to find.
   const focusToken = useCallback(
     (tokenId: string) => board.current?.focusToken(tokenId),
@@ -132,6 +134,7 @@ function RoomView({ roomId }: { roomId: string }) {
               <ErrorBoundary FallbackComponent={MapError}>
                 <Board
                   ref={board}
+                  onSelectedTokensChange={setSelectedTokens}
                   awareness={awareness}
                   isSynced={isSynced}
                   critical={criticals.critical}
@@ -143,7 +146,9 @@ function RoomView({ roomId }: { roomId: string }) {
               <AppShell.Section grow component={ScrollArea} p="md">
                 <Stack>
                   <FocusTokenContext value={focusToken}>
-                    <TokenPanel />
+                    <SelectedTokensContext value={selectedTokens}>
+                      <TokenPanel />
+                    </SelectedTokensContext>
                   </FocusTokenContext>
                   <DicePanel />
                 </Stack>

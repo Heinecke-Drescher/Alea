@@ -88,6 +88,7 @@ interface BoardProps {
   isSynced: boolean;
   critical: Critical | null;
   onCriticalDone: (id: string) => void;
+  onSelectedTokensChange: (ids: readonly string[]) => void;
   ref: Ref<BoardHandle>;
 }
 
@@ -96,6 +97,7 @@ export function Board({
   isSynced,
   critical,
   onCriticalDone,
+  onSelectedTokensChange,
   ref,
 }: BoardProps) {
   const room = useRoom();
@@ -134,6 +136,13 @@ export function Board({
   const hasSize = width > 0 && height > 0;
   const fitOnOpen = useEffectEvent(fitMap);
   const fittedWhenSynced = useRef<boolean | null>(null);
+
+  // Reported only when the ids change, as the page around the board renders again with them.
+  const selectedTokensKey = items.tokens.join(" ");
+  const reportSelectedTokens = useEffectEvent(() =>
+    onSelectedTokensChange(items.tokens),
+  );
+  useEffect(() => reportSelectedTokens(), [selectedTokensKey]);
 
   // Once the board has its size, and again once the room's own map has loaded; never later.
   useEffect(() => {
