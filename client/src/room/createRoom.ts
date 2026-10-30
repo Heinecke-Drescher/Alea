@@ -11,6 +11,7 @@ import { createRolls } from "./rolls";
 import { createMapFiles } from "./roomFile";
 import { createRoomSpace } from "./roomSpace";
 import { createRoomStore } from "./roomStore";
+import { createScenes } from "./scenes";
 import { createTokens } from "./tokens";
 
 export type Room = ReturnType<typeof createRoom>;
@@ -32,5 +33,6 @@ export function createRoom(doc: Y.Doc) {
     ...createFog(store),
     ...createMapFiles(store, map),
     ...createRoomSpace(store),
+    ...createScenes(store),
   };
 }

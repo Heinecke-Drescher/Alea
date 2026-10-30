@@ -1,5 +1,6 @@
 import * as Y from "yjs";
 import type { DieSides } from "./dice";
+import type { Scene } from "./scenes";
 import type { StatusEffect } from "./effects";
 import type { MapBounds } from "./grid";
 import type { PlayerColor } from "./playerColors";
@@ -80,6 +81,8 @@ export function createRoomStore(doc: Y.Doc) {
   const musicMap = doc.getMap<Music>("music");
   const rolesMap = doc.getMap<DungeonMaster>("roles");
   const fogMap = doc.getMap<{ x: number; y: number }>("fog");
+  const scenesMap = doc.getMap<Scene>("scenes");
+  const activeSceneMap = doc.getMap<string>("activeScene");
   // Tracks only local changes, so undo never reverts other players' work. Rolls, music and roles
   // stay final. Map bounds are tracked only so an import or a map image can be undone as a whole;
   // resizing stays outside undo, as undoing it could push others' new content off the map.
@@ -90,6 +93,8 @@ export function createRoomStore(doc: Y.Doc) {
     strokesMap,
     fogMap,
     settingsMap,
+    scenesMap,
+    activeSceneMap,
   ]);
 
   // Undo can restore a token that another player deleted together with its image.
@@ -112,6 +117,8 @@ export function createRoomStore(doc: Y.Doc) {
     musicMap,
     rolesMap,
     fogMap,
+    scenesMap,
+    activeSceneMap,
     undoManager,
   };
 }

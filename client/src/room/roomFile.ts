@@ -1,6 +1,5 @@
 import type { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
-import * as Y from "yjs";
 import { MAX_ROOM_BYTES } from "../../../shared/roomLimits";
 import { BACKGROUND_IMAGE_ID } from "./background";
 import { isOverFog, newStroke, shapeStroke, strokeData } from "./drawing";
@@ -8,6 +7,7 @@ import { isStatusEffect, tokenEffects, type StatusEffect } from "./effects";
 import {
   containsCell,
   containsSquare,
+  DEFAULT_MAP_BOUNDS,
   isValidMapBounds,
   MAX_TOKEN_SIZE,
   type MapBounds,
@@ -16,7 +16,6 @@ import { BOUNDS_KEY, type MapActions } from "./map";
 import { MAP_IMAGE_KEY, validMapImage, type MapImage } from "./mapImage";
 import {
   cellKey,
-  createRoomStore,
   type Cell,
   type RoomStore,
   type StrokeData,
@@ -25,7 +24,7 @@ import {
   megabytes,
   ROOM_SPACE_BYTES,
   RoomSpaceError,
-  storedBytes,
+  storedBytesAfter,
 } from "./roomSpace";
 import { isShapeKind, shapeCells, type AreaShape } from "./shapes";
 import { embeddedImage } from "./tokens";
@@ -190,6 +189,10 @@ export function parseMapFile(json: string): MapFile {
   } catch {
     invalid("no JSON");
   }
+  return parseMap(value);
+}
+
+export function parseMap(value: unknown): MapFile {
   if (!isRecord(value) || value.app !== APP) invalid("not made by Alea");
   if (value.version !== VERSION) invalid(`unknown version ${value.version}`);
   const map = parseBounds(value.bounds, "map size");
@@ -212,7 +215,20 @@ export function parseMapFile(json: string): MapFile {
   };
 }
 
-function writeMap(
+export function emptyMap(): MapFile {
+  return {
+    app: APP,
+    version: VERSION,
+    bounds: DEFAULT_MAP_BOUNDS,
+    cells: [],
+    strokes: [],
+    tokens: [],
+    background: null,
+    fog: [],
+  };
+}
+
+export function writeMap(
   {
     doc,
     tokensMap,
@@ -299,13 +315,8 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
     };
   }
 
-  // Tried on a copy first, so a map that would overfill the room never reaches the server,
-  // which would disconnect everyone.
   function assertSpaceForMap(file: MapFile) {
-    const copy = new Y.Doc();
-    Y.applyUpdate(copy, Y.encodeStateAsUpdate(doc));
-    writeMap(createRoomStore(copy), file);
-    const bytes = storedBytes(copy);
+    const bytes = storedBytesAfter(doc, (copy) => writeMap(copy, file));
     if (bytes <= ROOM_SPACE_BYTES) return;
     throw new RoomSpaceError(
       `With this map the room would need ${megabytes(bytes)} MB, but it can hold at most ${megabytes(ROOM_SPACE_BYTES)} MB. Use smaller or fewer images.`,

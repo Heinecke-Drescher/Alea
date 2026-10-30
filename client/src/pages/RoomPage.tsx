@@ -28,6 +28,7 @@ import { PlayerContext } from "../player/PlayerContext";
 import { recordVisit } from "../recentRooms/useRecentRooms";
 import { useLocalPlayer } from "../player/useLocalPlayer";
 import { useRoomConnection } from "../room/connection/useRoomConnection";
+import { SceneTabs } from "../scenes/SceneTabs";
 import { FocusTokenContext } from "../tokens/focusToken";
 import { SelectedTokensContext } from "../tokens/selectedTokens";
 import { TokenPanel } from "../tokens/TokenPanel";
@@ -106,6 +107,7 @@ function RoomView({ roomId }: { roomId: string }) {
               <Group h="100%" px="md" justify="space-between">
                 <Group gap="sm">
                   <AleaMenu isSynced={isSynced} connection={connection} />
+                  {isSynced && <SceneTabs />}
                   {connection === "disconnected" && (
                     <Badge color="red" variant="light">
                       Not connected. Changes are not saved yet.

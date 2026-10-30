@@ -1,6 +1,6 @@
 import * as Y from "yjs";
 import { MAX_ROOM_BYTES } from "../../../shared/roomLimits";
-import type { RoomStore } from "./roomStore";
+import { createRoomStore, type RoomStore } from "./roomStore";
 
 // A little below what the server saves, so players adding at the same moment and small
 // differences in measuring do not overfill the room.
@@ -17,6 +17,18 @@ export function storedBytes(doc: Y.Doc) {
   const copy = new Y.Doc();
   Y.applyUpdate(copy, Y.encodeStateAsUpdate(doc));
   return Y.encodeStateAsUpdate(copy).byteLength;
+}
+
+// Tried on a copy first, so a change that would overfill the room never reaches the server,
+// which would disconnect everyone.
+export function storedBytesAfter(
+  doc: Y.Doc,
+  change: (copy: RoomStore) => void,
+) {
+  const copy = new Y.Doc();
+  Y.applyUpdate(copy, Y.encodeStateAsUpdate(doc));
+  change(createRoomStore(copy));
+  return storedBytes(copy);
 }
 
 // Throws a message for the player, so a full room shows up before the server refuses to save it.
