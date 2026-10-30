@@ -26,7 +26,7 @@ import { GridLines } from "./map/GridLines";
 import { MapFill } from "./map/MapFill";
 import { MapImage } from "./map/MapImage";
 import { MapResizer } from "./map/MapResizer";
-import { Natural20Scene } from "./Natural20Scene";
+import { Natural20Scene } from "./critical/Natural20Scene";
 import { paintColorValue, type PaintColor } from "./paintColors";
 import {
   itemsSelection,
