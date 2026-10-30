@@ -59,6 +59,7 @@ import { useBoardView } from "./useBoardView";
 import { useCursorBroadcast } from "./useCursorBroadcast";
 import { useDieDrop } from "./useDieDrop";
 import { useImageDrop } from "./useImageDrop";
+import { useTokenDrop } from "./useTokenDrop";
 
 function pointerOnMap(event: KonvaEventObject<MouseEvent>) {
   const pointer = event.target.getStage()?.getRelativePointerPosition();
@@ -114,6 +115,7 @@ export function Board({
   const cursor = useCursorBroadcast(awareness);
   const dieDrop = useDieDrop({ stageRef });
   const imageDrop = useImageDrop(stageRef);
+  const tokenDrop = useTokenDrop(stageRef, selectDroppedToken);
   const backgroundImage = useBackgroundImage();
   const hasSize = width > 0 && height > 0;
   const fitOnOpen = useEffectEvent(fitMap);
@@ -187,6 +189,11 @@ export function Board({
     selection.set(itemsSelection({ strokes: [id], tokens: [] }));
   }
 
+  function selectDroppedToken(id: string) {
+    changeTool("select");
+    selection.set(itemsSelection({ strokes: [], tokens: [id] }));
+  }
+
   function handleMouseDown(event: KonvaEventObject<MouseEvent>) {
     if (event.evt.button !== LEFT_MOUSE_BUTTON) return;
     activeTool.onDown({ point: pointerOnMap(event), event });
@@ -224,10 +231,12 @@ export function Board({
         onDragOver={(event) => {
           dieDrop.onDragOver(event);
           imageDrop.onDragOver(event);
+          tokenDrop.onDragOver(event);
         }}
         onDrop={(event) => {
           dieDrop.onDrop(event);
           imageDrop.onDrop(event);
+          tokenDrop.onDrop(event);
         }}
       >
         <Stage
