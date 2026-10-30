@@ -87,6 +87,7 @@ export function Natural20Scene(props: CriticalSceneProps) {
             size: spacing * 1.1,
             tilt: SLOGAN_TILT,
             fontFamily: theme.fontFamily,
+            fill: "white",
             outline: colors.fill,
           },
           scene.holding,
