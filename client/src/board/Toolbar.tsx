@@ -22,6 +22,7 @@ import {
   IconResize,
   IconRuler,
   IconSquare,
+  IconTypography,
   type Icon,
 } from "@tabler/icons-react";
 import { usePlayer } from "../player/PlayerContext";
@@ -44,6 +45,7 @@ const DRAWING_TOOLS: ToolButton[] = [
   { tool: "pen", label: "Draw", icon: IconPencil },
   { tool: "paint", label: "Paint cells", icon: IconBucketDroplet },
   { tool: "eraser", label: "Erase", icon: IconEraser },
+  { tool: "text", label: "Write text", icon: IconTypography },
 ];
 
 const SHAPE_TOOLS: ToolButton[] = [

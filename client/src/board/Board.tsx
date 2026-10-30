@@ -51,6 +51,8 @@ import { Toolbar } from "./Toolbar";
 import { DistanceMeasure } from "./tools/DistanceMeasure";
 import { FogFrame } from "./tools/FogFrame";
 import { ShapePreview } from "./tools/ShapePreview";
+import { TextEditor } from "./texts/TextEditor";
+import { Texts } from "./texts/Texts";
 import { isFogTool, type Tool } from "./tools/tool";
 import { useBoardTools } from "./tools/useBoardTools";
 import { LEFT_MOUSE_BUTTON } from "./mouse";
@@ -103,7 +105,7 @@ export function Board({
   const [landings] = useState(() => new Map<string, Vector2d>());
   const selection = useSelection(room);
   const colorValue = paintColorValue(theme, color);
-  const { activeTool, draftPoints, measurement, shapeDraft, fogFrame } =
+  const { activeTool, draftPoints, measurement, shapeDraft, fogFrame, texts } =
     useBoardTools(tool, selection, room, colorValue, selectPlacedShape);
   const { area, items } = selection;
   const reshapableId = reshapableStrokeId(items);
@@ -290,6 +292,7 @@ export function Board({
               draft={player.isDm ? draft : null}
               {...strokeProps}
             />
+            <Texts overFog={false} />
             <Tokens
               listening={isSelecting}
               selection={area}
@@ -312,6 +315,7 @@ export function Board({
               draft={player.isDm ? null : draft}
               {...strokeProps}
             />
+            <Texts overFog />
           </Layer>
           <Layer>
             <FogFrame frame={fogFrame} />
@@ -329,6 +333,15 @@ export function Board({
               onDone={onCriticalDone}
             />
             <ShapePreview draft={shapeDraft} color={colorValue} />
+            {texts.textDraft && (
+              <TextEditor
+                draft={texts.textDraft}
+                color={colorValue}
+                onWrite={texts.writeText}
+                onFinish={texts.finishText}
+                onCancel={texts.cancelText}
+              />
+            )}
             <DistanceMeasure
               measurement={measurement}
               color={theme.colors[player.color][6]}

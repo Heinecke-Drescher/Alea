@@ -8,6 +8,7 @@ import { usePenTool } from "./pen";
 import { resizeTool } from "./resize";
 import { selectTool } from "./select";
 import { useShapeTool } from "./shape";
+import { useTextTool } from "./text";
 import type { BoardTool, Tool } from "./tool";
 
 export function useBoardTools(
@@ -18,6 +19,7 @@ export function useBoardTools(
   onShapePlaced: (id: string) => void,
 ) {
   const { tool: pen, draftPoints } = usePenTool(room, color);
+  const { tool: text, ...texts } = useTextTool(room, color);
   const { tool: measure, measurement } = useMeasureTool(room);
   const cone = useShapeTool(room, "cone", color, onShapePlaced);
   const square = useShapeTool(room, "square", color, onShapePlaced);
@@ -29,6 +31,7 @@ export function useBoardTools(
     paint: usePaintTool(room, color),
     pen,
     eraser: useEraserTool(room),
+    text,
     measure,
     cone: cone.tool,
     square: square.tool,
@@ -43,5 +46,6 @@ export function useBoardTools(
     measurement,
     shapeDraft: cone.draft ?? square.draft ?? circle.draft,
     fogFrame: reveal.frame ?? hide.frame,
+    texts,
   };
 }

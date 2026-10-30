@@ -7,6 +7,7 @@ export type Tool =
   | "paint"
   | "pen"
   | "eraser"
+  | "text"
   | "measure"
   | "resize"
   | ShapeKind
