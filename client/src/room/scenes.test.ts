@@ -93,6 +93,24 @@ describe("scenes", () => {
     expect(room.exportMap()).toEqual(second);
   });
 
+  it("keeps texts with their scene", () => {
+    const text = {
+      text: "Trap",
+      x: 60,
+      y: 70,
+      width: 40,
+      height: 25,
+      color: "#ff0000",
+    };
+    room.addText(text);
+    const secondId = room.addScene();
+    const firstId = activeSceneId();
+    room.switchScene(secondId);
+    expect(room.textsMap.size).toBe(0);
+    room.switchScene(firstId);
+    expect(Array.from(room.textsMap.values(), (t) => t.text)).toEqual(["Trap"]);
+  });
+
   it("keeps the content of a scene only once in the room", () => {
     fillMap();
     const secondId = room.addScene();

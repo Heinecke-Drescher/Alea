@@ -16,6 +16,14 @@ import { megabytes } from "./roomSpace";
 import type { AreaShape } from "./shapes";
 
 const IMAGE = "data:image/webp;base64,AAAA";
+const TEXT = {
+  text: "Trap",
+  x: 60,
+  y: 70,
+  width: 40,
+  height: 25,
+  color: "#ff0000",
+};
 const SQUARE: AreaShape = {
   kind: "square",
   from: { x: 0, y: 0 },
@@ -173,6 +181,38 @@ describe("map files", () => {
     expect(other.exportMap()).toEqual(file);
   });
 
+  it("brings texts into another room", () => {
+    room.addText(TEXT);
+    room.addText({ ...TEXT, text: "Player note", overFog: true });
+    const file = parseMapFile(JSON.stringify(room.exportMap()));
+    expect(file.texts).toEqual(
+      expect.arrayContaining([
+        TEXT,
+        { ...TEXT, text: "Player note", overFog: true },
+      ]),
+    );
+    const other = createRoom(new Y.Doc());
+    other.importMap(file);
+    expect(other.exportMap()).toEqual(file);
+  });
+
+  it("removes the old texts when the file has none", () => {
+    const file = validFile();
+    const other = createRoom(new Y.Doc());
+    other.addText(TEXT);
+    other.importMap(file);
+    expect(other.textsMap.size).toBe(0);
+    expect(file.texts).toBeUndefined();
+  });
+
+  it("keeps only the known fields of texts", () => {
+    const json = JSON.stringify({
+      ...validFile(),
+      texts: [{ ...TEXT, id: "foreign", extra: "<script>" }],
+    });
+    expect(parseMapFile(json).texts).toEqual([TEXT]);
+  });
+
   it("removes the old map image when the file has none", () => {
     const file = validFile();
     const other = createRoom(new Y.Doc());
@@ -253,6 +293,15 @@ describe("map files", () => {
       }),
     ],
     ["fog off the map", (file) => ({ ...file, fog: [{ x: -10, y: 0 }] })],
+    ["texts that are no list", (file) => ({ ...file, texts: "Hello" })],
+    [
+      "a text without words",
+      (file) => ({ ...file, texts: [{ ...TEXT, text: "" }] }),
+    ],
+    [
+      "a text without size",
+      (file) => ({ ...file, texts: [{ ...TEXT, width: 0 }] }),
+    ],
     [
       "a map image from the web",
       (file) => ({

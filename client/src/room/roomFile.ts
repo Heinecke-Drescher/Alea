@@ -17,6 +17,8 @@ import { MAP_IMAGE_KEY, validMapImage, type MapImage } from "./mapImage";
 import {
   cellKey,
   type Cell,
+  type MapText,
+  type MapTextData,
   type RoomStore,
   type StrokeData,
 } from "./roomStore";
@@ -27,6 +29,7 @@ import {
   storedBytesAfter,
 } from "./roomSpace";
 import { isShapeKind, shapeCells, type AreaShape } from "./shapes";
+import { validMapText } from "./texts";
 import { embeddedImage } from "./tokens";
 
 const APP = "alea";
@@ -53,6 +56,8 @@ export interface MapFile {
   background: string | null;
   mapImage?: MapImage;
   fog: Vector2d[];
+  // Files from before texts have none.
+  texts?: MapTextData[];
 }
 
 function invalid(what: string): never {
@@ -213,7 +218,28 @@ export function parseMap(value: unknown): MapFile {
       mapImage: parseMapImage(value.mapImage),
     }),
     fog: list(value.fog, "fog").map((cell) => cellOnMap(cell, map, "fog")),
+    ...(value.texts !== undefined && {
+      texts: list(value.texts, "texts").map(parseText),
+    }),
   };
+}
+
+function parseText(value: unknown): MapTextData {
+  const text = validMapText(isRecord(value) ? { ...value, id: "file" } : null);
+  if (!text) invalid("text");
+  return textData(text);
+}
+
+function textData({
+  text,
+  x,
+  y,
+  width,
+  height,
+  color,
+  overFog,
+}: MapText): MapTextData {
+  return { text, x, y, width, height, color, ...(overFog && { overFog }) };
 }
 
 export function emptyMap(): MapFile {
@@ -236,6 +262,7 @@ export function writeMap(
     imagesMap,
     cellsMap,
     strokesMap,
+    textsMap,
     fogMap,
     settingsMap,
     loadedMapMap,
@@ -249,6 +276,7 @@ export function writeMap(
     tokensMap.clear();
     imagesMap.clear();
     fogMap.clear();
+    textsMap.clear();
     settingsMap.set(BOUNDS_KEY, file.bounds);
     settingsMap.delete(MAP_IMAGE_KEY);
     for (const cell of file.cells) cellsMap.set(cellKey(cell.x, cell.y), cell);
@@ -272,6 +300,10 @@ export function writeMap(
       settingsMap.set(MAP_IMAGE_KEY, file.mapImage.bounds);
     }
     for (const { x, y } of file.fog) fogMap.set(cellKey(x, y), { x, y });
+    for (const text of file.texts ?? []) {
+      const id = nanoid();
+      textsMap.set(id, { ...text, id });
+    }
   });
 }
 
@@ -282,6 +314,7 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
     imagesMap,
     cellsMap,
     strokesMap,
+    textsMap,
     fogMap,
     settingsMap,
     undoManager,
@@ -292,6 +325,10 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
       imagesMap.get(MAP_IMAGE_KEY),
       settingsMap.get(MAP_IMAGE_KEY),
     );
+    const texts = Array.from(textsMap.values()).flatMap((value) => {
+      const text = validMapText(value);
+      return text ? [textData(text)] : [];
+    });
     return {
       app: APP,
       version: VERSION,
@@ -315,6 +352,7 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
       background: embeddedImage(imagesMap.get(BACKGROUND_IMAGE_ID)),
       ...(mapImage && { mapImage }),
       fog: Array.from(fogMap.values(), ({ x, y }) => ({ x, y })),
+      ...(texts.length > 0 && { texts }),
     };
   }
 

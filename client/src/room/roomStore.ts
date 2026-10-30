@@ -36,6 +36,21 @@ export interface Stroke {
 
 export type StrokeData = Omit<Stroke, "id">;
 
+// Width and height are measured where the text is written, so others need not measure it again.
+export interface MapText {
+  id: string;
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  color: string;
+  // Texts written by players stay visible above the fog.
+  overFog?: true;
+}
+
+export type MapTextData = Omit<MapText, "id">;
+
 export interface Roll {
   id: string;
   player: string;
@@ -76,6 +91,7 @@ export function createRoomStore(doc: Y.Doc) {
   const imagesMap = doc.getMap<string>("images");
   const cellsMap = doc.getMap<Cell>("cells");
   const strokesMap = doc.getMap<Stroke>("strokes");
+  const textsMap = doc.getMap<MapText>("texts");
   const rollsArray = doc.getArray<Roll>("rolls");
   const settingsMap = doc.getMap<MapBounds>("settings");
   const musicMap = doc.getMap<Music>("music");
@@ -93,6 +109,7 @@ export function createRoomStore(doc: Y.Doc) {
     imagesMap,
     cellsMap,
     strokesMap,
+    textsMap,
     fogMap,
     settingsMap,
     scenesMap,
@@ -115,6 +132,7 @@ export function createRoomStore(doc: Y.Doc) {
     imagesMap,
     cellsMap,
     strokesMap,
+    textsMap,
     rollsArray,
     settingsMap,
     musicMap,
