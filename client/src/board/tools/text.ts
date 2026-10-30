@@ -3,12 +3,17 @@ import type { Vector2d } from "konva/lib/types";
 import { useRef, useState } from "react";
 import { usePlayer } from "../../player/PlayerContext";
 import type { Room } from "../../room/createRoom";
+import { validMapText } from "../../room/texts";
+import { textIdAt } from "../texts/textNodes";
 import { measureText } from "../texts/textStyle";
 import type { BoardTool } from "./tool";
 
 export interface TextDraft {
+  // Only a text that is already on the map has an id.
+  id?: string;
   at: Vector2d;
   text: string;
+  color: string;
 }
 
 export function useTextTool(room: Room, color: string) {
@@ -26,13 +31,33 @@ export function useTextTool(room: Room, color: string) {
   function finish() {
     const done = current.current;
     show(null);
-    if (!done || done.text.trim() === "") return;
+    if (!done) return;
+    const words = done.text.trim() === "" ? "" : done.text;
+    if (done.id !== undefined) {
+      room.editText(done.id, {
+        text: words,
+        ...measureText(words, theme.fontFamily),
+      });
+      return;
+    }
+    if (words === "") return;
     room.addText({
-      text: done.text,
+      text: words,
       ...done.at,
-      ...measureText(done.text, theme.fontFamily),
-      color,
+      ...measureText(words, theme.fontFamily),
+      color: done.color,
       ...(!isDm && { overFog: true }),
+    });
+  }
+
+  function edit(id: string) {
+    const text = validMapText(room.textsMap.get(id));
+    if (!text) return;
+    show({
+      id,
+      at: { x: text.x, y: text.y },
+      text: text.text,
+      color: text.color,
     });
   }
 
@@ -40,15 +65,21 @@ export function useTextTool(room: Room, color: string) {
     if (current.current) show({ ...current.current, text });
   }
 
-  // A click next to the field finishes the text; the next click starts a new one.
+  // A click next to the field finishes the text; the next click starts a new one or opens
+  // the text under it.
   const tool: BoardTool = {
     selectsItems: false,
     listensToStrokes: false,
     onDown({ point, event }) {
       // Otherwise the browser moves the focus to the clicked map and the new field closes at once.
       event.evt.preventDefault();
-      if (current.current) finish();
-      else show({ at: point, text: "" });
+      if (current.current) {
+        finish();
+        return;
+      }
+      const id = textIdAt(event.target);
+      if (id) edit(id);
+      else show({ at: point, text: "", color });
     },
     onMove() {},
     onUp() {},
@@ -60,6 +91,7 @@ export function useTextTool(room: Room, color: string) {
   return {
     tool,
     textDraft: draft,
+    editText: edit,
     writeText: write,
     finishText: finish,
     cancelText: () => show(null),

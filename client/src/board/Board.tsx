@@ -52,6 +52,7 @@ import { DistanceMeasure } from "./tools/DistanceMeasure";
 import { FogFrame } from "./tools/FogFrame";
 import { ShapePreview } from "./tools/ShapePreview";
 import { TextEditor } from "./texts/TextEditor";
+import { textIdAt } from "./texts/textNodes";
 import { Texts } from "./texts/Texts";
 import { isFogTool, type Tool } from "./tools/tool";
 import { useBoardTools } from "./tools/useBoardTools";
@@ -161,6 +162,10 @@ export function Board({
   ]);
 
   const isSelecting = activeTool.selectsItems;
+  const textProps = {
+    listening: tool === "select" || tool === "text",
+    editingId: texts.textDraft?.id ?? null,
+  };
 
   function isSelectClick(event: KonvaEventObject<MouseEvent>) {
     return isSelecting && event.evt.button === LEFT_MOUSE_BUTTON;
@@ -270,8 +275,14 @@ export function Board({
           onMouseUp={handleMouseUp}
           onMouseLeave={handleMouseLeave}
           onDblClick={(event) => {
+            if (tool !== "select") return;
+            const textId = textIdAt(event.target);
+            if (textId) {
+              texts.editText(textId);
+              return;
+            }
             // Double clicks on tokens are kept free for something else.
-            if (tool !== "select" || isOnToken(event.target)) return;
+            if (isOnToken(event.target)) return;
             sendPing(pointerOnMap(event));
           }}
           onContextMenu={(event) => boardMenu.open(event, pointerOnMap(event))}
@@ -292,7 +303,7 @@ export function Board({
               draft={player.isDm ? draft : null}
               {...strokeProps}
             />
-            <Texts overFog={false} />
+            <Texts overFog={false} {...textProps} />
             <Tokens
               listening={isSelecting}
               selection={area}
@@ -315,7 +326,7 @@ export function Board({
               draft={player.isDm ? null : draft}
               {...strokeProps}
             />
-            <Texts overFog />
+            <Texts overFog {...textProps} />
           </Layer>
           <Layer>
             <FogFrame frame={fogFrame} />
@@ -336,7 +347,6 @@ export function Board({
             {texts.textDraft && (
               <TextEditor
                 draft={texts.textDraft}
-                color={colorValue}
                 onWrite={texts.writeText}
                 onFinish={texts.finishText}
                 onCancel={texts.cancelText}
