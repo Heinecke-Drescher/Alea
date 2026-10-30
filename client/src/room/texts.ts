@@ -81,6 +81,7 @@ export function createTexts({ textsMap, undoManager }: RoomStore) {
     const text = textsMap.get(id);
     if (!text) return;
     if (change.text === "") {
+      undoManager.stopCapturing();
       removeText(id);
       return;
     }
@@ -90,8 +91,8 @@ export function createTexts({ textsMap, undoManager }: RoomStore) {
     textsMap.set(id, edited);
   }
 
+  // Without an undo step of its own, so one wipe of the eraser is undone at once.
   function removeText(id: string) {
-    undoManager.stopCapturing();
     textsMap.delete(id);
   }
 

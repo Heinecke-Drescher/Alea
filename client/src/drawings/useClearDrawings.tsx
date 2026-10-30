@@ -16,7 +16,7 @@ export function useClearDrawings() {
       centered: true,
       children: (
         <Text size="sm">
-          Remove all painted cells and lines for everyone? Tokens stay.
+          Remove all painted cells, lines and texts for everyone? Tokens stay.
         </Text>
       ),
       labels: { confirm: "Clear drawings", cancel: "Cancel" },

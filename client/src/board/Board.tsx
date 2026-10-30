@@ -163,7 +163,7 @@ export function Board({
 
   const isSelecting = activeTool.selectsItems;
   const textProps = {
-    listening: tool === "select" || tool === "text",
+    listening: activeTool.listensToStrokes || tool === "text",
     editingId: texts.textDraft?.id ?? null,
     selection: area,
     selectedIds: items.texts,

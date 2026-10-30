@@ -74,13 +74,29 @@ describe("texts", () => {
   it("undoes adding, editing and removing step by step", () => {
     const id = room.addText(HELLO);
     room.editText(id, { text: "Hello there", width: 90, height: 25 });
-    room.removeText(id);
+    room.editText(id, { text: "", width: 1, height: 25 });
     room.undoManager.undo();
     expect(room.textsMap.get(id)?.text).toBe("Hello there");
     room.undoManager.undo();
     expect(room.textsMap.get(id)?.text).toBe("Hello");
     room.undoManager.undo();
     expect(room.textsMap.has(id)).toBe(false);
+  });
+
+  it("undoes texts removed in one go, as by one wipe of the eraser, at once", () => {
+    const first = room.addText(HELLO);
+    const second = room.addText({ ...HELLO, x: 100 });
+    room.undoManager.stopCapturing();
+    room.removeText(first);
+    room.removeText(second);
+    room.undoManager.undo();
+    expect(room.textsMap.size).toBe(2);
+  });
+
+  it("removes texts together with the drawings", () => {
+    room.addText(HELLO);
+    room.clearDrawings();
+    expect(room.textsMap.size).toBe(0);
   });
 
   it("reads only the known fields of other players' texts", () => {

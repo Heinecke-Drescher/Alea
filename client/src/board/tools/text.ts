@@ -1,6 +1,7 @@
 import { useMantineTheme } from "@mantine/core";
 import type { Vector2d } from "konva/lib/types";
 import { useRef, useState } from "react";
+import { useFogGuard } from "../../fog/useFogGuard";
 import { usePlayer } from "../../player/PlayerContext";
 import type { Room } from "../../room/createRoom";
 import { validMapText } from "../../room/texts";
@@ -19,6 +20,7 @@ export interface TextDraft {
 export function useTextTool(room: Room, color: string) {
   const { isDm } = usePlayer();
   const theme = useMantineTheme();
+  const fogGuard = useFogGuard();
   const [draft, setDraft] = useState<TextDraft | null>(null);
   // The field's blur and a click on the map both finish the text, so it is read and cleared once.
   const current = useRef<TextDraft | null>(null);
@@ -34,10 +36,12 @@ export function useTextTool(room: Room, color: string) {
     if (!done) return;
     const words = done.text.trim() === "" ? "" : done.text;
     if (done.id !== undefined) {
-      room.editText(done.id, {
-        text: words,
-        ...measureText(words, theme.fontFamily),
-      });
+      const size = measureText(words, theme.fontFamily);
+      const text = validMapText(room.textsMap.get(done.id));
+      // Players' texts lie above the fog, so only the DM's are kept out of it.
+      const grown = text && words !== "" && { ...text, ...size };
+      if (grown && !grown.overFog && fogGuard.hidesRect(grown)) return;
+      room.editText(done.id, { text: words, ...size });
       return;
     }
     if (words === "") return;

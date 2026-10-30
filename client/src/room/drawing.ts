@@ -85,6 +85,7 @@ export function createDrawing({
   doc,
   cellsMap,
   strokesMap,
+  textsMap,
   undoManager,
 }: RoomStore) {
   function paintCell(x: number, y: number, color: string) {
@@ -131,6 +132,7 @@ export function createDrawing({
     doc.transact(() => {
       cellsMap.clear();
       strokesMap.clear();
+      textsMap.clear();
     });
   }
 
