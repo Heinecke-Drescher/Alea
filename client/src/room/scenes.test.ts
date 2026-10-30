@@ -160,6 +160,79 @@ describe("scenes", () => {
     expect(room.doc.toJSON()).toEqual(before);
   });
 
+  it("renames a scene and keeps its map", () => {
+    const id = room.addScene();
+    room.renameScene(id, "Dungeon");
+    expect(tabs().at(-1)).toEqual({ id, name: "Dungeon", order: 1 });
+    expect(room.scenesMap.get(id)?.file).toEqual(emptyMap());
+  });
+
+  it("gives an old room's map its scene entry for renaming", () => {
+    fillMap();
+    const before = room.exportMap();
+    const id = room.saveOnlyScene();
+    expect(tabs()).toEqual([{ id, name: FIRST_SCENE_NAME, order: 0 }]);
+    expect(activeScene()).toBe(id);
+    expect(room.saveOnlyScene()).toBe(id);
+    expect(room.exportMap()).toEqual(before);
+  });
+
+  it("deletes a scene that is not on the map in one undo step", () => {
+    const secondId = room.addScene();
+    const before = room.doc.toJSON();
+    room.deleteScene(secondId);
+    expect(tabs().map((tab) => tab.id)).toEqual([activeSceneId()]);
+    room.undoManager.undo();
+    expect(room.doc.toJSON()).toEqual(before);
+  });
+
+  it("puts the scene before it on the map when the scene on the map is deleted", () => {
+    const secondId = room.addScene();
+    const thirdId = room.addScene();
+    room.switchScene(secondId);
+    room.paintCell(4, 4, "#00ff00");
+    room.switchScene(thirdId);
+    room.deleteScene(thirdId);
+    expect(activeScene()).toBe(secondId);
+    expect(room.cellsMap.has("4,4")).toBe(true);
+    expect(room.scenesMap.has(thirdId)).toBe(false);
+  });
+
+  it("puts the next scene on the map when the first scene is deleted", () => {
+    fillMap();
+    const secondId = room.addScene();
+    const firstId = activeSceneId();
+    room.deleteScene(firstId);
+    expect(activeScene()).toBe(secondId);
+    expect(room.exportMap()).toEqual(emptyMap());
+  });
+
+  it("undoes deleting the scene on the map in one step", () => {
+    fillMap();
+    room.addScene();
+    const before = room.doc.toJSON();
+    room.deleteScene(activeSceneId());
+    room.undoManager.undo();
+    expect(room.doc.toJSON()).toEqual(before);
+  });
+
+  it("refuses to delete the last scene", () => {
+    const id = room.saveOnlyScene();
+    expect(() => room.deleteScene(id)).toThrow("last scene");
+  });
+
+  it("drops the map of a scene that another player deleted when switching away", () => {
+    const secondId = room.addScene();
+    const firstId = activeSceneId();
+    const thirdId = room.addScene();
+    room.scenesMap.delete(firstId);
+    expect(room.activeSceneId()).toBeNull();
+    room.switchScene(thirdId);
+    expect(activeScene()).toBe(thirdId);
+    expect(room.scenesMap.has(firstId)).toBe(false);
+    expect(room.scenesMap.get(secondId)?.file).toEqual(emptyMap());
+  });
+
   it("lists only scenes with a name and an order", () => {
     expect(
       sceneTabs({
