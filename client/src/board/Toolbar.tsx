@@ -34,16 +34,22 @@ interface ToolButton {
   icon: Icon;
 }
 
-const TOOLS: ToolButton[] = [
+const MAP_TOOLS: ToolButton[] = [
   { tool: "select", label: "Select and move", icon: IconPointer },
-  { tool: "paint", label: "Paint cells", icon: IconBucketDroplet },
-  { tool: "pen", label: "Draw", icon: IconPencil },
-  { tool: "eraser", label: "Erase", icon: IconEraser },
   { tool: "measure", label: "Measure distance", icon: IconRuler },
+  { tool: "resize", label: "Resize map", icon: IconResize },
+];
+
+const DRAWING_TOOLS: ToolButton[] = [
+  { tool: "pen", label: "Draw", icon: IconPencil },
+  { tool: "paint", label: "Paint cells", icon: IconBucketDroplet },
+  { tool: "eraser", label: "Erase", icon: IconEraser },
+];
+
+const SHAPE_TOOLS: ToolButton[] = [
   { tool: "cone", label: "Cone area", icon: IconCone },
   { tool: "square", label: "Square area", icon: IconSquare },
   { tool: "circle", label: "Circle area", icon: IconCircle },
-  { tool: "resize", label: "Resize map", icon: IconResize },
 ];
 
 const FOG_TOOLS: ToolButton[] = [
@@ -95,14 +101,11 @@ export function Toolbar({
     >
       <Tooltip.Group>
         <Group gap={4} wrap="nowrap">
-          {TOOLS.map(toolButton)}
-          {isDm && (
-            <>
-              <Divider orientation="vertical" />
-              {FOG_TOOLS.map(toolButton)}
-            </>
-          )}
+          {MAP_TOOLS.map(toolButton)}
           <Divider orientation="vertical" />
+          {DRAWING_TOOLS.map(toolButton)}
+          <Divider orientation="vertical" />
+          {SHAPE_TOOLS.map(toolButton)}
           <Popover
             opened={isPicking}
             onDismiss={picking.close}
@@ -145,6 +148,12 @@ export function Toolbar({
               </Stack>
             </Popover.Dropdown>
           </Popover>
+          {isDm && (
+            <>
+              <Divider orientation="vertical" />
+              {FOG_TOOLS.map(toolButton)}
+            </>
+          )}
         </Group>
       </Tooltip.Group>
     </Paper>
