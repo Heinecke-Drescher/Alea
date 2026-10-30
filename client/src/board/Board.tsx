@@ -1,14 +1,5 @@
-import {
-  ActionIcon,
-  Box,
-  Divider,
-  Group,
-  Paper,
-  Tooltip,
-  useMantineTheme,
-} from "@mantine/core";
+import { Box, useMantineTheme } from "@mantine/core";
 import { useElementSize, useHotkeys } from "@mantine/hooks";
-import { IconZoomScan } from "@tabler/icons-react";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
@@ -22,7 +13,6 @@ import {
 } from "react";
 import { Layer, Stage } from "react-konva";
 import type { Critical } from "../dice/criticalRoll";
-import { UndoButtons } from "../undo/UndoButtons";
 import { usePlayer } from "../player/PlayerContext";
 import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connectRoom";
@@ -38,8 +28,7 @@ import { GridLines } from "./map/GridLines";
 import { MapFill } from "./map/MapFill";
 import { MapImage } from "./map/MapImage";
 import { MapResizer } from "./map/MapResizer";
-import { Natural1Scene } from "./critical/Natural1Scene";
-import { Natural20Scene } from "./critical/Natural20Scene";
+import { CriticalScenes } from "./critical/CriticalScenes";
 import { paintColorValue, type PaintColor } from "./paintColors";
 import {
   itemsSelection,
@@ -67,10 +56,10 @@ import { useBoardTools } from "./tools/useBoardTools";
 import { LEFT_MOUSE_BUTTON } from "./mouse";
 import { useBoardView } from "./useBoardView";
 import { useCursorBroadcast } from "./useCursorBroadcast";
+import { useFitOnOpen } from "./useFitOnOpen";
 import { usePingBroadcast } from "./usePingBroadcast";
-import { useDieDrop } from "./useDieDrop";
-import { useImageDrop } from "./useImageDrop";
-import { useTokenDrop } from "./useTokenDrop";
+import { useBoardDrops } from "./useBoardDrops";
+import { ViewControls } from "./ViewControls";
 
 function pointerOnMap(event: KonvaEventObject<MouseEvent>) {
   const pointer = event.target.getStage()?.getRelativePointerPosition();
@@ -133,13 +122,9 @@ export function Board({
     useBoardView(room, stageRef);
   const cursor = useCursorBroadcast(awareness);
   const sendPing = usePingBroadcast(awareness);
-  const dieDrop = useDieDrop({ stageRef });
-  const imageDrop = useImageDrop(stageRef);
-  const tokenDrop = useTokenDrop(stageRef, selectToken);
+  const drops = useBoardDrops(stageRef, selectToken);
   const backgroundImage = useBackgroundImage();
-  const hasSize = width > 0 && height > 0;
-  const fitOnOpen = useEffectEvent(fitMap);
-  const fittedWhenSynced = useRef<boolean | null>(null);
+  useFitOnOpen(fitMap, width > 0 && height > 0, isSynced);
 
   // Reported only when the ids change, as the page around the board renders again with them.
   const selectedTokensKey = items.tokens.join(" ");
@@ -147,13 +132,6 @@ export function Board({
     onSelectedTokensChange(items.tokens),
   );
   useEffect(() => reportSelectedTokens(), [selectedTokensKey]);
-
-  // Once the board has its size, and again once the room's own map has loaded; never later.
-  useEffect(() => {
-    if (!hasSize || fittedWhenSynced.current === isSynced) return;
-    fittedWhenSynced.current = isSynced;
-    fitOnOpen();
-  }, [hasSize, isSynced]);
 
   // Keeps the browser's own copy and paste working, e.g. for text in the dice history.
   const keepDefault = { preventDefault: false };
@@ -264,16 +242,8 @@ export function Board({
           backgroundSize: "cover",
           backgroundPosition: "center",
         }}
-        onDragOver={(event) => {
-          dieDrop.onDragOver(event);
-          imageDrop.onDragOver(event);
-          tokenDrop.onDragOver(event);
-        }}
-        onDrop={(event) => {
-          dieDrop.onDrop(event);
-          imageDrop.onDrop(event);
-          tokenDrop.onDrop(event);
-        }}
+        onDragOver={drops.onDragOver}
+        onDrop={drops.onDrop}
       >
         <Stage
           width={width}
@@ -346,22 +316,11 @@ export function Board({
             {isSynced && (
               <ThrownDice viewCenter={viewCenter} landings={landings} />
             )}
-            {critical?.kind === "natural20" && (
-              <Natural20Scene
-                key={critical.id}
-                critical={critical}
-                landings={landings}
-                onDone={onCriticalDone}
-              />
-            )}
-            {critical?.kind === "natural1" && (
-              <Natural1Scene
-                key={critical.id}
-                critical={critical}
-                landings={landings}
-                onDone={onCriticalDone}
-              />
-            )}
+            <CriticalScenes
+              critical={critical}
+              landings={landings}
+              onDone={onCriticalDone}
+            />
             <ShapePreview draft={shapeDraft} color={colorValue} />
             <DistanceMeasure
               measurement={measurement}
@@ -371,29 +330,7 @@ export function Board({
             <Cursors awareness={awareness} />
           </Layer>
         </Stage>
-        <Paper
-          pos="absolute"
-          bottom={12}
-          right={12}
-          p={4}
-          shadow="sm"
-          withBorder
-        >
-          <Group gap={4} wrap="nowrap">
-            <UndoButtons />
-            <Divider orientation="vertical" />
-            <Tooltip label="Fit map (Shift+1)" position="top">
-              <ActionIcon
-                variant="subtle"
-                size="lg"
-                aria-label="Fit map"
-                onClick={fitMap}
-              >
-                <IconZoomScan size={20} />
-              </ActionIcon>
-            </Tooltip>
-          </Group>
-        </Paper>
+        <ViewControls onFitMap={fitMap} />
         <Toolbar
           activeTool={tool}
           onToolChange={changeTool}
