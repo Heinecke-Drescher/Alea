@@ -56,7 +56,7 @@ import { useBoardTools } from "./tools/useBoardTools";
 import { LEFT_MOUSE_BUTTON } from "./mouse";
 import { useBoardView } from "./useBoardView";
 import { useCursorBroadcast } from "./useCursorBroadcast";
-import { useFitOnOpen } from "./useFitOnOpen";
+import { useFitOnNewMap } from "./useFitOnNewMap";
 import { usePingBroadcast } from "./usePingBroadcast";
 import { useBoardDrops } from "./useBoardDrops";
 import { ViewControls } from "./ViewControls";
@@ -131,7 +131,7 @@ export function Board({
   const sendPing = usePingBroadcast(awareness);
   const drops = useBoardDrops(stageRef, selectToken);
   const backgroundImage = useBackgroundImage();
-  useFitOnOpen(fitMap, width > 0 && height > 0, isSynced);
+  useFitOnNewMap(fitMap, width > 0 && height > 0, isSynced);
 
   // Reported only when the ids change, as the page around the board renders again with them.
   const selectedTokensKey = items.tokens.join(" ");
