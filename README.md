@@ -63,11 +63,15 @@ Good to know:
 | Move the map         | Mouse wheel, two fingers or drag with the middle mouse button |
 | Zoom                 | Ctrl + mouse wheel or pinch                                   |
 | Show the whole map   | Shift+1 or the button at the bottom right                     |
+| Ping a spot          | Double-click the map with the select tool                     |
 | Add to the selection | Ctrl + click                                                  |
-| Copy, cut, paste     | Ctrl+C, Ctrl+X, Ctrl+V                                        |
+| Copy, cut, paste     | Ctrl+C, Ctrl+X, Ctrl+V or right-click the map                 |
 | Delete the selection | Delete                                                        |
-| Undo, redo           | Ctrl+Z, Ctrl+Y                                                |
+| Undo, redo           | Ctrl+Z, Ctrl+Y or the buttons at the bottom right             |
 | Token menu           | Right-click a token                                           |
+| Find a token         | Click it in the sidebar                                       |
+| Copy a token         | Drag it from the sidebar onto the map                         |
+| Rename a token       | Double-click its name in the sidebar                          |
 
 On a Mac, use ⌘ instead of Ctrl.
 
