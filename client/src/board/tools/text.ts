@@ -73,7 +73,7 @@ export function useTextTool(room: Room, color: string) {
   // the text under it.
   const tool: BoardTool = {
     selectsItems: false,
-    listensToStrokes: false,
+    listensToDrawings: false,
     onDown({ point, event }) {
       // Otherwise the browser moves the focus to the clicked map and the new field closes at once.
       event.evt.preventDefault();

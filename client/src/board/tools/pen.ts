@@ -8,7 +8,7 @@ export function usePenTool(room: Room, color: string) {
   const [draftPoints, setDraftPoints] = useState<number[] | null>(null);
   const tool: BoardTool = {
     selectsItems: false,
-    listensToStrokes: false,
+    listensToDrawings: false,
     onDown({ point }) {
       setDraftPoints([point.x, point.y]);
     },

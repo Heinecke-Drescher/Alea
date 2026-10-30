@@ -13,7 +13,7 @@ export function useFogTool(room: Room, action: "reveal" | "hide") {
   const [frame, setFrame] = useState<FogFrame | null>(null);
   const tool: BoardTool = {
     selectsItems: false,
-    listensToStrokes: false,
+    listensToDrawings: false,
     onDown({ point }) {
       const cell = cellAt(point);
       if (!containsCell(room.mapBounds(), cell.x, cell.y)) return;

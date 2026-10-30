@@ -27,7 +27,7 @@ export interface ToolPointer {
 
 export interface BoardTool {
   selectsItems: boolean;
-  listensToStrokes: boolean;
+  listensToDrawings: boolean;
   onDown: (pointer: ToolPointer) => void;
   onMove: (pointer: ToolPointer) => void;
   onUp: () => void;

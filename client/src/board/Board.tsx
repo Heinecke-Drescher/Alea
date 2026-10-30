@@ -163,7 +163,7 @@ export function Board({
 
   const isSelecting = activeTool.selectsItems;
   const textProps = {
-    listening: activeTool.listensToStrokes || tool === "text",
+    listening: activeTool.listensToDrawings || tool === "text",
     editingId: texts.textDraft?.id ?? null,
     selection: area,
     selectedIds: items.texts,
@@ -196,7 +196,7 @@ export function Board({
   const strokeProps = {
     selection: area,
     selectedIds: items.strokes,
-    listening: activeTool.listensToStrokes,
+    listening: activeTool.listensToDrawings,
     draggable: isSelecting,
     onStrokePress: pressItem("strokes"),
     onStrokeClick: clickItem("strokes"),

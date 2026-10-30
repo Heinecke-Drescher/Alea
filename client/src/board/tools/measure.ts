@@ -8,7 +8,7 @@ export function useMeasureTool(room: Room) {
   const [measurement, setMeasurement] = useState<Measurement | null>(null);
   const tool: BoardTool = {
     selectsItems: false,
-    listensToStrokes: false,
+    listensToDrawings: false,
     onDown({ point }) {
       const cell = cellAt(point);
       if (!containsCell(room.mapBounds(), cell.x, cell.y)) return;

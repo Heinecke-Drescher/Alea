@@ -28,7 +28,7 @@ export function useEraserTool(room: Room): BoardTool {
 
   return {
     selectsItems: false,
-    listensToStrokes: true,
+    listensToDrawings: true,
     onDown(pointer) {
       room.undoManager.stopCapturing();
       erase(pointer);

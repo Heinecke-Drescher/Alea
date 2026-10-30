@@ -4,7 +4,7 @@ import type { BoardTool } from "./tool";
 export function selectTool(selection: SelectionControls): BoardTool {
   return {
     selectsItems: true,
-    listensToStrokes: true,
+    listensToDrawings: true,
     onDown({ point, event }) {
       if (event.target !== event.target.getStage()) return;
       if (event.evt.ctrlKey || event.evt.metaKey) return;

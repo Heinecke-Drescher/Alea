@@ -21,7 +21,7 @@ export function usePaintTool(room: Room, color: string): BoardTool {
 
   return {
     selectsItems: false,
-    listensToStrokes: false,
+    listensToDrawings: false,
     onDown({ point }) {
       room.undoManager.stopCapturing();
       paint(point);

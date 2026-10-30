@@ -23,7 +23,7 @@ export function useShapeTool(
 
   const tool: BoardTool = {
     selectsItems: false,
-    listensToStrokes: false,
+    listensToDrawings: false,
     onDown({ point }) {
       const cell = cellAt(point);
       if (!containsCell(room.mapBounds(), cell.x, cell.y)) return;
