@@ -8,6 +8,7 @@ import { useRoom } from "../../room/RoomContext";
 import { shapeOutline, type AreaShape } from "../../room/shapes";
 import { useY } from "../../room/useY";
 import { ShapePreview } from "../tools/ShapePreview";
+import { ShapeSizeLabel } from "../tools/ShapeSizeLabel";
 import { useStageZoom } from "../useStageZoom";
 import { highlightColor } from "./highlight";
 
@@ -39,7 +40,12 @@ export function ShapeResizer({ strokeId }: ShapeResizerProps) {
   return (
     <Group ref={groupRef}>
       <ShapePreview draft={draft} color={stroke.color} />
-      {/* The name lets item drags move the handle along with its shape. */}
+      {/* The names let item drags move the label and the handle along with their shape. */}
+      {!draft && (
+        <Group name={strokeId} listening={false}>
+          <ShapeSizeLabel shape={shape} zoom={zoom} color={stroke.color} />
+        </Group>
+      )}
       <Circle
         {...shape.to}
         name={strokeId}
