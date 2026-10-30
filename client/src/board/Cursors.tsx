@@ -1,7 +1,7 @@
 import { useMantineTheme } from "@mantine/core";
 import { Group, Label, Line, Tag, Text } from "react-konva";
-import type { Awareness } from "../room/connectRoom";
-import { useCursors } from "../room/useCursors";
+import type { Awareness } from "../room/connection/connectRoom";
+import { useCursors } from "../room/connection/useCursors";
 import { CURSOR_ARROW } from "./cursorArrow";
 import { useStageZoom } from "./useStageZoom";
 

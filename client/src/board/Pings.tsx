@@ -4,8 +4,8 @@ import type { Context } from "konva/lib/Context";
 import type { Shape as ShapeNode } from "konva/lib/Shape";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Group, Shape } from "react-konva";
-import type { Awareness } from "../room/connectRoom";
-import { pingKey, toPing, type Ping } from "../room/pings";
+import type { Awareness } from "../room/connection/connectRoom";
+import { pingKey, toPing, type Ping } from "../room/connection/pings";
 import { PING_SECONDS, pingRings } from "./pingRings";
 import { useStageZoom } from "./useStageZoom";
 

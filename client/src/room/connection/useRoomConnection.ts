@@ -5,7 +5,7 @@ import {
   type Awareness,
   type ConnectionState,
 } from "./connectRoom";
-import { createRoom } from "./createRoom";
+import { createRoom } from "../createRoom";
 
 export function useRoomConnection(roomId: string) {
   const [room] = useState(() => createRoom(new Y.Doc()));

@@ -1,4 +1,4 @@
-import { isPlayerColor, type PlayerColor } from "./playerColors";
+import { isPlayerColor, type PlayerColor } from "../playerColors";
 
 export interface Ping {
   clientId: number;

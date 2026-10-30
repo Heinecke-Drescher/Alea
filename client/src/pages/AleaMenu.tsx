@@ -5,7 +5,7 @@ import { useBackgroundFile } from "../background/useBackgroundFile";
 import { useClearDrawings } from "../drawings/useClearDrawings";
 import { useMapFiles } from "../mapFile/useMapFiles";
 import { useMapImageFile } from "../mapImage/useMapImageFile";
-import type { ConnectionState } from "../room/connectRoom";
+import type { ConnectionState } from "../room/connection/connectRoom";
 
 interface AleaMenuProps {
   isSynced: boolean;

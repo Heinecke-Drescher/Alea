@@ -2,12 +2,12 @@ import { Badge, Button, Group, Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { useEffect } from "react";
-import type { Awareness } from "../room/connectRoom";
+import type { Awareness } from "../room/connection/connectRoom";
 import { DM_KEY, validDm } from "../room/dm";
-import { isPlayerPresent, toPlayerId } from "../room/playerId";
+import { isPlayerPresent, toPlayerId } from "../room/connection/playerId";
 import type { DungeonMaster } from "../room/roomStore";
 import { useRoom } from "../room/RoomContext";
-import { useAwareness } from "../room/useAwareness";
+import { useAwareness } from "../room/connection/useAwareness";
 import { useDm } from "../room/useDm";
 import { usePlayer } from "../player/PlayerContext";
 

@@ -15,7 +15,7 @@ import { Layer, Stage } from "react-konva";
 import type { Critical } from "../dice/criticalRoll";
 import { usePlayer } from "../player/PlayerContext";
 import type { ItemType } from "../room/areaActions";
-import type { Awareness } from "../room/connectRoom";
+import type { Awareness } from "../room/connection/connectRoom";
 import { useRoom } from "../room/RoomContext";
 import { squareCenter } from "../room/grid";
 import { useBackgroundImage } from "../room/useBackgroundImage";

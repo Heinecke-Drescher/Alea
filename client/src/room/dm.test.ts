@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
 import { DM_KEY, validDm } from "./dm";
-import { toPlayerId } from "./playerId";
+import { toPlayerId } from "./connection/playerId";
 
 const ANNA = { playerId: "anna-id", name: "Anna" };
 const BEN = { playerId: "ben-id", name: "Ben" };

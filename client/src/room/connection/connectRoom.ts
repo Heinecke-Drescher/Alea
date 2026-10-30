@@ -1,6 +1,6 @@
 import { HocuspocusProvider } from "@hocuspocus/provider";
 import type * as Y from "yjs";
-import { ROOM_FULL_MESSAGE } from "../../../shared/roomMessages";
+import { ROOM_FULL_MESSAGE } from "../../../../shared/roomMessages";
 
 export type Awareness = NonNullable<HocuspocusProvider["awareness"]>;
 export type ConnectionState = "connecting" | "connected" | "disconnected";

@@ -27,7 +27,7 @@ import { RoomContext } from "../room/RoomContext";
 import { PlayerContext } from "../player/PlayerContext";
 import { recordVisit } from "../recentRooms/useRecentRooms";
 import { useLocalPlayer } from "../player/useLocalPlayer";
-import { useRoomConnection } from "../room/useRoomConnection";
+import { useRoomConnection } from "../room/connection/useRoomConnection";
 import { FocusTokenContext } from "../tokens/focusToken";
 import { SelectedTokensContext } from "../tokens/selectedTokens";
 import { TokenPanel } from "../tokens/TokenPanel";

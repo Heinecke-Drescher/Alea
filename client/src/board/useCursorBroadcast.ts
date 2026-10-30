@@ -1,7 +1,7 @@
 import { useThrottledCallback } from "@mantine/hooks";
 import type { Vector2d } from "konva/lib/types";
 import { useEffect } from "react";
-import type { Awareness } from "../room/connectRoom";
+import type { Awareness } from "../room/connection/connectRoom";
 import { usePlayer } from "../player/PlayerContext";
 
 const CURSOR_INTERVAL_MS = 50;

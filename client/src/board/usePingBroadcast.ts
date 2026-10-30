@@ -1,6 +1,6 @@
 import type { Vector2d } from "konva/lib/types";
 import { useRef } from "react";
-import type { Awareness } from "../room/connectRoom";
+import type { Awareness } from "../room/connection/connectRoom";
 
 // So one player cannot flood everyone's screen with rings.
 const PING_INTERVAL_MS = 500;
