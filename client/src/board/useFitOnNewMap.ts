@@ -1,24 +1,24 @@
 import { useEffect, useEffectEvent, useRef } from "react";
 import { useRoom } from "../room/RoomContext";
-import { ACTIVE_SCENE_KEY } from "../room/scenes";
+import { LOADED_MAP_KEY } from "../room/roomFile";
 import { useY } from "../room/useY";
 
 // Once the board has its size, again once the room's own map has loaded, and after every
-// scene switch, for everyone.
+// import or scene switch, for everyone.
 export function useFitOnNewMap(
   fitMap: () => void,
   hasSize: boolean,
   isSynced: boolean,
 ) {
   const room = useRoom();
-  const sceneId = useY(room.activeSceneMap)[ACTIVE_SCENE_KEY];
+  const loadedMapId = useY(room.loadedMapMap)[LOADED_MAP_KEY];
   const fitOnNewMap = useEffectEvent(fitMap);
   const fittedMap = useRef<string | null>(null);
 
   useEffect(() => {
-    const map = `${isSynced}:${sceneId}`;
+    const map = `${isSynced}:${loadedMapId}`;
     if (!hasSize || fittedMap.current === map) return;
     fittedMap.current = map;
     fitOnNewMap();
-  }, [hasSize, isSynced, sceneId]);
+  }, [hasSize, isSynced, loadedMapId]);
 }

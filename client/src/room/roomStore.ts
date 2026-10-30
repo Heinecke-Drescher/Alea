@@ -83,6 +83,8 @@ export function createRoomStore(doc: Y.Doc) {
   const fogMap = doc.getMap<{ x: number; y: number }>("fog");
   const scenesMap = doc.getMap<Scene>("scenes");
   const activeSceneMap = doc.getMap<string>("activeScene");
+  // Gets a new id whenever a whole map is written, so every board can fit the new map.
+  const loadedMapMap = doc.getMap<string>("loadedMap");
   // Tracks only local changes, so undo never reverts other players' work. Rolls, music and roles
   // stay final. Map bounds are tracked only so an import or a map image can be undone as a whole;
   // resizing stays outside undo, as undoing it could push others' new content off the map.
@@ -95,6 +97,7 @@ export function createRoomStore(doc: Y.Doc) {
     settingsMap,
     scenesMap,
     activeSceneMap,
+    loadedMapMap,
   ]);
 
   // Undo can restore a token that another player deleted together with its image.
@@ -119,6 +122,7 @@ export function createRoomStore(doc: Y.Doc) {
     fogMap,
     scenesMap,
     activeSceneMap,
+    loadedMapMap,
     undoManager,
   };
 }

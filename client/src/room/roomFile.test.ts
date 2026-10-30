@@ -7,6 +7,7 @@ import { DEFAULT_MAP_BOUNDS } from "./grid";
 import { MAP_IMAGE_KEY } from "./mapImage";
 import {
   checkMapFileSize,
+  LOADED_MAP_KEY,
   MAX_MAP_FILE_BYTES,
   parseMapFile,
   type MapFile,
@@ -134,6 +135,18 @@ describe("map files", () => {
     other.undoManager.undo();
     expect(other.doc.toJSON()).toEqual(before);
     expect(other.mapBounds()).toEqual(DEFAULT_MAP_BOUNDS);
+  });
+
+  it("marks every imported map as a new map, and undo as the one before", () => {
+    const file = validFile();
+    room.importMap(file);
+    const first = room.loadedMapMap.get(LOADED_MAP_KEY);
+    room.importMap(file);
+    const second = room.loadedMapMap.get(LOADED_MAP_KEY);
+    expect(first).toBeDefined();
+    expect(second).not.toBe(first);
+    room.undoManager.undo();
+    expect(room.loadedMapMap.get(LOADED_MAP_KEY)).toBe(first);
   });
 
   it("keeps resizing out of undo", () => {

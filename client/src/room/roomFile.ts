@@ -34,6 +34,7 @@ const VERSION = 1;
 // Only guards against huge files chosen by mistake. The JSON text of cells and strokes is larger
 // than their binary form in the room, so whether a map fits is measured on the room itself.
 export const MAX_MAP_FILE_BYTES = 2 * MAX_ROOM_BYTES;
+export const LOADED_MAP_KEY = "id";
 
 export interface MapFile {
   app: typeof APP;
@@ -237,10 +238,12 @@ export function writeMap(
     strokesMap,
     fogMap,
     settingsMap,
+    loadedMapMap,
   }: RoomStore,
   file: MapFile,
 ) {
   doc.transact(() => {
+    loadedMapMap.set(LOADED_MAP_KEY, nanoid());
     cellsMap.clear();
     strokesMap.clear();
     tokensMap.clear();
