@@ -3,11 +3,11 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
 import { Group, Rect, Text } from "react-konva";
 import { useRoom } from "../../room/RoomContext";
-import { textTouches, validMapText } from "../../room/texts";
+import { textFontSize, textTouches, validMapText } from "../../room/texts";
 import { useY } from "../../room/useY";
 import { HIGHLIGHT_OPACITY, highlightColor } from "../selection/highlight";
 import { textIdAt, TEXT_NAME } from "./textNodes";
-import { TEXT_FONT_SIZE, TEXT_LINE_HEIGHT } from "./textStyle";
+import { TEXT_LINE_HEIGHT } from "./textStyle";
 
 const HIGHLIGHT_PADDING = 4;
 
@@ -84,7 +84,7 @@ export function Texts({
           text={text.text}
           fill={text.color}
           fontFamily={theme.fontFamily}
-          fontSize={TEXT_FONT_SIZE}
+          fontSize={textFontSize(text)}
           lineHeight={TEXT_LINE_HEIGHT}
           draggable={draggable}
         />

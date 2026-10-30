@@ -1,6 +1,7 @@
 import * as Y from "yjs";
 import type { DieSides } from "./dice";
 import type { Scene } from "./scenes";
+import type { TextFontSize } from "./texts";
 import type { StatusEffect } from "./effects";
 import type { MapBounds } from "./grid";
 import type { PlayerColor } from "./playerColors";
@@ -45,6 +46,8 @@ export interface MapText {
   width: number;
   height: number;
   color: string;
+  // Texts written before font sizes have none and use the medium size.
+  fontSize?: TextFontSize;
   // Texts written by players stay visible above the fog.
   overFog?: true;
 }

@@ -2,7 +2,7 @@ import { useMantineTheme } from "@mantine/core";
 import { Html } from "react-konva-utils";
 import { MAX_TEXT_LENGTH } from "../../room/texts";
 import type { TextDraft } from "../tools/text";
-import { measureText, TEXT_FONT_SIZE, TEXT_LINE_HEIGHT } from "./textStyle";
+import { measureText, TEXT_LINE_HEIGHT } from "./textStyle";
 
 interface TextEditorProps {
   draft: TextDraft;
@@ -20,7 +20,7 @@ export function TextEditor({
 }: TextEditorProps) {
   const theme = useMantineTheme();
   // One more character of room keeps the caret visible at the end of the line.
-  const size = measureText(`${draft.text}M`, theme.fontFamily);
+  const size = measureText(`${draft.text}M`, theme.fontFamily, draft.fontSize);
 
   return (
     <Html groupProps={draft.at}>
@@ -51,7 +51,7 @@ export function TextEditor({
           whiteSpace: "pre",
           color: draft.color,
           fontFamily: theme.fontFamily,
-          fontSize: TEXT_FONT_SIZE,
+          fontSize: draft.fontSize,
           lineHeight: TEXT_LINE_HEIGHT,
         }}
       />

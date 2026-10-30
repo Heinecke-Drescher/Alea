@@ -1,4 +1,5 @@
 import type { Room } from "../../room/createRoom";
+import type { TextFontSize } from "../../room/texts";
 import type { SelectionControls } from "../selection/useSelection";
 import { useEraserTool } from "./eraser";
 import { useFogTool } from "./fog";
@@ -16,10 +17,11 @@ export function useBoardTools(
   selection: SelectionControls,
   room: Room,
   color: string,
+  textSize: TextFontSize,
   onShapePlaced: (id: string) => void,
 ) {
   const { tool: pen, draftPoints } = usePenTool(room, color);
-  const { tool: text, ...texts } = useTextTool(room, color);
+  const { tool: text, ...texts } = useTextTool(room, color, textSize);
   const { tool: measure, measurement } = useMeasureTool(room);
   const cone = useShapeTool(room, "cone", color, onShapePlaced);
   const square = useShapeTool(room, "square", color, onShapePlaced);

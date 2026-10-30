@@ -5,6 +5,18 @@ import type { MapText, MapTextData, RoomStore } from "./roomStore";
 // Keeps a pasted document from filling the room, which would disconnect everyone.
 export const MAX_TEXT_LENGTH = 1000;
 
+export const TEXT_FONT_SIZES = { S: 16, M: 24, L: 40 } as const;
+export type TextSizeName = keyof typeof TEXT_FONT_SIZES;
+export type TextFontSize = (typeof TEXT_FONT_SIZES)[TextSizeName];
+
+function isTextFontSize(value: unknown): value is TextFontSize {
+  return Object.values(TEXT_FONT_SIZES).some((size) => size === value);
+}
+
+export function textFontSize({ fontSize }: Pick<MapTextData, "fontSize">) {
+  return fontSize ?? TEXT_FONT_SIZES.M;
+}
+
 function isFiniteNumber(value: unknown): value is number {
   return typeof value === "number" && Number.isFinite(value);
 }
@@ -16,14 +28,14 @@ function isSize(value: unknown): value is number {
 // Texts come from other players, so only their known fields are used.
 export function validMapText(value: unknown): MapText | null {
   if (typeof value !== "object" || value === null) return null;
-  const { id, text, x, y, width, height, color, overFog } = value as Partial<
-    Record<keyof MapText, unknown>
-  >;
+  const { id, text, x, y, width, height, color, fontSize, overFog } =
+    value as Partial<Record<keyof MapText, unknown>>;
   if (typeof id !== "string" || typeof text !== "string") return null;
   if (text === "" || text.length > MAX_TEXT_LENGTH) return null;
   if (!isFiniteNumber(x) || !isFiniteNumber(y)) return null;
   if (!isSize(width) || !isSize(height)) return null;
   if (typeof color !== "string") return null;
+  if (fontSize !== undefined && !isTextFontSize(fontSize)) return null;
   if (overFog !== undefined && overFog !== true) return null;
   return {
     id,
@@ -33,6 +45,7 @@ export function validMapText(value: unknown): MapText | null {
     width,
     height,
     color,
+    ...(fontSize !== undefined && { fontSize }),
     ...(overFog && { overFog }),
   };
 }
@@ -44,9 +57,19 @@ export function textData({
   width,
   height,
   color,
+  fontSize,
   overFog,
 }: MapText): MapTextData {
-  return { text, x, y, width, height, color, ...(overFog && { overFog }) };
+  return {
+    text,
+    x,
+    y,
+    width,
+    height,
+    color,
+    ...(fontSize !== undefined && { fontSize }),
+    ...(overFog && { overFog }),
+  };
 }
 
 export function textTouches(text: MapTextData, area: IRect) {

@@ -47,6 +47,13 @@ describe("texts in area actions", () => {
     expect(copy).toMatchObject({ ...TRAP, x: 150, overFog: true });
   });
 
+  it("keeps the font size when copying and pasting", () => {
+    room.addText({ ...TRAP, fontSize: 40 });
+    const clip = room.copyArea({ x: 90, y: 90, width: 20, height: 20 });
+    const [id] = room.paste(clip, 0, 0).texts;
+    expect(room.textsMap.get(id ?? "")?.fontSize).toBe(40);
+  });
+
   it("pastes a player's text under the fog when the DM pastes it", () => {
     room.addText({ ...TRAP, overFog: true });
     const clip = room.copyArea({ x: 90, y: 90, width: 20, height: 20 });

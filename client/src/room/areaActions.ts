@@ -244,7 +244,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
         pasted.strokes.push(id);
         strokesMap.set(id, stroke);
       }
-      for (const { text, x, y, width, height, color } of clip.texts) {
+      for (const { text, x, y, width, height, color, fontSize } of clip.texts) {
         const id = nanoid();
         textsMap.set(id, {
           id,
@@ -254,6 +254,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
           width,
           height,
           color,
+          ...(fontSize !== undefined && { fontSize }),
           ...(overFog && { overFog: true }),
         });
         pasted.texts.push(id);

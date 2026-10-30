@@ -52,6 +52,7 @@ import { DistanceMeasure } from "./tools/DistanceMeasure";
 import { FogFrame } from "./tools/FogFrame";
 import { ShapePreview } from "./tools/ShapePreview";
 import { TextEditor } from "./texts/TextEditor";
+import { TEXT_FONT_SIZES, type TextFontSize } from "../room/texts";
 import { textIdAt } from "./texts/textNodes";
 import { Texts } from "./texts/Texts";
 import { isFogTool, type Tool } from "./tools/tool";
@@ -103,11 +104,19 @@ export function Board({
   // Releasing the DM role while a fog tool is active falls back to selecting.
   const tool = player.isDm || !isFogTool(chosenTool) ? chosenTool : "select";
   const [color, setColor] = useState<PaintColor>("red");
+  const [textSize, setTextSize] = useState<TextFontSize>(TEXT_FONT_SIZES.M);
   const [landings] = useState(() => new Map<string, Vector2d>());
   const selection = useSelection(room);
   const colorValue = paintColorValue(theme, color);
   const { activeTool, draftPoints, measurement, shapeDraft, fogFrame, texts } =
-    useBoardTools(tool, selection, room, colorValue, selectPlacedShape);
+    useBoardTools(
+      tool,
+      selection,
+      room,
+      colorValue,
+      textSize,
+      selectPlacedShape,
+    );
   const { area, items } = selection;
   const reshapableId = reshapableStrokeId(items);
   const itemDrag = useItemDrag(room, items);
@@ -371,6 +380,8 @@ export function Board({
           onToolChange={changeTool}
           activeColor={color}
           onColorChange={setColor}
+          textSize={textSize}
+          onTextSizeChange={setTextSize}
         />
       </Box>
     </EffectTooltip>

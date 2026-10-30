@@ -4,7 +4,11 @@ import { useRef, useState } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
 import { usePlayer } from "../../player/PlayerContext";
 import type { Room } from "../../room/createRoom";
-import { validMapText } from "../../room/texts";
+import {
+  textFontSize,
+  validMapText,
+  type TextFontSize,
+} from "../../room/texts";
 import { textIdAt } from "../texts/textNodes";
 import { measureText } from "../texts/textStyle";
 import type { BoardTool } from "./tool";
@@ -15,9 +19,10 @@ export interface TextDraft {
   at: Vector2d;
   text: string;
   color: string;
+  fontSize: TextFontSize;
 }
 
-export function useTextTool(room: Room, color: string) {
+export function useTextTool(room: Room, color: string, fontSize: TextFontSize) {
   const { isDm } = usePlayer();
   const theme = useMantineTheme();
   const fogGuard = useFogGuard();
@@ -36,7 +41,7 @@ export function useTextTool(room: Room, color: string) {
     if (!done) return;
     const words = done.text.trim() === "" ? "" : done.text;
     if (done.id !== undefined) {
-      const size = measureText(words, theme.fontFamily);
+      const size = measureText(words, theme.fontFamily, done.fontSize);
       const text = validMapText(room.textsMap.get(done.id));
       // Players' texts lie above the fog, so only the DM's are kept out of it.
       const grown = text && words !== "" && { ...text, ...size };
@@ -48,8 +53,9 @@ export function useTextTool(room: Room, color: string) {
     room.addText({
       text: words,
       ...done.at,
-      ...measureText(words, theme.fontFamily),
+      ...measureText(words, theme.fontFamily, done.fontSize),
       color: done.color,
+      fontSize: done.fontSize,
       ...(!isDm && { overFog: true }),
     });
   }
@@ -62,6 +68,7 @@ export function useTextTool(room: Room, color: string) {
       at: { x: text.x, y: text.y },
       text: text.text,
       color: text.color,
+      fontSize: textFontSize(text),
     });
   }
 
@@ -83,7 +90,7 @@ export function useTextTool(room: Room, color: string) {
       }
       const id = textIdAt(event.target);
       if (id) edit(id);
-      else show({ at: point, text: "", color });
+      else show({ at: point, text: "", color, fontSize });
     },
     onMove() {},
     onUp() {},

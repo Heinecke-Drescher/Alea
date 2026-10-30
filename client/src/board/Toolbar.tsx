@@ -22,11 +22,12 @@ import {
   IconResize,
   IconRuler,
   IconSquare,
-  IconTypography,
   type Icon,
 } from "@tabler/icons-react";
 import { usePlayer } from "../player/PlayerContext";
 import { PAINT_COLORS, paintColorValue, type PaintColor } from "./paintColors";
+import type { TextFontSize } from "../room/texts";
+import { TextToolButton } from "./texts/TextToolButton";
 import type { Tool } from "./tools/tool";
 
 interface ToolButton {
@@ -45,7 +46,6 @@ const DRAWING_TOOLS: ToolButton[] = [
   { tool: "pen", label: "Draw", icon: IconPencil },
   { tool: "paint", label: "Paint cells", icon: IconBucketDroplet },
   { tool: "eraser", label: "Erase", icon: IconEraser },
-  { tool: "text", label: "Write text", icon: IconTypography },
 ];
 
 const SHAPE_TOOLS: ToolButton[] = [
@@ -64,6 +64,8 @@ interface ToolbarProps {
   onToolChange: (tool: Tool) => void;
   activeColor: PaintColor;
   onColorChange: (color: PaintColor) => void;
+  textSize: TextFontSize;
+  onTextSizeChange: (size: TextFontSize) => void;
 }
 
 export function Toolbar({
@@ -71,6 +73,8 @@ export function Toolbar({
   onToolChange,
   activeColor,
   onColorChange,
+  textSize,
+  onTextSizeChange,
 }: ToolbarProps) {
   const theme = useMantineTheme();
   const { isDm } = usePlayer();
@@ -106,6 +110,12 @@ export function Toolbar({
           {MAP_TOOLS.map(toolButton)}
           <Divider orientation="vertical" />
           {DRAWING_TOOLS.map(toolButton)}
+          <TextToolButton
+            isActive={activeTool === "text"}
+            onSelect={() => onToolChange("text")}
+            size={textSize}
+            onSizeChange={onTextSizeChange}
+          />
           <Divider orientation="vertical" />
           {SHAPE_TOOLS.map(toolButton)}
           <Popover

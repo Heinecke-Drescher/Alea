@@ -184,11 +184,13 @@ describe("map files", () => {
   it("brings texts into another room", () => {
     room.addText(TEXT);
     room.addText({ ...TEXT, text: "Player note", overFog: true });
+    room.addText({ ...TEXT, text: "Title", fontSize: 40 });
     const file = parseMapFile(JSON.stringify(room.exportMap()));
     expect(file.texts).toEqual(
       expect.arrayContaining([
         TEXT,
         { ...TEXT, text: "Player note", overFog: true },
+        { ...TEXT, text: "Title", fontSize: 40 },
       ]),
     );
     const other = createRoom(new Y.Doc());

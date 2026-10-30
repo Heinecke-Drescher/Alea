@@ -2,7 +2,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
 import type { MapTextData } from "./roomStore";
-import { MAX_TEXT_LENGTH, validMapText } from "./texts";
+import {
+  MAX_TEXT_LENGTH,
+  TEXT_FONT_SIZES,
+  textFontSize,
+  validMapText,
+} from "./texts";
 
 const HELLO: MapTextData = {
   text: "Hello",
@@ -99,6 +104,16 @@ describe("texts", () => {
     expect(room.textsMap.size).toBe(0);
   });
 
+  it("keeps the font size of a text", () => {
+    const id = room.addText({ ...HELLO, fontSize: TEXT_FONT_SIZES.L });
+    expect(room.textsMap.get(id)?.fontSize).toBe(40);
+  });
+
+  it("uses the medium size for texts written before font sizes", () => {
+    expect(textFontSize(HELLO)).toBe(TEXT_FONT_SIZES.M);
+    expect(textFontSize({ fontSize: TEXT_FONT_SIZES.S })).toBe(16);
+  });
+
   it("reads only the known fields of other players' texts", () => {
     expect(
       validMapText({ ...HELLO, id: "a", overFog: true, extra: "<script>" }),
@@ -110,6 +125,7 @@ describe("texts", () => {
     ["no id", HELLO],
     ["a number as words", { ...HELLO, id: "a", text: 5 }],
     ["a negative width", { ...HELLO, id: "a", width: -1 }],
+    ["an unknown font size", { ...HELLO, id: "a", fontSize: 30 }],
     [
       "above the fog by something other than true",
       { ...HELLO, id: "a", overFog: "yes" },
