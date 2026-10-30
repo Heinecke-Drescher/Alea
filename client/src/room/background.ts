@@ -7,11 +7,13 @@ export function createBackground({ imagesMap, undoManager }: RoomStore) {
   function setBackground(imageDataUrl: string) {
     undoManager.stopCapturing();
     imagesMap.set(BACKGROUND_IMAGE_ID, imageDataUrl);
+    undoManager.stopCapturing();
   }
 
   function removeBackground() {
     undoManager.stopCapturing();
     imagesMap.delete(BACKGROUND_IMAGE_ID);
+    undoManager.stopCapturing();
   }
 
   return { setBackground, removeBackground };

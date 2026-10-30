@@ -344,6 +344,19 @@ describe("background", () => {
     room.undoManager.undo();
     expect(room.imagesMap.has(BACKGROUND_IMAGE_ID)).toBe(false);
   });
+
+  it.each([
+    ["setting", () => room.setBackground(IMAGE)],
+    ["removing", () => room.removeBackground()],
+  ])("keeps a cell painted right after %s it in its own step", (_, change) => {
+    room.setBackground("data:image/webp;base64,BBBB");
+    change();
+    const background = room.imagesMap.get(BACKGROUND_IMAGE_ID);
+    room.paintCell(0, 0, "#000");
+    room.undoManager.undo();
+    expect(room.cellsMap.size).toBe(0);
+    expect(room.imagesMap.get(BACKGROUND_IMAGE_ID)).toBe(background);
+  });
 });
 
 describe("rolls", () => {
