@@ -1,15 +1,15 @@
 import {
   ActionIcon,
-  CheckIcon,
   ColorSwatch,
   Divider,
+  Group,
   Paper,
+  Popover,
   Stack,
-  Text,
   Tooltip,
   useMantineTheme,
 } from "@mantine/core";
-import { modals } from "@mantine/modals";
+import { useDisclosure } from "@mantine/hooks";
 import {
   IconBucketDroplet,
   IconCircle,
@@ -22,13 +22,9 @@ import {
   IconResize,
   IconRuler,
   IconSquare,
-  IconTrash,
   type Icon,
 } from "@tabler/icons-react";
 import { usePlayer } from "../player/PlayerContext";
-import { foggedCells } from "../room/fog";
-import { useRoom } from "../room/RoomContext";
-import { useFog } from "../room/useFog";
 import { PAINT_COLORS, paintColorValue, type PaintColor } from "./paintColors";
 import type { Tool } from "./tools/tool";
 
@@ -55,21 +51,6 @@ const FOG_TOOLS: ToolButton[] = [
   { tool: "reveal", label: "Reveal fog", icon: IconEye },
 ];
 
-function confirmClearDrawings(clearDrawings: () => void) {
-  modals.openConfirmModal({
-    title: "Clear drawings",
-    centered: true,
-    children: (
-      <Text size="sm">
-        Remove all painted cells and lines for everyone? Tokens stay.
-      </Text>
-    ),
-    labels: { confirm: "Clear drawings", cancel: "Cancel" },
-    confirmProps: { color: "red" },
-    onConfirm: clearDrawings,
-  });
-}
-
 interface ToolbarProps {
   activeTool: Tool;
   onToolChange: (tool: Tool) => void;
@@ -84,13 +65,12 @@ export function Toolbar({
   onColorChange,
 }: ToolbarProps) {
   const theme = useMantineTheme();
-  const room = useRoom();
   const { isDm } = usePlayer();
-  const fog = useFog();
+  const [isPicking, picking] = useDisclosure();
 
   function toolButton({ tool, label, icon: ToolIcon }: ToolButton) {
     return (
-      <Tooltip key={tool} label={label} position="right">
+      <Tooltip key={tool} label={label} position="bottom">
         <ActionIcon
           variant={tool === activeTool ? "filled" : "subtle"}
           size="lg"
@@ -104,47 +84,68 @@ export function Toolbar({
   }
 
   return (
-    <Paper pos="absolute" top={12} left={12} p={4} shadow="sm" withBorder>
+    <Paper
+      pos="absolute"
+      top={12}
+      left="50%"
+      style={{ transform: "translateX(-50%)" }}
+      p={4}
+      shadow="sm"
+      withBorder
+    >
       <Tooltip.Group>
-        <Stack gap={4} align="center">
+        <Group gap={4} wrap="nowrap">
           {TOOLS.map(toolButton)}
           {isDm && (
             <>
-              <Divider w="100%" />
+              <Divider orientation="vertical" />
               {FOG_TOOLS.map(toolButton)}
             </>
           )}
-          <Divider w="100%" />
-          {PAINT_COLORS.map((color) => (
-            <ColorSwatch
-              key={color}
-              component="button"
-              color={paintColorValue(theme, color)}
-              size={24}
-              aria-label={`Use ${color}`}
-              onClick={() => onColorChange(color)}
-            >
-              {color === activeColor && <CheckIcon size={12} color="white" />}
-            </ColorSwatch>
-          ))}
-          {/* Clearing would also wipe what the fog hides from players. */}
-          {(isDm || foggedCells(fog).length === 0) && (
-            <>
-              <Divider w="100%" />
-              <Tooltip label="Clear drawings" position="right">
+          <Divider orientation="vertical" />
+          <Popover
+            opened={isPicking}
+            onDismiss={picking.close}
+            position="bottom"
+            shadow="md"
+          >
+            <Popover.Target>
+              <Tooltip label="Color" position="bottom" disabled={isPicking}>
                 <ActionIcon
                   variant="subtle"
-                  color="red"
                   size="lg"
-                  aria-label="Clear drawings"
-                  onClick={() => confirmClearDrawings(room.clearDrawings)}
+                  aria-label={`Color: ${activeColor}`}
+                  onClick={picking.toggle}
                 >
-                  <IconTrash size={20} />
+                  <ColorSwatch
+                    component="span"
+                    color={paintColorValue(theme, activeColor)}
+                    size={24}
+                  />
                 </ActionIcon>
               </Tooltip>
-            </>
-          )}
-        </Stack>
+            </Popover.Target>
+            <Popover.Dropdown p={6}>
+              <Stack gap={6}>
+                {PAINT_COLORS.filter((color) => color !== activeColor).map(
+                  (color) => (
+                    <ColorSwatch
+                      key={color}
+                      component="button"
+                      color={paintColorValue(theme, color)}
+                      size={24}
+                      aria-label={`Use ${color}`}
+                      onClick={() => {
+                        onColorChange(color);
+                        picking.close();
+                      }}
+                    />
+                  ),
+                )}
+              </Stack>
+            </Popover.Dropdown>
+          </Popover>
+        </Group>
       </Tooltip.Group>
     </Paper>
   );

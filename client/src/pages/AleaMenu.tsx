@@ -2,6 +2,7 @@ import { Button, Menu, Text, Title } from "@mantine/core";
 import { IconChevronDown } from "@tabler/icons-react";
 import { Link } from "react-router";
 import { useBackgroundFile } from "../background/useBackgroundFile";
+import { useClearDrawings } from "../drawings/useClearDrawings";
 import { useMapFiles } from "../mapFile/useMapFiles";
 import { useMapImageFile } from "../mapImage/useMapImageFile";
 import type { ConnectionState } from "../room/connectRoom";
@@ -16,6 +17,7 @@ export function AleaMenu({ isSynced, connection }: AleaMenuProps) {
   const isDisconnected = connection === "disconnected";
   const background = useBackgroundFile();
   const mapImage = useMapImageFile();
+  const drawings = useClearDrawings();
 
   return (
     // A heading may hold a button, but not the other way round.
@@ -60,6 +62,15 @@ export function AleaMenu({ isSynced, connection }: AleaMenuProps) {
           {mapImage.canSet && mapImage.hasMapImage && (
             <Menu.Item color="red" onClick={mapImage.removeMapImage}>
               Remove map image
+            </Menu.Item>
+          )}
+          {drawings.canClear && (
+            <Menu.Item
+              color="red"
+              disabled={!isSynced}
+              onClick={drawings.clearDrawings}
+            >
+              Clear drawings…
             </Menu.Item>
           )}
           <Menu.Divider />
