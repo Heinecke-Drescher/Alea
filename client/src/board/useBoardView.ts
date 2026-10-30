@@ -65,6 +65,18 @@ export function fittedView(
   };
 }
 
+export function centeredView(
+  scale: number,
+  point: Vector2d,
+  stage: { width: number; height: number },
+): View {
+  return {
+    scale,
+    x: stage.width / 2 - point.x * scale,
+    y: stage.height / 2 - point.y * scale,
+  };
+}
+
 export function wheelPixels(
   {
     deltaX,
@@ -135,5 +147,11 @@ export function useBoardView(
     stage.position({ x, y });
   }
 
-  return { panOrZoom, panOnlyWithMiddleButton, viewCenter, fitMap };
+  function centerOn(point: Vector2d) {
+    const stage = mountedStage();
+    const { x, y } = centeredView(stage.scaleX(), point, stage.size());
+    stage.position({ x, y });
+  }
+
+  return { panOrZoom, panOnlyWithMiddleButton, viewCenter, fitMap, centerOn };
 }

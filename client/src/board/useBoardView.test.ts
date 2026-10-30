@@ -3,6 +3,7 @@ import {
   MAX_ZOOM,
   MIN_ZOOM,
   VIEW_MARGIN,
+  centeredView,
   fittedView,
   wheelPixels,
   zoomedView,
@@ -112,5 +113,15 @@ describe("fittedView", () => {
     const huge = { x: 0, y: 0, width: 100_000, height: 100_000 };
     expect(fittedView(tiny, stage).scale).toBe(MAX_ZOOM);
     expect(fittedView(huge, stage).scale).toBe(MIN_ZOOM);
+  });
+});
+
+describe("centeredView", () => {
+  it("puts the point in the middle of the stage and keeps the zoom", () => {
+    const stage = { width: 1000, height: 600 };
+    const view = centeredView(1.5, { x: -200, y: 300 }, stage);
+    expect(view.scale).toBe(1.5);
+    expect(view.x + -200 * view.scale).toBe(500);
+    expect(view.y + 300 * view.scale).toBe(300);
   });
 });

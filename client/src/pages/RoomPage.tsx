@@ -11,11 +11,11 @@ import {
   Title,
 } from "@mantine/core";
 import { useDisclosure, useHotkeys } from "@mantine/hooks";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useParams } from "react-router";
 import { isValidRoomId } from "../../../shared/roomId";
-import { Board } from "../board/Board";
+import { Board, type BoardHandle } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
 import {
@@ -28,6 +28,7 @@ import { PlayerContext } from "../player/PlayerContext";
 import { recordVisit } from "../recentRooms/useRecentRooms";
 import { useLocalPlayer } from "../player/useLocalPlayer";
 import { useRoomConnection } from "../room/useRoomConnection";
+import { FocusTokenContext } from "../tokens/focusToken";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
@@ -67,6 +68,12 @@ function RoomView({ roomId }: { roomId: string }) {
   const player = useMemo(() => ({ id, name, color }), [id, name, color]);
   const needsName = name === "";
   const criticals = useCriticalRolls(room, isSynced);
+  const board = useRef<BoardHandle>(null);
+  // Without a board, e.g. while the map shows an error, there is nothing to find.
+  const focusToken = useCallback(
+    (tokenId: string) => board.current?.focusToken(tokenId),
+    [],
+  );
 
   // Only rooms that really loaded are worth finding again.
   useEffect(() => {
@@ -124,6 +131,7 @@ function RoomView({ roomId }: { roomId: string }) {
             <AppShell.Main>
               <ErrorBoundary FallbackComponent={MapError}>
                 <Board
+                  ref={board}
                   awareness={awareness}
                   isSynced={isSynced}
                   critical={criticals.critical}
@@ -134,7 +142,9 @@ function RoomView({ roomId }: { roomId: string }) {
             <AppShell.Aside>
               <AppShell.Section grow component={ScrollArea} p="md">
                 <Stack>
-                  <TokenPanel />
+                  <FocusTokenContext value={focusToken}>
+                    <TokenPanel />
+                  </FocusTokenContext>
                   <DicePanel />
                 </Stack>
               </AppShell.Section>

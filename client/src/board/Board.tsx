@@ -12,7 +12,14 @@ import { IconZoomScan } from "@tabler/icons-react";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import {
+  useEffect,
+  useEffectEvent,
+  useImperativeHandle,
+  useRef,
+  useState,
+  type Ref,
+} from "react";
 import { Layer, Stage } from "react-konva";
 import type { Critical } from "../dice/criticalRoll";
 import { UndoButtons } from "../undo/UndoButtons";
@@ -20,6 +27,7 @@ import { usePlayer } from "../player/PlayerContext";
 import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connectRoom";
 import { useRoom } from "../room/RoomContext";
+import { squareCenter } from "../room/grid";
 import { useBackgroundImage } from "../room/useBackgroundImage";
 import { cursorArrowCss } from "./cursorArrow";
 import { Cursors } from "./Cursors";
@@ -71,11 +79,16 @@ function isAddKeyPressed(event: KonvaEventObject<MouseEvent>) {
   return event.evt.ctrlKey || event.evt.metaKey;
 }
 
+export interface BoardHandle {
+  focusToken: (id: string) => void;
+}
+
 interface BoardProps {
   awareness: Awareness | null;
   isSynced: boolean;
   critical: Critical | null;
   onCriticalDone: (id: string) => void;
+  ref: Ref<BoardHandle>;
 }
 
 export function Board({
@@ -83,6 +96,7 @@ export function Board({
   isSynced,
   critical,
   onCriticalDone,
+  ref,
 }: BoardProps) {
   const room = useRoom();
   const player = usePlayer();
@@ -110,12 +124,12 @@ export function Board({
   const tokenMenu = useTokenMenu(room, selection, clipboard);
   const boardMenu = useBoardMenu(selection, clipboard);
   const stageRef = useRef<StageNode>(null);
-  const { panOrZoom, panOnlyWithMiddleButton, viewCenter, fitMap } =
+  const { panOrZoom, panOnlyWithMiddleButton, viewCenter, fitMap, centerOn } =
     useBoardView(room, stageRef);
   const cursor = useCursorBroadcast(awareness);
   const dieDrop = useDieDrop({ stageRef });
   const imageDrop = useImageDrop(stageRef);
-  const tokenDrop = useTokenDrop(stageRef, selectDroppedToken);
+  const tokenDrop = useTokenDrop(stageRef, selectToken);
   const backgroundImage = useBackgroundImage();
   const hasSize = width > 0 && height > 0;
   const fitOnOpen = useEffectEvent(fitMap);
@@ -189,9 +203,16 @@ export function Board({
     selection.set(itemsSelection({ strokes: [id], tokens: [] }));
   }
 
-  function selectDroppedToken(id: string) {
+  function selectToken(id: string) {
     changeTool("select");
     selection.set(itemsSelection({ strokes: [], tokens: [id] }));
+  }
+
+  function focusToken(id: string) {
+    const token = room.tokensMap.get(id);
+    if (!token) return;
+    selectToken(id);
+    centerOn(squareCenter(token.x, token.y, token.size));
   }
 
   function handleMouseDown(event: KonvaEventObject<MouseEvent>) {
@@ -213,6 +234,8 @@ export function Board({
     cursor.leave();
     handleMouseUp();
   }
+
+  useImperativeHandle(ref, () => ({ focusToken }));
 
   return (
     <EffectTooltip stageRef={stageRef}>

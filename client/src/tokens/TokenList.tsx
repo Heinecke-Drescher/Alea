@@ -10,6 +10,7 @@ import { useFogGuard } from "../fog/useFogGuard";
 import { embeddedImage } from "../room/tokens";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
+import { useFocusToken } from "./focusToken";
 import { startTokenDrag } from "./tokenDrag";
 
 export function TokenList() {
@@ -19,15 +20,20 @@ export function TokenList() {
     (token) => !fogGuard.hidesSquare(token),
   );
   const images = useY(room.imagesMap);
+  const focusToken = useFocusToken();
 
   return (
     <Stack gap="xs">
       {tokens.map((token) => (
         <Group key={token.id} gap="xs" wrap="nowrap">
-          <Tooltip label="Drag onto the map for a copy" position="left">
+          <Tooltip
+            label="Click to find on the map, drag for a copy"
+            position="left"
+          >
             <Avatar
               src={embeddedImage(images[token.imageId])}
               size="sm"
+              onClick={() => focusToken(token.id)}
               draggable
               onDragStart={(event) =>
                 startTokenDrag(event.dataTransfer, token.id)
