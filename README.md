@@ -61,7 +61,7 @@ Good to know:
 | Action               | How                                                           |
 | -------------------- | ------------------------------------------------------------- |
 | Move the map         | Mouse wheel, two fingers or drag with the middle mouse button |
-| Zoom                 | Ctrl + mouse wheel or pinch                                   |
+| Zoom                 | Ctrl + mouse wheel, pinch or the buttons at the bottom right  |
 | Show the whole map   | Shift+1 or the button at the bottom right                     |
 | Ping a spot          | Double-click the map with the select tool                     |
 | Add to the selection | Ctrl + click                                                  |

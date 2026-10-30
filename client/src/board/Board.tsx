@@ -118,8 +118,15 @@ export function Board({
   const tokenMenu = useTokenMenu(room, selection, clipboard);
   const boardMenu = useBoardMenu(selection, clipboard);
   const stageRef = useRef<StageNode>(null);
-  const { panOrZoom, panOnlyWithMiddleButton, viewCenter, fitMap, centerOn } =
-    useBoardView(room, stageRef);
+  const {
+    panOrZoom,
+    panOnlyWithMiddleButton,
+    viewCenter,
+    fitMap,
+    centerOn,
+    zoomIn,
+    zoomOut,
+  } = useBoardView(room, stageRef);
   const cursor = useCursorBroadcast(awareness);
   const sendPing = usePingBroadcast(awareness);
   const drops = useBoardDrops(stageRef, selectToken);
@@ -330,7 +337,7 @@ export function Board({
             <Cursors awareness={awareness} />
           </Layer>
         </Stage>
-        <ViewControls onFitMap={fitMap} />
+        <ViewControls onZoomIn={zoomIn} onZoomOut={zoomOut} onFitMap={fitMap} />
         <Toolbar
           activeTool={tool}
           onToolChange={changeTool}

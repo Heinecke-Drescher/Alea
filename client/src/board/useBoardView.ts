@@ -10,6 +10,8 @@ import { LEFT_MOUSE_BUTTON } from "./mouse";
 // Keeps the fitted map clear of the toolbar and the fit button; the same on every side, so the map stays centered.
 export const VIEW_MARGIN = 72;
 const ZOOM_STEP = 1.1;
+// Larger than a wheel notch, so each click shows a clear change.
+const BUTTON_ZOOM_STEP = 1.25;
 export const MIN_ZOOM = 0.25;
 export const MAX_ZOOM = 4;
 // WheelEvent.deltaMode values; Firefox reports a mouse wheel in lines.
@@ -130,14 +132,36 @@ export function useBoardView(
     if (event.evt.button === LEFT_MOUSE_BUTTON) stage.stopDrag();
   }
 
-  function viewCenter() {
-    const stage = mountedStage();
-    const center = stage
+  function pointAtStageCenter(stage: StageNode) {
+    return stage
       .getAbsoluteTransform()
       .copy()
       .invert()
       .point({ x: stage.width() / 2, y: stage.height() / 2 });
-    return clampToMap(center, room.mapBounds());
+  }
+
+  function viewCenter() {
+    return clampToMap(pointAtStageCenter(mountedStage()), room.mapBounds());
+  }
+
+  function zoomAroundCenter(factor: number) {
+    const stage = mountedStage();
+    const scale = clamp(stage.scaleX() * factor, MIN_ZOOM, MAX_ZOOM);
+    const { x, y } = centeredView(
+      scale,
+      pointAtStageCenter(stage),
+      stage.size(),
+    );
+    stage.scale({ x: scale, y: scale });
+    stage.position({ x, y });
+  }
+
+  function zoomIn() {
+    zoomAroundCenter(BUTTON_ZOOM_STEP);
+  }
+
+  function zoomOut() {
+    zoomAroundCenter(1 / BUTTON_ZOOM_STEP);
   }
 
   function fitMap() {
@@ -153,5 +177,13 @@ export function useBoardView(
     stage.position({ x, y });
   }
 
-  return { panOrZoom, panOnlyWithMiddleButton, viewCenter, fitMap, centerOn };
+  return {
+    panOrZoom,
+    panOnlyWithMiddleButton,
+    viewCenter,
+    fitMap,
+    centerOn,
+    zoomIn,
+    zoomOut,
+  };
 }
