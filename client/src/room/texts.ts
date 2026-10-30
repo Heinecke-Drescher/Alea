@@ -1,3 +1,4 @@
+import type { IRect } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import type { MapText, MapTextData, RoomStore } from "./roomStore";
 
@@ -34,6 +35,27 @@ export function validMapText(value: unknown): MapText | null {
     color,
     ...(overFog && { overFog }),
   };
+}
+
+export function textData({
+  text,
+  x,
+  y,
+  width,
+  height,
+  color,
+  overFog,
+}: MapText): MapTextData {
+  return { text, x, y, width, height, color, ...(overFog && { overFog }) };
+}
+
+export function textTouches(text: MapTextData, area: IRect) {
+  return (
+    text.x <= area.x + area.width &&
+    text.x + text.width >= area.x &&
+    text.y <= area.y + area.height &&
+    text.y + text.height >= area.y
+  );
 }
 
 function assertValid(data: MapTextData) {

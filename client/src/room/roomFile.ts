@@ -17,7 +17,6 @@ import { MAP_IMAGE_KEY, validMapImage, type MapImage } from "./mapImage";
 import {
   cellKey,
   type Cell,
-  type MapText,
   type MapTextData,
   type RoomStore,
   type StrokeData,
@@ -29,7 +28,7 @@ import {
   storedBytesAfter,
 } from "./roomSpace";
 import { isShapeKind, shapeCells, type AreaShape } from "./shapes";
-import { validMapText } from "./texts";
+import { textData, validMapText } from "./texts";
 import { embeddedImage } from "./tokens";
 
 const APP = "alea";
@@ -228,18 +227,6 @@ function parseText(value: unknown): MapTextData {
   const text = validMapText(isRecord(value) ? { ...value, id: "file" } : null);
   if (!text) invalid("text");
   return textData(text);
-}
-
-function textData({
-  text,
-  x,
-  y,
-  width,
-  height,
-  color,
-  overFog,
-}: MapText): MapTextData {
-  return { text, x, y, width, height, color, ...(overFog && { overFog }) };
 }
 
 export function emptyMap(): MapFile {

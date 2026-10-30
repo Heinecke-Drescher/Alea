@@ -19,6 +19,8 @@ import type * as Y from "yjs";
 import {
   cellKey,
   type Cell,
+  type MapText,
+  type MapTextData,
   type RoomStore,
   type Stroke,
   type StrokeData,
@@ -26,6 +28,7 @@ import {
 } from "./roomStore";
 import { assertSpace } from "./roomSpace";
 import { strokeTouches } from "./strokeTouches";
+import { textData, textTouches, validMapText } from "./texts";
 
 export interface Clip {
   cells: Cell[];
@@ -38,16 +41,20 @@ export interface Clip {
     effects: StatusEffect[];
   }[];
   strokes: StrokeData[];
+  texts: MapTextData[];
 }
 
-export type ItemType = "strokes" | "tokens";
+export type ItemType = "strokes" | "tokens" | "texts";
 
 export type Items = Record<ItemType, string[]>;
+
+export const NO_ITEMS: Items = { strokes: [], tokens: [], texts: [] };
 
 interface Content {
   cells: Cell[];
   tokens: Token[];
   strokes: Stroke[];
+  texts: MapText[];
 }
 
 export function hasGridContent({ cells, tokens }: Clip | Content) {
@@ -65,6 +72,11 @@ export function existing<T>(map: Y.Map<T>, ids: string[]) {
   });
 }
 
+// Texts come from other players, so only their known fields are moved, copied or kept.
+function validTexts(values: unknown[]) {
+  return values.flatMap((value) => validMapText(value) ?? []);
+}
+
 export function hasCenterIn(area: IRect, x: number, y: number, size: number) {
   const center = squareCenter(x, y, size);
   return (
@@ -76,10 +88,21 @@ export function hasCenterIn(area: IRect, x: number, y: number, size: number) {
 }
 
 export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
-  const { doc, tokensMap, imagesMap, cellsMap, strokesMap, undoManager } =
-    store;
+  const {
+    doc,
+    tokensMap,
+    imagesMap,
+    cellsMap,
+    strokesMap,
+    textsMap,
+    undoManager,
+  } = store;
 
-  function move({ cells, tokens, strokes }: Content, dx: number, dy: number) {
+  function move(
+    { cells, tokens, strokes, texts }: Content,
+    dx: number,
+    dy: number,
+  ) {
     if (dx === 0 && dy === 0) return;
     const columns = dx / CELL_SIZE;
     const rows = dy / CELL_SIZE;
@@ -99,6 +122,9 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
           ...stroke,
           ...shiftStroke(stroke, dx, dy),
         });
+      }
+      for (const text of texts) {
+        textsMap.set(text.id, { ...text, x: text.x + dx, y: text.y + dy });
       }
     });
   }
@@ -133,11 +159,18 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     );
   }
 
+  function textsIn(area: IRect) {
+    return validTexts(Array.from(textsMap.values())).filter((text) =>
+      textTouches(text, area),
+    );
+  }
+
   function contentIn(area: IRect): Content {
     return {
       cells: cellsIn(area),
       tokens: tokensIn(area),
       strokes: strokesIn(area),
+      texts: textsIn(area),
     };
   }
 
@@ -146,10 +179,11 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
       cells: [],
       tokens: existing(tokensMap, items.tokens),
       strokes: existing(strokesMap, items.strokes),
+      texts: validTexts(existing(textsMap, items.texts)),
     };
   }
 
-  function copy({ cells, tokens, strokes }: Content): Clip {
+  function copy({ cells, tokens, strokes, texts }: Content): Clip {
     return {
       cells,
       tokens: tokens.flatMap((token) => {
@@ -160,6 +194,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
           : [];
       }),
       strokes: strokes.map((stroke) => strokeData(stroke, isOverFog(stroke))),
+      texts: texts.map(textData),
     };
   }
 
@@ -183,7 +218,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
       assertSpace(doc, imageBytes, "the copied tokens");
     }
     undoManager.stopCapturing();
-    const pasted: Items = { strokes: [], tokens: [] };
+    const pasted: Items = { strokes: [], tokens: [], texts: [] };
     doc.transact(() => {
       for (const cell of clip.cells) {
         putCell(store, mapBounds(), cell, dx / CELL_SIZE, dy / CELL_SIZE);
@@ -209,6 +244,20 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
         pasted.strokes.push(id);
         strokesMap.set(id, stroke);
       }
+      for (const { text, x, y, width, height, color } of clip.texts) {
+        const id = nanoid();
+        textsMap.set(id, {
+          id,
+          text,
+          x: x + dx,
+          y: y + dy,
+          width,
+          height,
+          color,
+          ...(overFog && { overFog: true }),
+        });
+        pasted.texts.push(id);
+      }
     });
     return pasted;
   }
@@ -223,14 +272,14 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     );
     if (!cell) return;
     const [copyId] = paste(
-      copyItems({ strokes: [], tokens: [id] }),
+      copyItems({ ...NO_ITEMS, tokens: [id] }),
       (cell.x - token.x) * CELL_SIZE,
       (cell.y - token.y) * CELL_SIZE,
     ).tokens;
     return copyId;
   }
 
-  function remove({ cells, tokens, strokes }: Content) {
+  function remove({ cells, tokens, strokes, texts }: Content) {
     undoManager.stopCapturing();
     doc.transact(() => {
       for (const cell of cells) cellsMap.delete(cellKey(cell.x, cell.y));
@@ -239,6 +288,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
         imagesMap.delete(token.imageId);
       }
       for (const stroke of strokes) strokesMap.delete(stroke.id);
+      for (const text of texts) textsMap.delete(text.id);
     });
   }
 

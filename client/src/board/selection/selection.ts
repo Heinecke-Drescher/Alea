@@ -2,6 +2,7 @@ import { clamp } from "@mantine/hooks";
 import type { IRect, Vector2d } from "konva/lib/types";
 import {
   hasGridContent,
+  NO_ITEMS,
   type Clip,
   type Items,
   type ItemType,
@@ -20,7 +21,6 @@ export type Selection =
   | { kind: "items"; items: Items };
 
 export const NO_SELECTION: Selection = { kind: "none" };
-export const NO_ITEMS: Items = { strokes: [], tokens: [] };
 
 export function areaSelection(area: IRect | null): Selection {
   return area ? { kind: "area", area } : NO_SELECTION;
@@ -39,14 +39,16 @@ export function selectedItems(selection: Selection) {
   return selection.kind === "items" ? selection.items : NO_ITEMS;
 }
 
-export function resizableTokenId({ strokes, tokens }: Items) {
+export function resizableTokenId({ strokes, tokens, texts }: Items) {
   const [id, ...others] = tokens;
-  return id && others.length === 0 && strokes.length === 0 ? id : null;
+  const isOnly = others.length === 0 && strokes.length + texts.length === 0;
+  return id && isOnly ? id : null;
 }
 
-export function reshapableStrokeId({ strokes, tokens }: Items) {
+export function reshapableStrokeId({ strokes, tokens, texts }: Items) {
   const [id, ...others] = strokes;
-  return id && others.length === 0 && tokens.length === 0 ? id : null;
+  const isOnly = others.length === 0 && tokens.length + texts.length === 0;
+  return id && isOnly ? id : null;
 }
 
 export function withPressedItem(
@@ -107,9 +109,17 @@ export function linesBounds(lines: number[][]): IRect {
 
 export function clipBounds(clip: Clip): IRect {
   if (!hasGridContent(clip)) {
-    return linesBounds(clip.strokes.map((stroke) => stroke.points));
+    return linesBounds([
+      ...clip.strokes.map((stroke) => stroke.points),
+      ...clip.texts.map(({ x, y, width, height }) => [
+        x,
+        y,
+        x + width,
+        y + height,
+      ]),
+    ]);
   }
-  // Strokes may stick out of the map, so only cells and tokens keep a paste on it.
+  // Strokes and texts may stick out of the map, so only cells and tokens keep a paste on it.
   return squaresBounds([
     ...clip.cells.map((cell) => ({ ...cell, size: 1 })),
     ...clip.tokens,

@@ -57,7 +57,12 @@ export function useClipboard({
 
   function copyItems(chosen: Items) {
     const clip = room.copyItems(chosen);
-    if (!hasGridContent(clip) && clip.strokes.length === 0) return;
+    if (
+      !hasGridContent(clip) &&
+      clip.strokes.length + clip.texts.length === 0
+    ) {
+      return;
+    }
     clipboard.current = { clip, bounds: clipBounds(clip), isArea: false };
   }
 
@@ -117,7 +122,7 @@ export function useClipboard({
     const { dx, dy } = snapsToCells
       ? inPixels(cellOffset(bounds, target, room.mapBounds()))
       : strokesOffset(clip, bounds, target, room.mapBounds());
-    // Players' pasted strokes land above the fog, so only cells and tokens are kept out of it.
+    // Players' pasted strokes and texts land above the fog, so only cells and tokens are kept out of it.
     const destination = { ...bounds, x: bounds.x + dx, y: bounds.y + dy };
     if (hasGridContent(clip) && fogGuard.hidesRect(destination)) return;
     onPaste();

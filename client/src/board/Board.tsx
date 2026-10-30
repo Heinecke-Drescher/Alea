@@ -165,6 +165,11 @@ export function Board({
   const textProps = {
     listening: tool === "select" || tool === "text",
     editingId: texts.textDraft?.id ?? null,
+    selection: area,
+    selectedIds: items.texts,
+    draggable: isSelecting,
+    onTextPress: pressItem("texts"),
+    onTextClick: clickItem("texts"),
   };
 
   function isSelectClick(event: KonvaEventObject<MouseEvent>) {
@@ -205,12 +210,12 @@ export function Board({
 
   function selectPlacedShape(id: string) {
     changeTool("select");
-    selection.set(itemsSelection({ strokes: [id], tokens: [] }));
+    selection.set(itemsSelection({ strokes: [id], tokens: [], texts: [] }));
   }
 
   function selectToken(id: string) {
     changeTool("select");
-    selection.set(itemsSelection({ strokes: [], tokens: [id] }));
+    selection.set(itemsSelection({ strokes: [], tokens: [id], texts: [] }));
   }
 
   function focusToken(id: string) {

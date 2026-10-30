@@ -84,7 +84,11 @@ describe("room space when copying tokens", () => {
   });
 
   it("refuses to paste tokens without space and leaves the room as it was", () => {
-    const clip = room.copyItems({ strokes: [], tokens: [onlyTokenId()] });
+    const clip = room.copyItems({
+      strokes: [],
+      tokens: [onlyTokenId()],
+      texts: [],
+    });
     expect(() => room.paste(clip, 50, 0)).toThrow(
       "Not enough space in this room for the copied tokens",
     );
@@ -103,7 +107,7 @@ describe("room space when copying tokens", () => {
     const [strokeId] = room.strokesMap.keys();
     if (!strokeId) throw new Error("No stroke in the room");
     fillOutsideUndo(TWO_MB);
-    const clip = room.copyItems({ strokes: [strokeId], tokens: [] });
+    const clip = room.copyItems({ strokes: [strokeId], tokens: [], texts: [] });
     expect(() => room.paste(clip, 10, 0)).not.toThrow();
   });
 });

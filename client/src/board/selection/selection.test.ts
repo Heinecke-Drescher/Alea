@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { NO_ITEMS } from "../../room/areaActions";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS, mapRect } from "../../room/grid";
 import {
   areaSelection,
@@ -8,7 +9,6 @@ import {
   clipToMap,
   itemsSelection,
   linesBounds,
-  NO_ITEMS,
   NO_SELECTION,
   pixelOffset,
   resizableTokenId,
@@ -92,18 +92,36 @@ describe("item selection rules", () => {
 
 describe("resizableTokenId", () => {
   it("allows resizing only a single selected token", () => {
-    expect(resizableTokenId({ strokes: [], tokens: ["t"] })).toBe("t");
-    expect(resizableTokenId({ strokes: [], tokens: ["t", "u"] })).toBeNull();
-    expect(resizableTokenId({ strokes: ["s"], tokens: ["t"] })).toBeNull();
+    expect(resizableTokenId({ strokes: [], tokens: ["t"], texts: [] })).toBe(
+      "t",
+    );
+    expect(
+      resizableTokenId({ strokes: [], tokens: ["t", "u"], texts: [] }),
+    ).toBeNull();
+    expect(
+      resizableTokenId({ strokes: ["s"], tokens: ["t"], texts: [] }),
+    ).toBeNull();
+    expect(
+      resizableTokenId({ strokes: [], tokens: ["t"], texts: ["x"] }),
+    ).toBeNull();
     expect(resizableTokenId(NO_ITEMS)).toBeNull();
   });
 });
 
 describe("reshapableStrokeId", () => {
   it("allows reshaping only a single selected stroke", () => {
-    expect(reshapableStrokeId({ strokes: ["s"], tokens: [] })).toBe("s");
-    expect(reshapableStrokeId({ strokes: ["s", "r"], tokens: [] })).toBeNull();
-    expect(reshapableStrokeId({ strokes: ["s"], tokens: ["t"] })).toBeNull();
+    expect(reshapableStrokeId({ strokes: ["s"], tokens: [], texts: [] })).toBe(
+      "s",
+    );
+    expect(
+      reshapableStrokeId({ strokes: ["s", "r"], tokens: [], texts: [] }),
+    ).toBeNull();
+    expect(
+      reshapableStrokeId({ strokes: ["s"], tokens: ["t"], texts: [] }),
+    ).toBeNull();
+    expect(
+      reshapableStrokeId({ strokes: ["s"], tokens: [], texts: ["x"] }),
+    ).toBeNull();
     expect(reshapableStrokeId(NO_ITEMS)).toBeNull();
   });
 });
@@ -112,7 +130,9 @@ describe("clipBounds", () => {
   const stroke = { color: "#000000", points: [-30, 10, 20, 400] };
 
   it("spans the strokes when there are only strokes", () => {
-    expect(clipBounds({ cells: [], tokens: [], strokes: [stroke] })).toEqual({
+    expect(
+      clipBounds({ cells: [], tokens: [], strokes: [stroke], texts: [] }),
+    ).toEqual({
       x: -30,
       y: 10,
       width: 50,
@@ -120,11 +140,29 @@ describe("clipBounds", () => {
     });
   });
 
+  it("spans texts too, also when there are only texts", () => {
+    const text = {
+      text: "Trap",
+      x: 100,
+      y: 500,
+      width: 40,
+      height: 25,
+      color: "#ff0000",
+    };
+    expect(
+      clipBounds({ cells: [], tokens: [], strokes: [], texts: [text] }),
+    ).toEqual({ x: 100, y: 500, width: 40, height: 25 });
+    expect(
+      clipBounds({ cells: [], tokens: [], strokes: [stroke], texts: [text] }),
+    ).toEqual({ x: -30, y: 10, width: 170, height: 515 });
+  });
+
   it("spans only cells and tokens when there are any", () => {
     const clip = {
       cells: [{ x: 1, y: 2, color: "#ff0000" }],
       tokens: [{ name: "Ogre", image: "", x: 3, y: 0, size: 2, effects: [] }],
       strokes: [stroke],
+      texts: [],
     };
     expect(clipBounds(clip)).toEqual({
       x: CELL_SIZE,

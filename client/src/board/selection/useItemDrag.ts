@@ -2,11 +2,11 @@ import type { KonvaEventObject, Node } from "konva/lib/Node";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
-import { existing, type Items } from "../../room/areaActions";
+import { existing, NO_ITEMS, type Items } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
 import { hasShapes, isOverFog, shiftPoints } from "../../room/drawing";
 import { CELL_SIZE } from "../../room/grid";
-import { cellOffset, NO_ITEMS, roundToCells, squaresBounds } from "./selection";
+import { cellOffset, roundToCells, squaresBounds } from "./selection";
 
 interface Drag {
   items: Items;
@@ -24,6 +24,7 @@ export function useItemDrag(room: Room, selected: Items) {
   function onlyItem(id: string): Items {
     if (room.strokesMap.has(id)) return { ...NO_ITEMS, strokes: [id] };
     if (room.tokensMap.has(id)) return { ...NO_ITEMS, tokens: [id] };
+    if (room.textsMap.has(id)) return { ...NO_ITEMS, texts: [id] };
     throw new Error(`Dragged unknown item ${id}`);
   }
 
@@ -98,7 +99,11 @@ export function useItemDrag(room: Room, selected: Items) {
     room.moveItems(items, dx, dy);
   }
 
-  function reachesFog({ tokens, strokes }: Items, dx: number, dy: number) {
+  function reachesFog(
+    { tokens, strokes, texts }: Items,
+    dx: number,
+    dy: number,
+  ) {
     return (
       existing(room.tokensMap, tokens).some((token) =>
         fogGuard.hidesRect({
@@ -112,6 +117,11 @@ export function useItemDrag(room: Room, selected: Items) {
         (stroke) =>
           !isOverFog(stroke) &&
           fogGuard.hidesPoints(shiftPoints(stroke.points, dx, dy)),
+      ) ||
+      existing(room.textsMap, texts).some(
+        (text) =>
+          text.overFog !== true &&
+          fogGuard.hidesRect({ ...text, x: text.x + dx, y: text.y + dy }),
       )
     );
   }

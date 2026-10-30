@@ -47,7 +47,7 @@ function onlyToken() {
 function moveOnlyTokenTo(x: number, y: number) {
   const token = onlyToken();
   room.moveItems(
-    { strokes: [], tokens: [token.id] },
+    { strokes: [], tokens: [token.id], texts: [] },
     (x - token.x) * CELL_SIZE,
     (y - token.y) * CELL_SIZE,
   );
@@ -481,7 +481,7 @@ describe("moveArea", () => {
 });
 
 describe("moveItems", () => {
-  const strokes = (ids: string[]) => ({ strokes: ids, tokens: [] });
+  const strokes = (ids: string[]) => ({ strokes: ids, tokens: [], texts: [] });
 
   it("moves only the given strokes by pixels", () => {
     room.addStroke("#000000", [10, 10, 20, 20]);
@@ -501,7 +501,7 @@ describe("moveItems", () => {
     const before = room.doc.toJSON();
     const tokenId = onlyToken().id;
     room.moveItems(
-      { strokes: [strokeId], tokens: [tokenId] },
+      { strokes: [strokeId], tokens: [tokenId], texts: [] },
       2 * CELL_SIZE,
       CELL_SIZE,
     );
@@ -513,7 +513,7 @@ describe("moveItems", () => {
 
   it("refuses to move tokens off the grid", () => {
     room.addToken("Goblin", IMAGE);
-    const tokens = { strokes: [], tokens: [onlyToken().id] };
+    const tokens = { strokes: [], tokens: [onlyToken().id], texts: [] };
     expect(() => room.moveItems(tokens, 7, 0)).toThrow();
   });
 
@@ -577,7 +577,7 @@ describe("copy, paste and delete", () => {
     room.addStroke("#000000", [10, 10, 20, 20]);
     const [id] = room.strokesMap.keys();
     if (!id) throw new Error("Expected a stroke");
-    const clip = room.copyItems({ strokes: [id], tokens: [] });
+    const clip = room.copyItems({ strokes: [id], tokens: [], texts: [] });
     const [copyId] = room.paste(clip, 7, 3).strokes;
     if (!copyId) throw new Error("Expected a pasted stroke");
     expect(copyId).not.toBe(id);
@@ -586,7 +586,7 @@ describe("copy, paste and delete", () => {
 
   it("pastes shapes as shapes", () => {
     const id = room.addShape("#000000", SQUARE, false);
-    const clip = room.copyItems({ strokes: [id], tokens: [] });
+    const clip = room.copyItems({ strokes: [id], tokens: [], texts: [] });
     const [copyId] = room.paste(clip, 10, 0).strokes;
     const copy = strokeOf(copyId);
     expect(isClosed(copy)).toBe(true);
@@ -611,7 +611,11 @@ describe("copy, paste and delete", () => {
       overFog: "yes",
       extra: 1,
     } as never);
-    const clip = room.copyItems({ strokes: ["foreign"], tokens: [] });
+    const clip = room.copyItems({
+      strokes: ["foreign"],
+      tokens: [],
+      texts: [],
+    });
     expect(clip.strokes).toEqual([
       { color: "#000000", points: [10, 10, 20, 20] },
     ]);
@@ -621,12 +625,12 @@ describe("copy, paste and delete", () => {
     room.addStroke("#000000", [10, 10, 20, 20], true);
     const [id] = room.strokesMap.keys();
     if (!id) throw new Error("Expected a stroke");
-    const clip = room.copyItems({ strokes: [id], tokens: [] });
+    const clip = room.copyItems({ strokes: [id], tokens: [], texts: [] });
     const [belowId] = room.paste(clip, 5, 5).strokes;
     const [aboveId] = room.paste(clip, 5, 5, true).strokes;
     expect(isOverFog(strokeOf(belowId))).toBe(false);
     expect(isOverFog(strokeOf(aboveId))).toBe(true);
-    room.moveItems({ strokes: [id], tokens: [] }, 30, 0);
+    room.moveItems({ strokes: [id], tokens: [], texts: [] }, 30, 0);
     expect(isOverFog(strokeOf(id))).toBe(true);
   });
 
@@ -659,7 +663,11 @@ describe("copy, paste and delete", () => {
   it("copies the given items and skips ones that are gone", () => {
     fillFirstCell();
     const token = onlyToken();
-    const clip = room.copyItems({ strokes: ["gone"], tokens: [token.id] });
+    const clip = room.copyItems({
+      strokes: ["gone"],
+      tokens: [token.id],
+      texts: [],
+    });
     expect(clip.cells).toEqual([]);
     expect(clip.tokens).toEqual([
       { name: "Goblin", image: IMAGE, x: 0, y: 0, size: 1, effects: [] },
@@ -673,7 +681,7 @@ describe("copy, paste and delete", () => {
     const [first] = room.strokesMap.keys();
     if (!first) throw new Error("Expected a stroke");
     const before = room.doc.toJSON();
-    room.deleteItems({ strokes: [first], tokens: [onlyToken().id] });
+    room.deleteItems({ strokes: [first], tokens: [onlyToken().id], texts: [] });
     expect(room.strokesMap.size).toBe(1);
     expect(room.strokesMap.has(first)).toBe(false);
     expect(room.tokensMap.size).toBe(0);

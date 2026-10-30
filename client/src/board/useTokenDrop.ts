@@ -43,7 +43,7 @@ export function useTokenDrop(
     if (fogGuard.hidesRect(landing)) return;
     try {
       const [copyId] = room.paste(
-        room.copyItems({ strokes: [], tokens: [id] }),
+        room.copyItems({ strokes: [], tokens: [id], texts: [] }),
         (x - token.x) * CELL_SIZE,
         (y - token.y) * CELL_SIZE,
         !isDm,
