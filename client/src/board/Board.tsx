@@ -1,6 +1,8 @@
 import {
   ActionIcon,
   Box,
+  Divider,
+  Group,
   Paper,
   Tooltip,
   useMantineTheme,
@@ -13,6 +15,7 @@ import type { Vector2d } from "konva/lib/types";
 import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { Layer, Stage } from "react-konva";
 import type { Critical } from "../dice/criticalRoll";
+import { UndoButtons } from "../undo/UndoButtons";
 import { usePlayer } from "../player/PlayerContext";
 import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connectRoom";
@@ -323,16 +326,20 @@ export function Board({
           shadow="sm"
           withBorder
         >
-          <Tooltip label="Fit map (Shift+1)" position="left">
-            <ActionIcon
-              variant="subtle"
-              size="lg"
-              aria-label="Fit map"
-              onClick={fitMap}
-            >
-              <IconZoomScan size={20} />
-            </ActionIcon>
-          </Tooltip>
+          <Group gap={4} wrap="nowrap">
+            <UndoButtons />
+            <Divider orientation="vertical" />
+            <Tooltip label="Fit map (Shift+1)" position="top">
+              <ActionIcon
+                variant="subtle"
+                size="lg"
+                aria-label="Fit map"
+                onClick={fitMap}
+              >
+                <IconZoomScan size={20} />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
         </Paper>
         <Toolbar
           activeTool={tool}

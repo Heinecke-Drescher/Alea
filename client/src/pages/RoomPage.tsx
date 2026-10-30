@@ -18,7 +18,6 @@ import { isValidRoomId } from "../../../shared/roomId";
 import { Board } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DicePanel } from "../dice/DicePanel";
-import { showRoomSpaceError } from "../images/showRoomSpaceError";
 import {
   ShowCriticalContext,
   useCriticalRolls,
@@ -30,6 +29,7 @@ import { recordVisit } from "../recentRooms/useRecentRooms";
 import { useLocalPlayer } from "../player/useLocalPlayer";
 import { useRoomConnection } from "../room/useRoomConnection";
 import { TokenPanel } from "../tokens/TokenPanel";
+import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
 import { ColorSchemeToggle } from "./ColorSchemeToggle";
 import { DmControl } from "./DmControl";
@@ -73,18 +73,10 @@ function RoomView({ roomId }: { roomId: string }) {
     if (isSynced) recordVisit(roomId);
   }, [isSynced, roomId]);
 
-  function undoOrRedo(step: () => void) {
-    try {
-      step();
-    } catch (error) {
-      showRoomSpaceError(error);
-    }
-  }
-
   useHotkeys([
-    ["mod+Z", () => undoOrRedo(room.undo)],
-    ["mod+Y", () => undoOrRedo(room.redo)],
-    ["mod+shift+Z", () => undoOrRedo(room.redo)],
+    ["mod+Z", () => undoStep(room.undo)],
+    ["mod+Y", () => undoStep(room.redo)],
+    ["mod+shift+Z", () => undoStep(room.redo)],
   ]);
 
   if (isFull) return <RoomFull />;
