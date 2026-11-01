@@ -13,7 +13,12 @@ import {
   type MapBounds,
 } from "./grid";
 import { BOUNDS_KEY, type MapActions } from "./map";
-import { MAP_IMAGE_KEY, validMapImage, type MapImage } from "./mapImage";
+import {
+  MAP_IMAGE_KEY,
+  validMapImage,
+  validMapImagePlace,
+  type MapImage,
+} from "./mapImage";
 import {
   cellKey,
   type Cell,
@@ -158,7 +163,7 @@ function parseMapImage(value: unknown): MapImage {
   if (!isRecord(value)) invalid("map image");
   return {
     image: image(value.image, "map image"),
-    bounds: parseBounds(value.bounds, "map image size"),
+    place: validMapImagePlace(value.place) ?? invalid("map image place"),
   };
 }
 
@@ -284,7 +289,7 @@ export function writeMap(
     if (file.background) imagesMap.set(BACKGROUND_IMAGE_ID, file.background);
     if (file.mapImage) {
       imagesMap.set(MAP_IMAGE_KEY, file.mapImage.image);
-      settingsMap.set(MAP_IMAGE_KEY, file.mapImage.bounds);
+      settingsMap.set(MAP_IMAGE_KEY, file.mapImage.place);
     }
     for (const { x, y } of file.fog) fogMap.set(cellKey(x, y), { x, y });
     for (const text of file.texts ?? []) {

@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
-import { DEFAULT_MAP_BOUNDS } from "./grid";
+import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { MAP_IMAGE_KEY, mapImageRows, validMapImage } from "./mapImage";
 
 const IMAGE = "data:image/webp;base64,AAAA";
@@ -25,7 +25,16 @@ describe("map image", () => {
     expect(room.setMapImage(IMAGE, 24, 16)).toBe(true);
     const bounds = { x: -3, y: 2, columns: 24, rows: 16 };
     expect(room.mapBounds()).toEqual(bounds);
-    expect(mapImage()).toEqual({ image: IMAGE, bounds });
+    expect(mapImage()).toEqual({
+      image: IMAGE,
+      place: {
+        x: -3 * CELL_SIZE,
+        y: 2 * CELL_SIZE,
+        width: 24 * CELL_SIZE,
+        height: 16 * CELL_SIZE,
+        rotation: 0,
+      },
+    });
   });
 
   it("refuses a size that leaves cells or tokens off the map", () => {
@@ -62,9 +71,21 @@ describe("map image", () => {
   });
 
   it("ignores images from the web and invalid places", () => {
-    const bounds = { x: 0, y: 0, columns: 20, rows: 20 };
-    expect(validMapImage("https://example.com/map.png", bounds)).toBeNull();
-    expect(validMapImage(IMAGE, { ...bounds, columns: 3 })).toBeNull();
+    const place = { x: -10.5, y: 0, width: 1000, height: 800, rotation: 90 };
+    expect(validMapImage(IMAGE, place)).toEqual({ image: IMAGE, place });
+    expect(validMapImage("https://example.com/map.png", place)).toBeNull();
+    expect(validMapImage(IMAGE, { ...place, width: CELL_SIZE - 1 })).toBeNull();
+    expect(validMapImage(IMAGE, { ...place, height: 10001 })).toBeNull();
+    expect(validMapImage(IMAGE, { ...place, x: Infinity })).toBeNull();
+    expect(validMapImage(IMAGE, { ...place, rotation: 45 })).toBeNull();
+    expect(
+      validMapImage(IMAGE, { x: 0, y: 0, columns: 20, rows: 20 }),
+    ).toBeNull();
     expect(validMapImage(IMAGE, undefined)).toBeNull();
+  });
+
+  it("keeps only the known fields of the place", () => {
+    const place = { x: 0, y: 0, width: 1000, height: 800, rotation: 0 };
+    expect(validMapImage(IMAGE, { ...place, extra: 1 })?.place).toEqual(place);
   });
 });

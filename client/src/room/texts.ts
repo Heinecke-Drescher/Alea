@@ -1,5 +1,6 @@
 import type { IRect } from "konva/lib/types";
 import { nanoid } from "nanoid";
+import { isFiniteNumber } from "./numbers";
 import type { MapText, MapTextData, RoomStore } from "./roomStore";
 
 // Keeps a pasted document from filling the room, which would disconnect everyone.
@@ -15,10 +16,6 @@ function isTextFontSize(value: unknown): value is TextFontSize {
 
 export function textFontSize({ fontSize }: Pick<MapTextData, "fontSize">) {
   return fontSize ?? TEXT_FONT_SIZES.M;
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
 }
 
 function isSize(value: unknown): value is number {

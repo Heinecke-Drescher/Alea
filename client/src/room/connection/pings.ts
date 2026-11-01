@@ -1,3 +1,4 @@
+import { isFiniteNumber } from "../numbers";
 import { isPlayerColor, type PlayerColor } from "../playerColors";
 
 export interface Ping {
@@ -7,10 +8,6 @@ export interface Ping {
   y: number;
   // Only tells pings of one player apart; clocks of other players may be off.
   at: number;
-}
-
-function isFiniteNumber(value: unknown): value is number {
-  return typeof value === "number" && Number.isFinite(value);
 }
 
 // Awareness states come from other players, so their shape is not trusted.

@@ -16,6 +16,7 @@ import { megabytes } from "./roomSpace";
 import type { AreaShape } from "./shapes";
 
 const IMAGE = "data:image/webp;base64,AAAA";
+const PLACE = { x: 0, y: 0, width: 1000, height: 750, rotation: 0 };
 const TEXT = {
   text: "Trap",
   x: 60,
@@ -174,7 +175,7 @@ describe("map files", () => {
     const file = parseMapFile(JSON.stringify(room.exportMap()));
     expect(file.mapImage).toEqual({
       image: IMAGE,
-      bounds: { x: 0, y: 0, columns: 20, rows: 15 },
+      place: { x: 0, y: 0, width: 1000, height: 750, rotation: 0 },
     });
     const other = createRoom(new Y.Doc());
     other.importMap(file);
@@ -308,31 +309,35 @@ describe("map files", () => {
       "a map image from the web",
       (file) => ({
         ...file,
-        mapImage: { image: "https://example.com/map.png", bounds: file.bounds },
+        mapImage: { image: "https://example.com/map.png", place: PLACE },
       }),
     ],
     [
       "a map image of invalid size",
       (file) => ({
         ...file,
-        mapImage: { image: IMAGE, bounds: { ...file.bounds, rows: 3 } },
+        mapImage: { image: IMAGE, place: { ...PLACE, height: 0 } },
       }),
+    ],
+    [
+      "a map image without place",
+      (file) => ({ ...file, mapImage: { image: IMAGE } }),
     ],
   ])("rejects a file with %s", (_, change) => {
     const json = JSON.stringify(change(validFile()));
     expect(() => parseMapFile(json)).toThrow("not a valid map file");
   });
 
-  it("keeps only the known fields of the map size", () => {
+  it("keeps only the known fields of the map size and image place", () => {
     const file = validFile();
     const json = JSON.stringify({
       ...file,
       bounds: { ...file.bounds, extra: "<script>" },
-      mapImage: { image: IMAGE, bounds: { ...file.bounds, extra: 1 } },
+      mapImage: { image: IMAGE, place: { ...PLACE, extra: 1 } },
     });
     const parsed = parseMapFile(json);
     expect(parsed.bounds).toEqual(file.bounds);
-    expect(parsed.mapImage?.bounds).toEqual(file.bounds);
+    expect(parsed.mapImage?.place).toEqual(PLACE);
   });
 
   it("rejects files that are no JSON", () => {

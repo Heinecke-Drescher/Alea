@@ -4,6 +4,7 @@ import type { Scene } from "./scenes";
 import type { TextFontSize } from "./texts";
 import type { StatusEffect } from "./effects";
 import type { MapBounds } from "./grid";
+import type { MapImagePlace } from "./mapImage";
 import type { PlayerColor } from "./playerColors";
 import type { AreaShape } from "./shapes";
 
@@ -96,7 +97,8 @@ export function createRoomStore(doc: Y.Doc) {
   const strokesMap = doc.getMap<Stroke>("strokes");
   const textsMap = doc.getMap<MapText>("texts");
   const rollsArray = doc.getArray<Roll>("rolls");
-  const settingsMap = doc.getMap<MapBounds>("settings");
+  // Holds the map bounds and the map image's place under their own keys.
+  const settingsMap = doc.getMap<MapBounds | MapImagePlace>("settings");
   const musicMap = doc.getMap<Music>("music");
   const rolesMap = doc.getMap<DungeonMaster>("roles");
   const fogMap = doc.getMap<{ x: number; y: number }>("fog");

@@ -17,8 +17,22 @@ export function MapImage() {
   );
 }
 
-function LoadedMapImage({ image, bounds }: MapImageData) {
+function LoadedMapImage({ image, place }: MapImageData) {
   const [element, status] = useImage(image);
   if (status === "failed") throw new Error("The map image could not be loaded");
-  return <Image image={element} {...mapRect(bounds)} />;
+  const isSideways = place.rotation % 180 !== 0;
+  const width = isSideways ? place.height : place.width;
+  const height = isSideways ? place.width : place.height;
+  return (
+    <Image
+      image={element}
+      x={place.x + place.width / 2}
+      y={place.y + place.height / 2}
+      width={width}
+      height={height}
+      offsetX={width / 2}
+      offsetY={height / 2}
+      rotation={place.rotation}
+    />
+  );
 }

@@ -36,7 +36,10 @@ export function createMapActions({
 }: RoomStore) {
   // Rooms created before maps could be resized have no stored bounds.
   function mapBounds() {
-    return settingsMap.get(BOUNDS_KEY) ?? DEFAULT_MAP_BOUNDS;
+    return (
+      (settingsMap.get(BOUNDS_KEY) as MapBounds | undefined) ??
+      DEFAULT_MAP_BOUNDS
+    );
   }
 
   function resize(bounds: MapBounds) {
