@@ -29,6 +29,30 @@ function isMapImageRotation(value: unknown): value is MapImageRotation {
   return MAP_IMAGE_ROTATIONS.some((rotation) => rotation === value);
 }
 
+const NEXT_ROTATION: Record<MapImageRotation, MapImageRotation> = {
+  0: 90,
+  90: 180,
+  180: 270,
+  270: 0,
+};
+
+// The top right corner stays, so the rotate button there stays under the mouse.
+export function turnedClockwise({
+  x,
+  y,
+  width,
+  height,
+  rotation,
+}: MapImagePlace): MapImagePlace {
+  return {
+    x: x + width - height,
+    y,
+    width: height,
+    height: width,
+    rotation: NEXT_ROTATION[rotation],
+  };
+}
+
 export function isMapImageSize(value: unknown): value is number {
   return (
     isFiniteNumber(value) &&

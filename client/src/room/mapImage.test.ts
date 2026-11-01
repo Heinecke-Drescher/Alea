@@ -2,7 +2,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
-import { MAP_IMAGE_KEY, mapImageRows, validMapImage } from "./mapImage";
+import {
+  MAP_IMAGE_KEY,
+  mapImageRows,
+  turnedClockwise,
+  validMapImage,
+} from "./mapImage";
 
 const IMAGE = "data:image/webp;base64,AAAA";
 
@@ -98,6 +103,27 @@ describe("map image", () => {
     expect(() =>
       room.placeMapImage({ x: 0, y: 0, width: 10, height: 8, rotation: 0 }),
     ).toThrow("Invalid map image place");
+  });
+
+  it("turns the image clockwise around its top right corner", () => {
+    const place = {
+      x: 100,
+      y: 50,
+      width: 400,
+      height: 200,
+      rotation: 0,
+    } as const;
+    const turned = turnedClockwise(place);
+    expect(turned).toEqual({
+      x: 300,
+      y: 50,
+      width: 200,
+      height: 400,
+      rotation: 90,
+    });
+    expect(turned.x + turned.width).toBe(place.x + place.width);
+    const fourTimes = turnedClockwise(turnedClockwise(turnedClockwise(turned)));
+    expect(fourTimes).toEqual(place);
   });
 
   it("takes the rows from the image's aspect ratio, rounded", () => {

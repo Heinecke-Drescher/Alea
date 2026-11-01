@@ -1,15 +1,32 @@
-import { useMantineTheme } from "@mantine/core";
+import { ActionIcon, Tooltip, useMantineTheme } from "@mantine/core";
+import { IconRotateClockwise } from "@tabler/icons-react";
 import type { Rect as RectNode } from "konva/lib/shapes/Rect";
 import type { Transformer as TransformerNode } from "konva/lib/shapes/Transformer";
 import { useEffect, useRef } from "react";
 import { Rect, Transformer } from "react-konva";
-import { isMapImageSize, type MapImagePlace } from "../../room/mapImage";
+import { Html } from "react-konva-utils";
+import {
+  isMapImageSize,
+  turnedClockwise,
+  type MapImagePlace,
+} from "../../room/mapImage";
 import { useRoom } from "../../room/RoomContext";
 import { useMapImage } from "../../room/useMapImage";
 import { highlightColor } from "../selection/highlight";
 import { MAP_IMAGE_NAME, mapImageNode, placeOfNode } from "./mapImageNode";
 
 const CORNERS = ["top-left", "top-right", "bottom-left", "bottom-right"];
+const ROTATE_BUTTON_NAME = "map-image-rotate";
+const ROTATE_BUTTON_GAP = 6;
+
+function topRightCorner({ x, y, width }: MapImagePlace) {
+  return { x: x + width, y };
+}
+
+// The button keeps its size on screen, whatever the zoom.
+function withoutScale<T extends { scaleX: number; scaleY: number }>(attrs: T) {
+  return { ...attrs, scaleX: 1, scaleY: 1 };
+}
 
 // A click without moving must not leave an empty undo step.
 function isSamePlace(a: MapImagePlace, b: MapImagePlace) {
@@ -75,6 +92,9 @@ function PlaceAligner({ place }: { place: MapImagePlace }) {
     for (const image of stage.find(`.${MAP_IMAGE_NAME}`)) {
       image.setAttrs(node);
     }
+    for (const button of stage.find(`.${ROTATE_BUTTON_NAME}`)) {
+      button.setAttrs(topRightCorner(next));
+    }
   }
 
   function placeImage() {
@@ -114,6 +134,24 @@ function PlaceAligner({ place }: { place: MapImagePlace }) {
         onTransform={() => showPlace(framedPlace())}
         onTransformEnd={placeImage}
       />
+      <Html
+        groupProps={{ name: ROTATE_BUTTON_NAME, ...topRightCorner(place) }}
+        transformFunc={withoutScale}
+      >
+        <Tooltip label="Rotate 90°">
+          <ActionIcon
+            variant="default"
+            radius="xl"
+            aria-label="Rotate 90°"
+            style={{
+              transform: `translate(${ROTATE_BUTTON_GAP}px, calc(-100% - ${ROTATE_BUTTON_GAP}px))`,
+            }}
+            onClick={() => room.placeMapImage(turnedClockwise(place))}
+          >
+            <IconRotateClockwise size={18} />
+          </ActionIcon>
+        </Tooltip>
+      </Html>
     </>
   );
 }
