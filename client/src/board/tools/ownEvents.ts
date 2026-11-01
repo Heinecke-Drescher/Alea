@@ -1,7 +1,7 @@
 import type { BoardTool } from "./tool";
 
-// The map resizer handles its own mouse events.
-export const resizeTool: BoardTool = {
+// The map resizer and the map image aligner handle their own mouse events.
+export const ownEventsTool: BoardTool = {
   selectsItems: false,
   listensToDrawings: false,
   onDown() {},

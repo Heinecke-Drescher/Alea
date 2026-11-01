@@ -10,6 +10,7 @@ export type Tool =
   | "text"
   | "measure"
   | "resize"
+  | "alignImage"
   | ShapeKind
   | "reveal"
   | "hide";

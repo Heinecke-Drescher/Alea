@@ -64,6 +64,42 @@ describe("map image", () => {
     expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 24, rows: 16 });
   });
 
+  it("moves and scales the image in one undo step", () => {
+    room.setMapImage(IMAGE, 24, 16);
+    const before = mapImage()?.place;
+    const place = {
+      x: -12.5,
+      y: 30,
+      width: 1500,
+      height: 1000,
+      rotation: 0,
+    } as const;
+    expect(room.placeMapImage(place)).toBe(true);
+    expect(mapImage()?.place).toEqual(place);
+    room.undoManager.undo();
+    expect(mapImage()?.place).toEqual(before);
+    expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 24, rows: 16 });
+  });
+
+  it("places nothing once another player removed the image", () => {
+    const place = {
+      x: 0,
+      y: 0,
+      width: 1000,
+      height: 800,
+      rotation: 0,
+    } as const;
+    expect(room.placeMapImage(place)).toBe(false);
+    expect(room.settingsMap.has(MAP_IMAGE_KEY)).toBe(false);
+  });
+
+  it("throws on a place the image cannot have", () => {
+    room.setMapImage(IMAGE, 24, 16);
+    expect(() =>
+      room.placeMapImage({ x: 0, y: 0, width: 10, height: 8, rotation: 0 }),
+    ).toThrow("Invalid map image place");
+  });
+
   it("takes the rows from the image's aspect ratio, rounded", () => {
     expect(mapImageRows(2000, 1500, 20)).toBe(15);
     expect(mapImageRows(2000, 1530, 20)).toBe(15);

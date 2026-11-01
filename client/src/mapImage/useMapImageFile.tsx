@@ -6,14 +6,13 @@ import {
   LARGE_IMAGE_SIZE,
 } from "../images/createImage";
 import { useImageFileDialog } from "../images/useImageFileDialog";
-import { usePlayer } from "../player/PlayerContext";
 import type { Room } from "../room/createRoom";
 import { CONTENT_OUTSIDE_MESSAGE } from "../room/map";
 import { MAP_IMAGE_KEY } from "../room/mapImage";
 import { useRoom } from "../room/RoomContext";
-import { useDm } from "../room/useDm";
 import { useMapImage } from "../room/useMapImage";
 import { MapImageForm } from "./MapImageForm";
+import { useCanSetMapImage } from "./useCanSetMapImage";
 
 async function imageSize(file: File) {
   const bitmap = await createImageBitmap(file);
@@ -53,8 +52,6 @@ function openMapImageDialog(
 
 export function useMapImageFile() {
   const room = useRoom();
-  const dm = useDm();
-  const { isDm } = usePlayer();
   const chooseMapImage = useImageFileDialog({
     maxMegabytes: LARGE_IMAGE_FILE_MEGABYTES,
     multiple: false,
@@ -67,8 +64,7 @@ export function useMapImageFile() {
   });
 
   return {
-    // Like an import, because it changes the map size for everyone.
-    canSet: dm === null || isDm,
+    canSet: useCanSetMapImage(),
     hasMapImage: useMapImage() !== null,
     chooseMapImage,
     removeMapImage: room.removeMapImage,

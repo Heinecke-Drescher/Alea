@@ -13,6 +13,7 @@ import {
 } from "react";
 import { Layer, Stage } from "react-konva";
 import type { Critical } from "../dice/criticalRoll";
+import { useCanAlignMapImage } from "../mapImage/useCanSetMapImage";
 import { usePlayer } from "../player/PlayerContext";
 import type { ItemType } from "../room/areaActions";
 import type { Awareness } from "../room/connection/connectRoom";
@@ -27,6 +28,7 @@ import { FogOfWar } from "./map/FogOfWar";
 import { GridLines } from "./map/GridLines";
 import { MapFill } from "./map/MapFill";
 import { MapImage } from "./map/MapImage";
+import { MapImageAligner } from "./map/MapImageAligner";
 import { MapResizer } from "./map/MapResizer";
 import { CriticalScenes } from "./critical/CriticalScenes";
 import { paintColorValue, type PaintColor } from "./paintColors";
@@ -101,8 +103,12 @@ export function Board({
   const { ref: sizeRef, width, height } = useElementSize();
   const theme = useMantineTheme();
   const [chosenTool, setTool] = useState<Tool>("select");
-  // Releasing the DM role while a fog tool is active falls back to selecting.
-  const tool = player.isDm || !isFogTool(chosenTool) ? chosenTool : "select";
+  const canAlignMapImage = useCanAlignMapImage();
+  // Losing the DM role or the map image while its tool is active falls back to selecting.
+  const isToolAllowed =
+    (player.isDm || !isFogTool(chosenTool)) &&
+    (canAlignMapImage || chosenTool !== "alignImage");
+  const tool = isToolAllowed ? chosenTool : "select";
   const [color, setColor] = useState<PaintColor>("red");
   const [textSize, setTextSize] = useState<TextFontSize>(TEXT_FONT_SIZES.M);
   const [landings] = useState(() => new Map<string, Vector2d>());
@@ -303,7 +309,7 @@ export function Board({
         >
           <Layer listening={false}>
             <MapFill />
-            <MapImage />
+            <MapImage showsOutside={tool === "alignImage"} />
             <Cells selection={area} />
             <GridLines />
           </Layer>
@@ -345,6 +351,7 @@ export function Board({
           <Layer>
             <FogFrame frame={fogFrame} />
             {tool === "resize" && <MapResizer />}
+            {tool === "alignImage" && <MapImageAligner />}
             {isSelecting && reshapableId && (
               <ShapeResizer strokeId={reshapableId} />
             )}
@@ -378,6 +385,7 @@ export function Board({
         <Toolbar
           activeTool={tool}
           onToolChange={changeTool}
+          canAlignMapImage={canAlignMapImage}
           activeColor={color}
           onColorChange={setColor}
           textSize={textSize}

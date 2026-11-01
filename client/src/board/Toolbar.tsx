@@ -18,6 +18,7 @@ import {
   IconEye,
   IconEyeOff,
   IconPencil,
+  IconPhotoEdit,
   IconPointer,
   IconResize,
   IconRuler,
@@ -42,6 +43,12 @@ const MAP_TOOLS: ToolButton[] = [
   { tool: "resize", label: "Resize map", icon: IconResize },
 ];
 
+const ALIGN_TOOL: ToolButton = {
+  tool: "alignImage",
+  label: "Align map image",
+  icon: IconPhotoEdit,
+};
+
 const DRAWING_TOOLS: ToolButton[] = [
   { tool: "pen", label: "Draw", icon: IconPencil },
   { tool: "paint", label: "Paint cells", icon: IconBucketDroplet },
@@ -62,6 +69,7 @@ const FOG_TOOLS: ToolButton[] = [
 interface ToolbarProps {
   activeTool: Tool;
   onToolChange: (tool: Tool) => void;
+  canAlignMapImage: boolean;
   activeColor: PaintColor;
   onColorChange: (color: PaintColor) => void;
   textSize: TextFontSize;
@@ -71,6 +79,7 @@ interface ToolbarProps {
 export function Toolbar({
   activeTool,
   onToolChange,
+  canAlignMapImage,
   activeColor,
   onColorChange,
   textSize,
@@ -108,6 +117,7 @@ export function Toolbar({
       <Tooltip.Group>
         <Group gap={4} wrap="nowrap">
           {MAP_TOOLS.map(toolButton)}
+          {canAlignMapImage && toolButton(ALIGN_TOOL)}
           <Divider orientation="vertical" />
           {DRAWING_TOOLS.map(toolButton)}
           <TextToolButton

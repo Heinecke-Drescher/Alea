@@ -29,7 +29,7 @@ function isMapImageRotation(value: unknown): value is MapImageRotation {
   return MAP_IMAGE_ROTATIONS.some((rotation) => rotation === value);
 }
 
-function isMapImageSize(value: unknown): value is number {
+export function isMapImageSize(value: unknown): value is number {
   return (
     isFiniteNumber(value) &&
     value >= MIN_MAP_IMAGE_SIZE &&
@@ -86,6 +86,18 @@ export function createMapImage(
     return true;
   }
 
+  // Another player may remove the image while it is being aligned.
+  function placeMapImage(place: MapImagePlace) {
+    if (!validMapImagePlace(place)) {
+      throw new Error(`Invalid map image place ${JSON.stringify(place)}`);
+    }
+    if (!imagesMap.has(MAP_IMAGE_KEY)) return false;
+    undoManager.stopCapturing();
+    settingsMap.set(MAP_IMAGE_KEY, place);
+    undoManager.stopCapturing();
+    return true;
+  }
+
   function removeMapImage() {
     undoManager.stopCapturing();
     doc.transact(() => {
@@ -95,5 +107,5 @@ export function createMapImage(
     undoManager.stopCapturing();
   }
 
-  return { setMapImage, removeMapImage };
+  return { setMapImage, placeMapImage, removeMapImage };
 }
