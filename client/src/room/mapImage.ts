@@ -1,3 +1,4 @@
+import { clamp } from "@mantine/hooks";
 import type { IRect } from "konva/lib/types";
 import {
   CELL_SIZE,
@@ -122,31 +123,31 @@ export function validMapImage(
   return { image: dataUrl, place: validPlace };
 }
 
-export function mapImageRows(width: number, height: number, columns: number) {
-  return Math.round((columns * height) / width);
-}
-
 export function createMapImage(
   { doc, imagesMap, settingsMap, undoManager }: RoomStore,
   { mapBounds, fitsInto }: MapActions,
 ) {
-  // The map takes the image's size, and undo reverts both in one step.
-  function setMapImage(image: string, columns: number, rows: number) {
-    const { x, y } = mapBounds();
-    const bounds = { x, y, columns, rows };
-    if (!isValidMapBounds(bounds)) {
-      throw new Error(`Invalid map image size ${columns} × ${rows}`);
-    }
-    if (!fitsInto(bounds)) return false;
-    const place: MapImagePlace = { ...mapRect(bounds), rotation: 0 };
+  // The image starts as wide as the map, so aligning it begins where the map is. Only a very
+  // narrow or wide image gets stretched to stay within the allowed sizes.
+  function setMapImage(image: string, size: { width: number; height: number }) {
+    const map = mapRect(mapBounds());
+    const place: MapImagePlace = {
+      x: map.x,
+      y: map.y,
+      width: map.width,
+      height: clamp(
+        (map.width * size.height) / size.width,
+        MIN_MAP_IMAGE_SIZE,
+        MAX_MAP_IMAGE_SIZE,
+      ),
+      rotation: 0,
+    };
     undoManager.stopCapturing();
     doc.transact(() => {
-      settingsMap.set(BOUNDS_KEY, bounds);
       settingsMap.set(MAP_IMAGE_KEY, place);
       imagesMap.set(MAP_IMAGE_KEY, image);
     });
     undoManager.stopCapturing();
-    return true;
   }
 
   // Another player may remove the image while it is being aligned.

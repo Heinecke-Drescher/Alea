@@ -77,6 +77,7 @@ function RoomView({ roomId }: { roomId: string }) {
     (tokenId: string) => board.current?.focusToken(tokenId),
     [],
   );
+  const alignMapImage = () => board.current?.alignMapImage();
 
   // Only rooms that really loaded are worth finding again.
   useEffect(() => {
@@ -106,7 +107,11 @@ function RoomView({ roomId }: { roomId: string }) {
             <AppShell.Header>
               <Group h="100%" px="md" justify="space-between">
                 <Group gap="sm">
-                  <AleaMenu isSynced={isSynced} connection={connection} />
+                  <AleaMenu
+                    isSynced={isSynced}
+                    connection={connection}
+                    onMapImageSet={alignMapImage}
+                  />
                   {isSynced && <SceneTabs />}
                   {connection === "disconnected" && (
                     <Badge color="red" variant="light">

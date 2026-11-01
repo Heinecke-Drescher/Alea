@@ -171,11 +171,11 @@ describe("map files", () => {
   });
 
   it("brings a map image into another room", () => {
-    room.setMapImage(IMAGE, 20, 15);
+    room.setMapImage(IMAGE, { width: 2000, height: 1000 });
     const file = parseMapFile(JSON.stringify(room.exportMap()));
     expect(file.mapImage).toEqual({
       image: IMAGE,
-      place: { x: 0, y: 0, width: 1000, height: 750, rotation: 0 },
+      place: { x: 0, y: 0, width: 1500, height: 750, rotation: 0 },
     });
     const other = createRoom(new Y.Doc());
     other.importMap(file);
@@ -219,7 +219,7 @@ describe("map files", () => {
   it("removes the old map image when the file has none", () => {
     const file = validFile();
     const other = createRoom(new Y.Doc());
-    other.setMapImage(IMAGE, 20, 15);
+    other.setMapImage(IMAGE, { width: 2000, height: 1000 });
     other.importMap(file);
     expect(other.imagesMap.has(MAP_IMAGE_KEY)).toBe(false);
     expect(other.settingsMap.has(MAP_IMAGE_KEY)).toBe(false);

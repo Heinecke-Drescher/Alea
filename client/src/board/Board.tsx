@@ -79,6 +79,7 @@ function isAddKeyPressed(event: KonvaEventObject<MouseEvent>) {
 
 export interface BoardHandle {
   focusToken: (id: string) => void;
+  alignMapImage: () => void;
 }
 
 interface BoardProps {
@@ -260,7 +261,10 @@ export function Board({
     handleMouseUp();
   }
 
-  useImperativeHandle(ref, () => ({ focusToken }));
+  useImperativeHandle(ref, () => ({
+    focusToken,
+    alignMapImage: () => setTool("alignImage"),
+  }));
 
   return (
     <EffectTooltip stageRef={stageRef}>

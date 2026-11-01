@@ -10,13 +10,18 @@ import type { ConnectionState } from "../room/connection/connectRoom";
 interface AleaMenuProps {
   isSynced: boolean;
   connection: ConnectionState;
+  onMapImageSet: () => void;
 }
 
-export function AleaMenu({ isSynced, connection }: AleaMenuProps) {
+export function AleaMenu({
+  isSynced,
+  connection,
+  onMapImageSet,
+}: AleaMenuProps) {
   const mapFiles = useMapFiles();
   const isDisconnected = connection === "disconnected";
   const background = useBackgroundFile();
-  const mapImage = useMapImageFile();
+  const mapImage = useMapImageFile(onMapImageSet);
   const drawings = useClearDrawings();
 
   return (

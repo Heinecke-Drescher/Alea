@@ -65,7 +65,7 @@ describe("room space", () => {
   });
 
   it("frees the space of a replaced map image", () => {
-    room.setMapImage(THREE_MB, 20, 15);
+    room.setMapImage(THREE_MB, { width: 2000, height: 1000 });
     expect(() =>
       room.assertSpaceForImage(THREE_MB, MAP_IMAGE_KEY),
     ).not.toThrow();
