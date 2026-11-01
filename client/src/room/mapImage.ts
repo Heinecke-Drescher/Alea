@@ -1,5 +1,12 @@
 import type { IRect } from "konva/lib/types";
-import { CELL_SIZE, isValidMapBounds, mapRect, MAX_MAP_CELLS } from "./grid";
+import {
+  CELL_SIZE,
+  isValidMapBounds,
+  mapRect,
+  MAX_MAP_CELLS,
+  MIN_MAP_CELLS,
+  type MapBounds,
+} from "./grid";
 import { BOUNDS_KEY, type MapActions } from "./map";
 import { isFiniteNumber } from "./numbers";
 import type { RoomStore } from "./roomStore";
@@ -50,6 +57,38 @@ export function turnedClockwise({
     width: height,
     height: width,
     rotation: NEXT_ROTATION[rotation],
+  };
+}
+
+export const MAP_SIZE_LIMIT_MESSAGE = `Only the image snapped, as a map is ${MIN_MAP_CELLS} to ${MAX_MAP_CELLS} cells wide and high.`;
+
+export function isSamePlace(a: MapImagePlace, b: MapImagePlace) {
+  return (
+    a.x === b.x &&
+    a.y === b.y &&
+    a.width === b.width &&
+    a.height === b.height &&
+    a.rotation === b.rotation
+  );
+}
+
+export function snappedToCells({
+  x,
+  y,
+  width,
+  height,
+  rotation,
+}: MapImagePlace): MapImagePlace {
+  const toCellLine = (value: number) =>
+    Math.round(value / CELL_SIZE) * CELL_SIZE;
+  const toCellLength = (value: number) =>
+    Math.max(1, Math.round(value / CELL_SIZE)) * CELL_SIZE;
+  return {
+    x: toCellLine(x),
+    y: toCellLine(y),
+    width: toCellLength(width),
+    height: toCellLength(height),
+    rotation,
   };
 }
 
@@ -122,6 +161,43 @@ export function createMapImage(
     return true;
   }
 
+  function mapFitFor(bounds: MapBounds) {
+    if (!isValidMapBounds(bounds)) return "sizeNotAllowed";
+    if (!fitsInto(bounds)) return "contentOutside";
+    return "mapFitted";
+  }
+
+  // The map takes the snapped image's cells, unless that size is not allowed or would leave
+  // content outside; then only the image snaps.
+  function snapMapImage() {
+    const place = validMapImagePlace(settingsMap.get(MAP_IMAGE_KEY));
+    if (!imagesMap.has(MAP_IMAGE_KEY) || !place) return "noImage";
+    const snapped = snappedToCells(place);
+    const bounds = {
+      x: snapped.x / CELL_SIZE,
+      y: snapped.y / CELL_SIZE,
+      columns: snapped.width / CELL_SIZE,
+      rows: snapped.height / CELL_SIZE,
+    };
+    const result = mapFitFor(bounds);
+    const { x, y, columns, rows } = mapBounds();
+    const isMapChanged =
+      result === "mapFitted" &&
+      (bounds.x !== x ||
+        bounds.y !== y ||
+        bounds.columns !== columns ||
+        bounds.rows !== rows);
+    // Snapping what already fits must not leave an empty undo step.
+    if (isSamePlace(snapped, place) && !isMapChanged) return result;
+    undoManager.stopCapturing();
+    doc.transact(() => {
+      if (isMapChanged) settingsMap.set(BOUNDS_KEY, bounds);
+      settingsMap.set(MAP_IMAGE_KEY, snapped);
+    });
+    undoManager.stopCapturing();
+    return result;
+  }
+
   function removeMapImage() {
     undoManager.stopCapturing();
     doc.transact(() => {
@@ -131,5 +207,5 @@ export function createMapImage(
     undoManager.stopCapturing();
   }
 
-  return { setMapImage, placeMapImage, removeMapImage };
+  return { setMapImage, placeMapImage, snapMapImage, removeMapImage };
 }

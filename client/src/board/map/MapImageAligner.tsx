@@ -1,12 +1,16 @@
-import { ActionIcon, Tooltip, useMantineTheme } from "@mantine/core";
-import { IconRotateClockwise } from "@tabler/icons-react";
+import { ActionIcon, Group, Tooltip, useMantineTheme } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
+import { IconGrid4x4, IconRotateClockwise } from "@tabler/icons-react";
 import type { Rect as RectNode } from "konva/lib/shapes/Rect";
 import type { Transformer as TransformerNode } from "konva/lib/shapes/Transformer";
 import { useEffect, useRef } from "react";
 import { Rect, Transformer } from "react-konva";
 import { Html } from "react-konva-utils";
+import { CONTENT_OUTSIDE_MESSAGE } from "../../room/map";
 import {
   isMapImageSize,
+  isSamePlace,
+  MAP_SIZE_LIMIT_MESSAGE,
   turnedClockwise,
   type MapImagePlace,
 } from "../../room/mapImage";
@@ -16,27 +20,16 @@ import { highlightColor } from "../selection/highlight";
 import { MAP_IMAGE_NAME, mapImageNode, placeOfNode } from "./mapImageNode";
 
 const CORNERS = ["top-left", "top-right", "bottom-left", "bottom-right"];
-const ROTATE_BUTTON_NAME = "map-image-rotate";
-const ROTATE_BUTTON_GAP = 6;
+const CORNER_BUTTONS_NAME = "map-image-buttons";
+const CORNER_BUTTONS_GAP = 6;
 
 function topRightCorner({ x, y, width }: MapImagePlace) {
   return { x: x + width, y };
 }
 
-// The button keeps its size on screen, whatever the zoom.
+// The buttons keep their size on screen, whatever the zoom.
 function withoutScale<T extends { scaleX: number; scaleY: number }>(attrs: T) {
   return { ...attrs, scaleX: 1, scaleY: 1 };
-}
-
-// A click without moving must not leave an empty undo step.
-function isSamePlace(a: MapImagePlace, b: MapImagePlace) {
-  return (
-    a.x === b.x &&
-    a.y === b.y &&
-    a.width === b.width &&
-    a.height === b.height &&
-    a.rotation === b.rotation
-  );
 }
 
 export function MapImageAligner() {
@@ -92,14 +85,25 @@ function PlaceAligner({ place }: { place: MapImagePlace }) {
     for (const image of stage.find(`.${MAP_IMAGE_NAME}`)) {
       image.setAttrs(node);
     }
-    for (const button of stage.find(`.${ROTATE_BUTTON_NAME}`)) {
-      button.setAttrs(topRightCorner(next));
+    for (const buttons of stage.find(`.${CORNER_BUTTONS_NAME}`)) {
+      buttons.setAttrs(topRightCorner(next));
+    }
+  }
+
+  function snapImage() {
+    const result = room.snapMapImage();
+    if (result === "contentOutside") {
+      notifications.show({ color: "red", message: CONTENT_OUTSIDE_MESSAGE });
+    }
+    if (result === "sizeNotAllowed") {
+      notifications.show({ color: "red", message: MAP_SIZE_LIMIT_MESSAGE });
     }
   }
 
   function placeImage() {
     const next = framedPlace();
     showPlace(next);
+    // A click without moving must not leave an empty undo step.
     if (isSamePlace(next, place)) return;
     if (!room.placeMapImage(next)) showPlace(place);
   }
@@ -135,22 +139,37 @@ function PlaceAligner({ place }: { place: MapImagePlace }) {
         onTransformEnd={placeImage}
       />
       <Html
-        groupProps={{ name: ROTATE_BUTTON_NAME, ...topRightCorner(place) }}
+        groupProps={{ name: CORNER_BUTTONS_NAME, ...topRightCorner(place) }}
         transformFunc={withoutScale}
       >
-        <Tooltip label="Rotate 90°">
-          <ActionIcon
-            variant="default"
-            radius="xl"
-            aria-label="Rotate 90°"
-            style={{
-              transform: `translate(${ROTATE_BUTTON_GAP}px, calc(-100% - ${ROTATE_BUTTON_GAP}px))`,
-            }}
-            onClick={() => room.placeMapImage(turnedClockwise(place))}
-          >
-            <IconRotateClockwise size={18} />
-          </ActionIcon>
-        </Tooltip>
+        <Group
+          gap={4}
+          wrap="nowrap"
+          style={{
+            transform: `translate(${CORNER_BUTTONS_GAP}px, calc(-100% - ${CORNER_BUTTONS_GAP}px))`,
+          }}
+        >
+          <Tooltip label="Rotate 90°">
+            <ActionIcon
+              variant="default"
+              radius="xl"
+              aria-label="Rotate 90°"
+              onClick={() => room.placeMapImage(turnedClockwise(place))}
+            >
+              <IconRotateClockwise size={18} />
+            </ActionIcon>
+          </Tooltip>
+          <Tooltip label="Snap to grid">
+            <ActionIcon
+              variant="default"
+              radius="xl"
+              aria-label="Snap to grid"
+              onClick={snapImage}
+            >
+              <IconGrid4x4 size={18} />
+            </ActionIcon>
+          </Tooltip>
+        </Group>
       </Html>
     </>
   );

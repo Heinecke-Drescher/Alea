@@ -5,6 +5,7 @@ import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import {
   MAP_IMAGE_KEY,
   mapImageRows,
+  snappedToCells,
   turnedClockwise,
   validMapImage,
 } from "./mapImage";
@@ -124,6 +125,75 @@ describe("map image", () => {
     expect(turned.x + turned.width).toBe(place.x + place.width);
     const fourTimes = turnedClockwise(turnedClockwise(turnedClockwise(turned)));
     expect(fourTimes).toEqual(place);
+  });
+
+  it("snaps the image to whole cells, at least one", () => {
+    expect(
+      snappedToCells({ x: -26, y: 74, width: 1224, height: 20, rotation: 90 }),
+    ).toEqual({
+      x: -CELL_SIZE,
+      y: CELL_SIZE,
+      width: 24 * CELL_SIZE,
+      height: CELL_SIZE,
+      rotation: 90,
+    });
+  });
+
+  it("fits the map to the snapped image in one undo step", () => {
+    room.setMapImage(IMAGE, 24, 16);
+    const place = {
+      x: 60,
+      y: -40,
+      width: 1530,
+      height: 1020,
+      rotation: 0,
+    } as const;
+    room.placeMapImage(place);
+    expect(room.snapMapImage()).toBe("mapFitted");
+    expect(mapImage()?.place).toEqual({
+      x: CELL_SIZE,
+      y: -CELL_SIZE,
+      width: 31 * CELL_SIZE,
+      height: 20 * CELL_SIZE,
+      rotation: 0,
+    });
+    expect(room.mapBounds()).toEqual({ x: 1, y: -1, columns: 31, rows: 20 });
+    room.undoManager.undo();
+    expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 24, rows: 16 });
+  });
+
+  it("leaves no undo step when everything is snapped already", () => {
+    room.setMapImage(IMAGE, 24, 16);
+    room.undoManager.clear();
+    expect(room.snapMapImage()).toBe("mapFitted");
+    expect(room.undoManager.canUndo()).toBe(false);
+  });
+
+  it("snaps only the image when the map cannot take its size", () => {
+    room.setMapImage(IMAGE, 24, 16);
+    const small = { x: 0, y: 0, width: 400, height: 300, rotation: 0 } as const;
+    room.placeMapImage(small);
+    expect(room.snapMapImage()).toBe("sizeNotAllowed");
+    expect(mapImage()?.place).toEqual(small);
+    room.paintCell(23, 0, "#ff0000");
+    const narrow = {
+      x: 0,
+      y: 0,
+      width: 1000,
+      height: 800,
+      rotation: 0,
+    } as const;
+    room.placeMapImage(narrow);
+    expect(room.snapMapImage()).toBe("contentOutside");
+    expect(mapImage()?.place).toEqual(narrow);
+    expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 24, rows: 16 });
+  });
+
+  it("snaps nothing once another player removed the image", () => {
+    room.setMapImage(IMAGE, 24, 16);
+    room.removeMapImage();
+    expect(room.snapMapImage()).toBe("noImage");
+    expect(room.settingsMap.has(MAP_IMAGE_KEY)).toBe(false);
   });
 
   it("takes the rows from the image's aspect ratio, rounded", () => {
