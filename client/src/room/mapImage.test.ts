@@ -24,7 +24,6 @@ function mapImage() {
   );
 }
 
-// A map of 24 × 16 cells with an image lying exactly on it.
 function setImageOnMap() {
   room.resize({ x: 0, y: 0, columns: 24, rows: 16 });
   room.setMapImage(IMAGE, { width: 2400, height: 1600 });

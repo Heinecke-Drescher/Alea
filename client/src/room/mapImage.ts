@@ -127,8 +127,7 @@ export function createMapImage(
   { doc, imagesMap, settingsMap, undoManager }: RoomStore,
   { mapBounds, fitsInto }: MapActions,
 ) {
-  // The image starts as wide as the map, so aligning it begins where the map is. Only a very
-  // narrow or wide image gets stretched to stay within the allowed sizes.
+  // The image starts as wide as the map, so aligning it begins where the map is.
   function setMapImage(image: string, size: { width: number; height: number }) {
     const map = mapRect(mapBounds());
     const place: MapImagePlace = {
@@ -168,8 +167,6 @@ export function createMapImage(
     return "mapFitted";
   }
 
-  // The map takes the snapped image's cells, unless that size is not allowed or would leave
-  // content outside; then only the image snaps.
   function snapMapImage() {
     const place = validMapImagePlace(settingsMap.get(MAP_IMAGE_KEY));
     if (!imagesMap.has(MAP_IMAGE_KEY) || !place) return "noImage";

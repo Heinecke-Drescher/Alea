@@ -97,7 +97,6 @@ export function createRoomStore(doc: Y.Doc) {
   const strokesMap = doc.getMap<Stroke>("strokes");
   const textsMap = doc.getMap<MapText>("texts");
   const rollsArray = doc.getArray<Roll>("rolls");
-  // Holds the map bounds and the map image's place under their own keys.
   const settingsMap = doc.getMap<MapBounds | MapImagePlace>("settings");
   const musicMap = doc.getMap<Music>("music");
   const rolesMap = doc.getMap<DungeonMaster>("roles");

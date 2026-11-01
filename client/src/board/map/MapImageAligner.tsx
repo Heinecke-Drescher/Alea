@@ -27,7 +27,6 @@ function topRightCorner({ x, y, width }: MapImagePlace) {
   return { x: x + width, y };
 }
 
-// The buttons keep their size on screen, whatever the zoom.
 function withoutScale<T extends { scaleX: number; scaleY: number }>(attrs: T) {
   return { ...attrs, scaleX: 1, scaleY: 1 };
 }

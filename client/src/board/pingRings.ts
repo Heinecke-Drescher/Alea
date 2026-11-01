@@ -9,7 +9,6 @@ export interface PingRing {
   opacity: number;
 }
 
-// The rings grow out one after another and fade while they grow.
 export function pingRings(seconds: number): PingRing[] {
   return Array.from({ length: RINGS }, (_, i) => {
     const grown = (seconds - i * RING_DELAY_SECONDS) / RING_SECONDS;
