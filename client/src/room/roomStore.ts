@@ -15,7 +15,6 @@ export interface Token {
   x: number;
   y: number;
   size: number;
-  // Tokens made before status effects have none.
   effects?: StatusEffect[];
 }
 
@@ -32,7 +31,6 @@ export interface Stroke {
   // Strokes drawn by players stay visible above the fog.
   overFog?: true;
   closed?: true;
-  // Shapes placed before shapes could be edited have no shape data.
   shape?: AreaShape;
 }
 
@@ -47,8 +45,7 @@ export interface MapText {
   width: number;
   height: number;
   color: string;
-  // Texts written before font sizes have none and use the medium size.
-  fontSize?: TextFontSize;
+  fontSize: TextFontSize;
   // Texts written by players stay visible above the fog.
   overFog?: true;
 }
@@ -58,7 +55,7 @@ export type MapTextData = Omit<MapText, "id">;
 export interface Roll {
   id: string;
   player: string;
-  // Rolls made before players had colors have none.
+  // Rolls come from other players, so an unknown color shows gray.
   color?: PlayerColor;
   sides: DieSides;
   value: number;

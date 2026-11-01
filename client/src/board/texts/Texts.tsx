@@ -3,7 +3,7 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
 import { Group, Rect, Text } from "react-konva";
 import { useRoom } from "../../room/RoomContext";
-import { textFontSize, textTouches, validMapText } from "../../room/texts";
+import { textTouches, validMapText } from "../../room/texts";
 import { useY } from "../../room/useY";
 import { HIGHLIGHT_OPACITY, highlightColor } from "../selection/highlight";
 import { textIdAt, TEXT_NAME } from "./textNodes";
@@ -84,7 +84,7 @@ export function Texts({
           text={text.text}
           fill={text.color}
           fontFamily={theme.fontFamily}
-          fontSize={textFontSize(text)}
+          fontSize={text.fontSize}
           lineHeight={TEXT_LINE_HEIGHT}
           draggable={draggable}
         />

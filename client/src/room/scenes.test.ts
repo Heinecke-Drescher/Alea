@@ -7,6 +7,7 @@ import { DEFAULT_MAP_BOUNDS } from "./grid";
 import { emptyMap } from "./roomFile";
 import { OUTSIDE_UNDO } from "./roomStore";
 import { ACTIVE_SCENE_KEY, FIRST_SCENE_NAME, sceneTabs } from "./scenes";
+import { TEXT_FONT_SIZES } from "./texts";
 
 const IMAGE = "data:image/webp;base64,AAAA";
 
@@ -101,6 +102,7 @@ describe("scenes", () => {
       width: 40,
       height: 25,
       color: "#ff0000",
+      fontSize: TEXT_FONT_SIZES.M,
     };
     room.addText(text);
     const secondId = room.addScene();

@@ -254,7 +254,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
           width,
           height,
           color,
-          ...(fontSize !== undefined && { fontSize }),
+          fontSize,
           ...(overFog && { overFog: true }),
         });
         pasted.texts.push(id);

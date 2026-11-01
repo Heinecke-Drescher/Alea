@@ -14,10 +14,6 @@ function isTextFontSize(value: unknown): value is TextFontSize {
   return Object.values(TEXT_FONT_SIZES).some((size) => size === value);
 }
 
-export function textFontSize({ fontSize }: Pick<MapTextData, "fontSize">) {
-  return fontSize ?? TEXT_FONT_SIZES.M;
-}
-
 function isSize(value: unknown): value is number {
   return isFiniteNumber(value) && value > 0;
 }
@@ -32,7 +28,7 @@ export function validMapText(value: unknown): MapText | null {
   if (!isFiniteNumber(x) || !isFiniteNumber(y)) return null;
   if (!isSize(width) || !isSize(height)) return null;
   if (typeof color !== "string") return null;
-  if (fontSize !== undefined && !isTextFontSize(fontSize)) return null;
+  if (!isTextFontSize(fontSize)) return null;
   if (overFog !== undefined && overFog !== true) return null;
   return {
     id,
@@ -42,7 +38,7 @@ export function validMapText(value: unknown): MapText | null {
     width,
     height,
     color,
-    ...(fontSize !== undefined && { fontSize }),
+    fontSize,
     ...(overFog && { overFog }),
   };
 }
@@ -64,7 +60,7 @@ export function textData({
     width,
     height,
     color,
-    ...(fontSize !== undefined && { fontSize }),
+    fontSize,
     ...(overFog && { overFog }),
   };
 }

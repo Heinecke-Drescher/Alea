@@ -4,11 +4,7 @@ import { useRef, useState } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
 import { usePlayer } from "../../player/PlayerContext";
 import type { Room } from "../../room/createRoom";
-import {
-  textFontSize,
-  validMapText,
-  type TextFontSize,
-} from "../../room/texts";
+import { validMapText, type TextFontSize } from "../../room/texts";
 import { textIdAt } from "../texts/textNodes";
 import { measureText } from "../texts/textStyle";
 import type { BoardTool } from "./tool";
@@ -68,7 +64,7 @@ export function useTextTool(room: Room, color: string, fontSize: TextFontSize) {
       at: { x: text.x, y: text.y },
       text: text.text,
       color: text.color,
-      fontSize: textFontSize(text),
+      fontSize: text.fontSize,
     });
   }
 

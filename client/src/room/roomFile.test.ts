@@ -14,6 +14,7 @@ import {
 } from "./roomFile";
 import { megabytes } from "./roomSpace";
 import type { AreaShape } from "./shapes";
+import { TEXT_FONT_SIZES } from "./texts";
 
 const IMAGE = "data:image/webp;base64,AAAA";
 const PLACE = { x: 0, y: 0, width: 1000, height: 750, rotation: 0 };
@@ -24,6 +25,7 @@ const TEXT = {
   width: 40,
   height: 25,
   color: "#ff0000",
+  fontSize: TEXT_FONT_SIZES.M,
 };
 const SQUARE: AreaShape = {
   kind: "square",

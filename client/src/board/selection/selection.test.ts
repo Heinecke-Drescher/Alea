@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { NO_ITEMS } from "../../room/areaActions";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS, mapRect } from "../../room/grid";
+import { TEXT_FONT_SIZES } from "../../room/texts";
 import {
   areaSelection,
   boxBetween,
@@ -173,6 +174,7 @@ describe("clipBounds", () => {
       width: 40,
       height: 25,
       color: "#ff0000",
+      fontSize: TEXT_FONT_SIZES.M,
     };
     expect(
       clipBounds({ cells: [], tokens: [], strokes: [], texts: [text] }),

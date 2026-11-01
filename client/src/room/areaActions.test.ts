@@ -3,6 +3,7 @@ import * as Y from "yjs";
 import { NO_ITEMS } from "./areaActions";
 import { createRoom, type Room } from "./createRoom";
 import type { MapTextData } from "./roomStore";
+import { TEXT_FONT_SIZES } from "./texts";
 
 const TRAP: MapTextData = {
   text: "Trap",
@@ -11,6 +12,7 @@ const TRAP: MapTextData = {
   width: 40,
   height: 25,
   color: "#ff0000",
+  fontSize: TEXT_FONT_SIZES.M,
 };
 
 let room: Room;

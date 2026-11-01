@@ -60,7 +60,6 @@ export interface MapFile {
   background: string | null;
   mapImage?: MapImage;
   fog: Vector2d[];
-  // Files from before texts have none.
   texts?: MapTextData[];
 }
 

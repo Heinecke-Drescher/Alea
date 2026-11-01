@@ -112,7 +112,7 @@ export function createScenes(store: RoomStore) {
     return id;
   }
 
-  // Gives an old room's map its scene entry, so it can be renamed.
+  // Gives a room's only scene its entry, so it can be renamed.
   function saveOnlyScene() {
     undoManager.stopCapturing();
     const id = doc.transact(keepMapAsScene);
