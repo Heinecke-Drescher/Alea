@@ -13,9 +13,10 @@ import { isFiniteNumber } from "./numbers";
 import type { RoomStore } from "./roomStore";
 import { embeddedImage } from "./tokens";
 
-// The image is kept with the token images and its place with the map bounds, so undo covers
-// both; token image ids never take this name.
+// The image is kept with the token images, so undo and the room space check cover it; token
+// image ids never take this name.
 export const MAP_IMAGE_KEY = "mapImage";
+export const MAP_IMAGE_PLACE_KEY = "place";
 
 const MAP_IMAGE_ROTATIONS = [0, 90, 180, 270] as const;
 type MapImageRotation = (typeof MAP_IMAGE_ROTATIONS)[number];
@@ -124,7 +125,7 @@ export function validMapImage(
 }
 
 export function createMapImage(
-  { doc, imagesMap, settingsMap, undoManager }: RoomStore,
+  { doc, imagesMap, settingsMap, mapImageMap, undoManager }: RoomStore,
   { mapBounds, fitsInto }: MapActions,
 ) {
   // The image starts as wide as the map, so aligning it begins where the map is.
@@ -143,7 +144,7 @@ export function createMapImage(
     };
     undoManager.stopCapturing();
     doc.transact(() => {
-      settingsMap.set(MAP_IMAGE_KEY, place);
+      mapImageMap.set(MAP_IMAGE_PLACE_KEY, place);
       imagesMap.set(MAP_IMAGE_KEY, image);
     });
     undoManager.stopCapturing();
@@ -156,7 +157,7 @@ export function createMapImage(
     }
     if (!imagesMap.has(MAP_IMAGE_KEY)) return false;
     undoManager.stopCapturing();
-    settingsMap.set(MAP_IMAGE_KEY, place);
+    mapImageMap.set(MAP_IMAGE_PLACE_KEY, place);
     undoManager.stopCapturing();
     return true;
   }
@@ -168,7 +169,7 @@ export function createMapImage(
   }
 
   function snapMapImage() {
-    const place = validMapImagePlace(settingsMap.get(MAP_IMAGE_KEY));
+    const place = validMapImagePlace(mapImageMap.get(MAP_IMAGE_PLACE_KEY));
     if (!imagesMap.has(MAP_IMAGE_KEY) || !place) return "noImage";
     const snapped = snappedToCells(place);
     const bounds = {
@@ -190,7 +191,7 @@ export function createMapImage(
     undoManager.stopCapturing();
     doc.transact(() => {
       if (isMapChanged) settingsMap.set(BOUNDS_KEY, bounds);
-      settingsMap.set(MAP_IMAGE_KEY, snapped);
+      mapImageMap.set(MAP_IMAGE_PLACE_KEY, snapped);
     });
     undoManager.stopCapturing();
     return result;
@@ -199,7 +200,7 @@ export function createMapImage(
   function removeMapImage() {
     undoManager.stopCapturing();
     doc.transact(() => {
-      settingsMap.delete(MAP_IMAGE_KEY);
+      mapImageMap.delete(MAP_IMAGE_PLACE_KEY);
       imagesMap.delete(MAP_IMAGE_KEY);
     });
     undoManager.stopCapturing();

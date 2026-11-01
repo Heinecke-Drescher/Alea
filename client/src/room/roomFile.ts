@@ -15,6 +15,7 @@ import {
 import { BOUNDS_KEY, type MapActions } from "./map";
 import {
   MAP_IMAGE_KEY,
+  MAP_IMAGE_PLACE_KEY,
   validMapImage,
   validMapImagePlace,
   type MapImage,
@@ -256,6 +257,7 @@ export function writeMap(
     textsMap,
     fogMap,
     settingsMap,
+    mapImageMap,
     loadedMapMap,
   }: RoomStore,
   file: MapFile,
@@ -269,7 +271,7 @@ export function writeMap(
     fogMap.clear();
     textsMap.clear();
     settingsMap.set(BOUNDS_KEY, file.bounds);
-    settingsMap.delete(MAP_IMAGE_KEY);
+    mapImageMap.clear();
     for (const cell of file.cells) cellsMap.set(cellKey(cell.x, cell.y), cell);
     for (const stroke of file.strokes) {
       strokesMap.set(...newStroke(stroke, isOverFog(stroke)));
@@ -288,7 +290,7 @@ export function writeMap(
     if (file.background) imagesMap.set(BACKGROUND_IMAGE_ID, file.background);
     if (file.mapImage) {
       imagesMap.set(MAP_IMAGE_KEY, file.mapImage.image);
-      settingsMap.set(MAP_IMAGE_KEY, file.mapImage.place);
+      mapImageMap.set(MAP_IMAGE_PLACE_KEY, file.mapImage.place);
     }
     for (const { x, y } of file.fog) fogMap.set(cellKey(x, y), { x, y });
     for (const text of file.texts ?? []) {
@@ -307,14 +309,14 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
     strokesMap,
     textsMap,
     fogMap,
-    settingsMap,
+    mapImageMap,
     undoManager,
   } = store;
 
   function exportMap(): MapFile {
     const mapImage = validMapImage(
       imagesMap.get(MAP_IMAGE_KEY),
-      settingsMap.get(MAP_IMAGE_KEY),
+      mapImageMap.get(MAP_IMAGE_PLACE_KEY),
     );
     const texts = Array.from(textsMap.values()).flatMap((value) => {
       const text = validMapText(value);

@@ -4,6 +4,7 @@ import { createRoom, type Room } from "./createRoom";
 import { CELL_SIZE, MAX_MAP_CELLS } from "./grid";
 import {
   MAP_IMAGE_KEY,
+  MAP_IMAGE_PLACE_KEY,
   snappedToCells,
   turnedClockwise,
   validMapImage,
@@ -20,7 +21,7 @@ beforeEach(() => {
 function mapImage() {
   return validMapImage(
     room.imagesMap.get(MAP_IMAGE_KEY),
-    room.settingsMap.get(MAP_IMAGE_KEY),
+    room.mapImageMap.get(MAP_IMAGE_PLACE_KEY),
   );
 }
 
@@ -95,7 +96,7 @@ describe("map image", () => {
       rotation: 0,
     } as const;
     expect(room.placeMapImage(place)).toBe(false);
-    expect(room.settingsMap.has(MAP_IMAGE_KEY)).toBe(false);
+    expect(room.mapImageMap.size).toBe(0);
   });
 
   it("throws on a place the image cannot have", () => {
@@ -192,7 +193,7 @@ describe("map image", () => {
     setImageOnMap();
     room.removeMapImage();
     expect(room.snapMapImage()).toBe("noImage");
-    expect(room.settingsMap.has(MAP_IMAGE_KEY)).toBe(false);
+    expect(room.mapImageMap.size).toBe(0);
   });
 
   it("ignores images from the web and invalid places", () => {

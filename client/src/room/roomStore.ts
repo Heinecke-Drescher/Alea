@@ -94,7 +94,8 @@ export function createRoomStore(doc: Y.Doc) {
   const strokesMap = doc.getMap<Stroke>("strokes");
   const textsMap = doc.getMap<MapText>("texts");
   const rollsArray = doc.getArray<Roll>("rolls");
-  const settingsMap = doc.getMap<MapBounds | MapImagePlace>("settings");
+  const settingsMap = doc.getMap<MapBounds>("settings");
+  const mapImageMap = doc.getMap<MapImagePlace>("mapImage");
   const musicMap = doc.getMap<Music>("music");
   const rolesMap = doc.getMap<DungeonMaster>("roles");
   const fogMap = doc.getMap<{ x: number; y: number }>("fog");
@@ -113,6 +114,7 @@ export function createRoomStore(doc: Y.Doc) {
     textsMap,
     fogMap,
     settingsMap,
+    mapImageMap,
     scenesMap,
     activeSceneMap,
     loadedMapMap,
@@ -136,6 +138,7 @@ export function createRoomStore(doc: Y.Doc) {
     textsMap,
     rollsArray,
     settingsMap,
+    mapImageMap,
     musicMap,
     rolesMap,
     fogMap,

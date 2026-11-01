@@ -224,7 +224,7 @@ describe("map files", () => {
     other.setMapImage(IMAGE, { width: 2000, height: 1000 });
     other.importMap(file);
     expect(other.imagesMap.has(MAP_IMAGE_KEY)).toBe(false);
-    expect(other.settingsMap.has(MAP_IMAGE_KEY)).toBe(false);
+    expect(other.mapImageMap.size).toBe(0);
   });
 
   it.each<[string, (file: MapFile) => unknown]>([
