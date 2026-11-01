@@ -5,8 +5,10 @@ import {
   areaSelection,
   boxBetween,
   cellOffset,
+  cellRect,
   clipBounds,
   clipToMap,
+  isClickArea,
   itemsSelection,
   linesBounds,
   NO_SELECTION,
@@ -123,6 +125,29 @@ describe("reshapableStrokeId", () => {
       reshapableStrokeId({ strokes: ["s"], tokens: [], texts: ["x"] }),
     ).toBeNull();
     expect(reshapableStrokeId(NO_ITEMS)).toBeNull();
+  });
+});
+
+describe("isClickArea", () => {
+  it("counts no frame or a tiny one as a click", () => {
+    expect(isClickArea(null)).toBe(true);
+    expect(isClickArea({ x: 5, y: 5, width: 3, height: 2 })).toBe(true);
+  });
+
+  it("counts a frame drawn in either direction as a frame", () => {
+    expect(isClickArea({ x: 5, y: 5, width: 4, height: 1 })).toBe(false);
+    expect(isClickArea({ x: 5, y: 5, width: 0, height: 30 })).toBe(false);
+  });
+});
+
+describe("cellRect", () => {
+  it("covers exactly the cell, also left of and above the origin", () => {
+    expect(cellRect({ x: 2, y: -1 })).toEqual({
+      x: 2 * CELL_SIZE,
+      y: -CELL_SIZE,
+      width: CELL_SIZE,
+      height: CELL_SIZE,
+    });
   });
 });
 

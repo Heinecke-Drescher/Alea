@@ -22,6 +22,22 @@ export type Selection =
 
 export const NO_SELECTION: Selection = { kind: "none" };
 
+// Below this a frame counts as a click, as the mouse barely moves while clicking.
+const CLICK_DISTANCE = 4;
+
+export function isClickArea(area: IRect | null) {
+  return !area || (area.width < CLICK_DISTANCE && area.height < CLICK_DISTANCE);
+}
+
+export function cellRect({ x, y }: Vector2d): IRect {
+  return {
+    x: x * CELL_SIZE,
+    y: y * CELL_SIZE,
+    width: CELL_SIZE,
+    height: CELL_SIZE,
+  };
+}
+
 export function areaSelection(area: IRect | null): Selection {
   return area ? { kind: "area", area } : NO_SELECTION;
 }

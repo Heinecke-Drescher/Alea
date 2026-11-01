@@ -3,11 +3,14 @@ import { useEffect, useRef, useState } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
 import type { ItemType } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
-import { CELL_SIZE } from "../../room/grid";
+import { CELL_SIZE, cellAt } from "../../room/grid";
+import { cellKey } from "../../room/roomStore";
 import {
   areaSelection,
   boxBetween,
+  cellRect,
   clipToMap,
+  isClickArea,
   NO_SELECTION,
   selectedArea,
   selectedItems,
@@ -51,8 +54,16 @@ export function useSelection(room: Room) {
     setSelection(areaSelection(next));
   }
 
+  // A click on a painted cell selects it as a frame around that cell, so moving, copying and
+  // deleting work as for any frame.
   function endArea() {
+    const start = areaStart.current;
     areaStart.current = null;
+    if (!start || !isClickArea(area)) return;
+    const cell = cellAt(start);
+    if (!room.cellsMap.has(cellKey(cell.x, cell.y))) return;
+    if (fogGuard.hidesCell(cell.x, cell.y)) return;
+    setSelection(areaSelection(cellRect(cell)));
   }
 
   function moveArea(dx: number, dy: number) {
