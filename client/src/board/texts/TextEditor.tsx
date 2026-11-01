@@ -29,6 +29,11 @@ export function TextEditor({
         autoFocus
         value={draft.text}
         maxLength={MAX_TEXT_LENGTH}
+        // Browsers put the caret at the start of a focused field; an opened text goes on at its end.
+        onFocus={(event) => {
+          const end = event.currentTarget.value.length;
+          event.currentTarget.setSelectionRange(end, end);
+        }}
         onChange={(event) => onWrite(event.target.value)}
         onBlur={onFinish}
         onKeyDown={(event) => {
