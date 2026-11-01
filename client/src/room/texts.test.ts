@@ -105,6 +105,11 @@ describe("texts", () => {
     expect(room.textsMap.get(id)?.fontSize).toBe(40);
   });
 
+  it("accepts the largest size from other players", () => {
+    const value = { ...HELLO, id: "a", fontSize: TEXT_FONT_SIZES.XXL };
+    expect(validMapText(value)?.fontSize).toBe(100);
+  });
+
   it("reads only the known fields of other players' texts", () => {
     expect(
       validMapText({ ...HELLO, id: "a", overFog: true, extra: "<script>" }),

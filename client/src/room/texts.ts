@@ -6,7 +6,13 @@ import type { MapText, MapTextData, RoomStore } from "./roomStore";
 // Keeps a pasted document from filling the room, which would disconnect everyone.
 export const MAX_TEXT_LENGTH = 1000;
 
-export const TEXT_FONT_SIZES = { S: 16, M: 24, L: 40 } as const;
+export const TEXT_FONT_SIZES = {
+  S: 16,
+  M: 24,
+  L: 40,
+  XL: 64,
+  XXL: 100,
+} as const;
 export type TextSizeName = keyof typeof TEXT_FONT_SIZES;
 export type TextFontSize = (typeof TEXT_FONT_SIZES)[TextSizeName];
 

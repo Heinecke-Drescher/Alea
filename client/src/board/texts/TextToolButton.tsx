@@ -65,6 +65,8 @@ export function TextToolButton({
               key={name}
               variant={TEXT_FONT_SIZES[name] === size ? "filled" : "subtle"}
               size="lg"
+              w="auto"
+              px={6}
               aria-label={`Text size ${name}`}
               onClick={() => {
                 onSizeChange(TEXT_FONT_SIZES[name]);
