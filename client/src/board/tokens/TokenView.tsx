@@ -10,6 +10,7 @@ import type { Token } from "../../room/roomStore";
 import { CELL_SIZE } from "../../room/grid";
 import { HIGHLIGHT_OPACITY, highlightColor } from "../selection/highlight";
 import { TokenEffects } from "./TokenEffects";
+import { TokenNameLabel } from "./TokenNameLabel";
 import { TOKEN_BODY_NAME, TOKEN_NAME } from "./tokenNodes";
 
 const HIGHLIGHT_RING = 10;
@@ -91,6 +92,10 @@ export function TokenView({
         />
         <TokenEffects effects={effects} tokenSize={token.size} />
       </Group>
+      {isHighlighted && token.name && (
+        // Clear of the highlight ring.
+        <TokenNameLabel name={token.name} size={size} gap={HIGHLIGHT_RING} />
+      )}
     </Group>
   );
 }
