@@ -10,7 +10,7 @@ export function DicePanel() {
   return (
     <Stack>
       <SecretSwitch />
-      <DieButtons columns={4} spacing="md" canDrag />
+      <DieButtons columns={4} spacing="md" dragWith="mouse" />
       <Text c="dimmed" ta="center" size="sm">
         {isSecret
           ? "Click to roll secretly"

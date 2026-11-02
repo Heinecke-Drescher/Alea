@@ -14,6 +14,8 @@ import {
 } from "react";
 import { Layer, Stage } from "react-konva";
 import type { Critical } from "../dice/criticalRoll";
+import type { ScreenSample } from "../dice/throwDie";
+import type { DieSides } from "../room/dice";
 import { useCanAlignMapImage } from "../mapImage/useCanSetMapImage";
 import { usePlayer } from "../player/PlayerContext";
 import type { ItemType } from "../room/areaActions";
@@ -83,6 +85,7 @@ function isAddKeyPressed(event: KonvaEventObject<MouseEvent>) {
 export interface BoardHandle {
   focusToken: (id: string) => void;
   alignMapImage: () => void;
+  throwDie: (sides: DieSides, samples: ScreenSample[]) => void;
 }
 
 interface BoardProps {
@@ -350,6 +353,7 @@ export function Board({
   useImperativeHandle(ref, () => ({
     focusToken,
     alignMapImage: () => setTool("alignImage"),
+    throwDie: drops.rollFromScreen,
   }));
 
   return (

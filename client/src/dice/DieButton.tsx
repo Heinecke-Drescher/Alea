@@ -1,4 +1,5 @@
-import { UnstyledButton, useMantineTheme } from "@mantine/core";
+import { Box, UnstyledButton, useMantineTheme } from "@mantine/core";
+import type { PointerEventHandler } from "react";
 import type { DieSides } from "../room/dice";
 import type { PlayerColor } from "../room/playerColors";
 import { dieColors } from "./dieColors";
@@ -9,34 +10,24 @@ import { dieShape } from "./dieShapes";
 const RADIUS = 24;
 const VIEW_SIZE = RADIUS * 2.4;
 
-interface DieButtonProps {
+interface DieFaceProps {
   sides: DieSides;
   color: PlayerColor;
-  isDraggable: boolean;
-  onRoll: () => void;
 }
 
-export function DieButton({
-  sides,
-  color,
-  isDraggable,
-  onRoll,
-}: DieButtonProps) {
+export function DieFace({ sides, color }: DieFaceProps) {
   const theme = useMantineTheme();
   const colors = dieColors(theme, color);
 
   return (
-    <UnstyledButton
-      className={classes.button}
+    <Box
+      component="span"
+      display="block"
       style={{
         "--die-fill": colors.fill,
         "--die-hover-fill": colors.hoverFill,
         "--die-text": colors.text,
       }}
-      aria-label={`Roll d${sides}`}
-      draggable={isDraggable}
-      onDragStart={(event) => startDieDrag(event.dataTransfer, sides)}
-      onClick={onRoll}
     >
       <svg
         viewBox={`${-VIEW_SIZE / 2} ${-VIEW_SIZE / 2} ${VIEW_SIZE} ${VIEW_SIZE}`}
@@ -56,6 +47,44 @@ export function DieButton({
           d{sides}
         </text>
       </svg>
+    </Box>
+  );
+}
+
+export interface FingerDragHandlers {
+  onPointerDown: PointerEventHandler<HTMLButtonElement>;
+  onPointerMove: PointerEventHandler<HTMLButtonElement>;
+  onPointerUp: PointerEventHandler<HTMLButtonElement>;
+  onPointerCancel: PointerEventHandler<HTMLButtonElement>;
+}
+
+interface DieButtonProps {
+  sides: DieSides;
+  color: PlayerColor;
+  isDraggable: boolean;
+  onRoll: () => void;
+  fingerDrag?: FingerDragHandlers;
+}
+
+export function DieButton({
+  sides,
+  color,
+  isDraggable,
+  onRoll,
+  fingerDrag,
+}: DieButtonProps) {
+  return (
+    <UnstyledButton
+      className={classes.button}
+      // The finger drag needs every move, so the browser must not take the touch for scrolling.
+      style={fingerDrag && { touchAction: "none" }}
+      aria-label={`Roll d${sides}`}
+      draggable={isDraggable}
+      onDragStart={(event) => startDieDrag(event.dataTransfer, sides)}
+      onClick={onRoll}
+      {...fingerDrag}
+    >
+      <DieFace sides={sides} color={color} />
     </UnstyledButton>
   );
 }

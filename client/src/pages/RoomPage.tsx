@@ -21,6 +21,8 @@ import { MapError } from "../board/MapError";
 import { DiceBar } from "../dice/DiceBar";
 import { DicePanel } from "../dice/DicePanel";
 import { DiceProvider } from "../dice/DiceProvider";
+import { ThrowDieContext, type ScreenSample } from "../dice/throwDie";
+import type { DieSides } from "../room/dice";
 import {
   ShowCriticalContext,
   useCriticalRolls,
@@ -83,6 +85,9 @@ function RoomView({ roomId }: { roomId: string }) {
     [],
   );
   const alignMapImage = () => board.current?.alignMapImage();
+  // Without a board, e.g. while the map shows an error, there is no map to throw onto.
+  const throwDie = (sides: DieSides, samples: ScreenSample[]) =>
+    board.current?.throwDie(sides, samples);
   const isWide = useWideLayout();
   const hasDiceBar = useNarrowPortrait();
   // On a narrow screen they and the music move from the header into the side panel, which has
@@ -178,7 +183,11 @@ function RoomView({ roomId }: { roomId: string }) {
                       />
                     </ErrorBoundary>
                   </Box>
-                  {hasDiceBar && <DiceBar />}
+                  {hasDiceBar && (
+                    <ThrowDieContext value={throwDie}>
+                      <DiceBar />
+                    </ThrowDieContext>
+                  )}
                 </Stack>
               </AppShell.Main>
               <AppShell.Aside>
