@@ -3,6 +3,7 @@ import {
   ColorSwatch,
   Divider,
   Group,
+  Menu,
   Paper,
   Popover,
   Stack,
@@ -12,8 +13,10 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import {
   IconBucketDroplet,
+  IconCheck,
   IconCircle,
   IconCone,
+  IconDots,
   IconEraser,
   IconEye,
   IconEyeOff,
@@ -30,6 +33,7 @@ import { PAINT_COLORS, paintColorValue, type PaintColor } from "./paintColors";
 import type { TextFontSize } from "../room/texts";
 import { TextToolButton } from "./texts/TextToolButton";
 import type { Tool } from "./tools/tool";
+import { useWideLayout } from "../theme";
 
 interface ToolButton {
   tool: Tool;
@@ -40,8 +44,13 @@ interface ToolButton {
 const MAP_TOOLS: ToolButton[] = [
   { tool: "select", label: "Select and move", icon: IconPointer },
   { tool: "measure", label: "Measure distance", icon: IconRuler },
-  { tool: "resize", label: "Resize map", icon: IconResize },
 ];
+
+const RESIZE_TOOL: ToolButton = {
+  tool: "resize",
+  label: "Resize map",
+  icon: IconResize,
+};
 
 const ALIGN_TOOL: ToolButton = {
   tool: "alignImage",
@@ -88,6 +97,17 @@ export function Toolbar({
   const theme = useMantineTheme();
   const { isDm } = usePlayer();
   const [isPicking, picking] = useDisclosure();
+  const isWide = useWideLayout();
+  // A narrow screen, e.g. a phone, keeps the tools players need most in view.
+  const menuTools = [
+    RESIZE_TOOL,
+    ...(canAlignMapImage ? [ALIGN_TOOL] : []),
+    ...SHAPE_TOOLS,
+    ...(isDm ? FOG_TOOLS : []),
+  ];
+  // The menu's button shows the tool picked from it, so the toolbar always tells what is active.
+  const pickedFromMenu = menuTools.find(({ tool }) => tool === activeTool);
+  const MenuIcon = pickedFromMenu ? pickedFromMenu.icon : IconDots;
 
   function toolButton({ tool, label, icon: ToolIcon }: ToolButton) {
     return (
@@ -117,7 +137,8 @@ export function Toolbar({
       <Tooltip.Group>
         <Group gap={4} wrap="nowrap">
           {MAP_TOOLS.map(toolButton)}
-          {canAlignMapImage && toolButton(ALIGN_TOOL)}
+          {isWide && toolButton(RESIZE_TOOL)}
+          {isWide && canAlignMapImage && toolButton(ALIGN_TOOL)}
           <Divider orientation="vertical" />
           {DRAWING_TOOLS.map(toolButton)}
           <TextToolButton
@@ -126,8 +147,12 @@ export function Toolbar({
             size={textSize}
             onSizeChange={onTextSizeChange}
           />
-          <Divider orientation="vertical" />
-          {SHAPE_TOOLS.map(toolButton)}
+          {isWide && (
+            <>
+              <Divider orientation="vertical" />
+              {SHAPE_TOOLS.map(toolButton)}
+            </>
+          )}
           <Popover
             opened={isPicking}
             onDismiss={picking.close}
@@ -170,11 +195,43 @@ export function Toolbar({
               </Stack>
             </Popover.Dropdown>
           </Popover>
-          {isDm && (
+          {isWide && isDm && (
             <>
               <Divider orientation="vertical" />
               {FOG_TOOLS.map(toolButton)}
             </>
+          )}
+          {!isWide && (
+            <Menu position="bottom-end" shadow="md">
+              <Menu.Target>
+                <Tooltip
+                  label={pickedFromMenu ? pickedFromMenu.label : "More tools"}
+                  position="bottom"
+                >
+                  <ActionIcon
+                    variant={pickedFromMenu ? "filled" : "subtle"}
+                    size="lg"
+                    aria-label="More tools"
+                  >
+                    <MenuIcon size={20} />
+                  </ActionIcon>
+                </Tooltip>
+              </Menu.Target>
+              <Menu.Dropdown>
+                {menuTools.map(({ tool, label, icon: ToolIcon }) => (
+                  <Menu.Item
+                    key={tool}
+                    leftSection={<ToolIcon size={16} />}
+                    rightSection={
+                      tool === activeTool && <IconCheck size={16} />
+                    }
+                    onClick={() => onToolChange(tool)}
+                  >
+                    {label}
+                  </Menu.Item>
+                ))}
+              </Menu.Dropdown>
+            </Menu>
           )}
         </Group>
       </Tooltip.Group>

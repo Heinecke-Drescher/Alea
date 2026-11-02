@@ -36,6 +36,7 @@ import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
 import { ColorSchemeToggle } from "./ColorSchemeToggle";
 import { DmControl } from "./DmControl";
+import { useWideLayout } from "../theme";
 import { PlayerNameModal } from "./PlayerNameModal";
 
 export function RoomPage() {
@@ -78,6 +79,17 @@ function RoomView({ roomId }: { roomId: string }) {
     [],
   );
   const alignMapImage = () => board.current?.alignMapImage();
+  const isWide = useWideLayout();
+  // On a narrow screen they move from the header into the side panel, which has the room.
+  const playerControls = (
+    <>
+      {isSynced && !needsName && <DmControl awareness={awareness} />}
+      <ColorSchemeToggle />
+      <Button variant="subtle" color={color} onClick={editName}>
+        {name}
+      </Button>
+    </>
+  );
 
   // Only rooms that really loaded are worth finding again.
   useEffect(() => {
@@ -120,14 +132,8 @@ function RoomView({ roomId }: { roomId: string }) {
                   )}
                 </Group>
                 <Group gap="xs">
-                  {isSynced && !needsName && (
-                    <DmControl awareness={awareness} />
-                  )}
+                  {isWide && playerControls}
                   <MusicMenu />
-                  <ColorSchemeToggle />
-                  <Button variant="subtle" color={color} onClick={editName}>
-                    {name}
-                  </Button>
                   <Burger
                     opened={asideOpened}
                     onClick={toggleAside}
@@ -152,6 +158,7 @@ function RoomView({ roomId }: { roomId: string }) {
             <AppShell.Aside>
               <AppShell.Section grow component={ScrollArea} p="md">
                 <Stack>
+                  {!isWide && <Group gap="xs">{playerControls}</Group>}
                   <FocusTokenContext value={focusToken}>
                     <SelectedTokensContext value={selectedTokens}>
                       <TokenPanel />
