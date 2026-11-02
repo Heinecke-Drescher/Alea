@@ -10,7 +10,7 @@ const SWAY_HEIGHT = 0.055;
 // How much wider a squashed letter gets for the height it loses.
 const SQUASH_SPREAD = 1 / 3;
 
-export interface Slogan {
+interface Slogan {
   text: string;
   x: number;
   y: number;

@@ -3,7 +3,7 @@ const RING_DELAY_SECONDS = 0.2;
 const RING_SECONDS = 0.8;
 export const PING_SECONDS = (RINGS - 1) * RING_DELAY_SECONDS + RING_SECONDS;
 
-export interface PingRing {
+interface PingRing {
   // Share of the full radius.
   size: number;
   opacity: number;

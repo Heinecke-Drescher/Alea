@@ -52,7 +52,7 @@ export function oneSpacing(area: IRect) {
   );
 }
 
-export interface OnePath {
+interface OnePath {
   trail: Vector2d[];
   missed: Vector2d;
 }
@@ -89,7 +89,7 @@ export interface DiePose extends Vector2d {
   scaleY: number;
 }
 
-export interface TumblePose extends DiePose {
+interface TumblePose extends DiePose {
   // How many places of the trail the die has reached, the start included.
   reached: number;
 }

@@ -25,6 +25,12 @@ function texts() {
   return Array.from(room.textsMap.values());
 }
 
+function textOf(id: string | undefined) {
+  const text = id && room.textsMap.get(id);
+  if (!text) throw new Error(`Expected text ${id}`);
+  return text;
+}
+
 describe("texts in area actions", () => {
   it("moves selected texts freely", () => {
     const id = room.addText(TRAP);
@@ -45,22 +51,25 @@ describe("texts in area actions", () => {
     const clip = room.copyArea({ x: 90, y: 90, width: 20, height: 20 });
     expect(clip.texts).toEqual([TRAP]);
     const pasted = room.paste(clip, 50, 0, true);
-    const copy = room.textsMap.get(pasted.texts[0] ?? "");
-    expect(copy).toMatchObject({ ...TRAP, x: 150, overFog: true });
+    expect(textOf(pasted.texts[0])).toMatchObject({
+      ...TRAP,
+      x: 150,
+      overFog: true,
+    });
   });
 
   it("keeps the font size when copying and pasting", () => {
     room.addText({ ...TRAP, fontSize: 40 });
     const clip = room.copyArea({ x: 90, y: 90, width: 20, height: 20 });
     const [id] = room.paste(clip, 0, 0).texts;
-    expect(room.textsMap.get(id ?? "")?.fontSize).toBe(40);
+    expect(textOf(id).fontSize).toBe(40);
   });
 
   it("pastes a player's text under the fog when the DM pastes it", () => {
     room.addText({ ...TRAP, overFog: true });
     const clip = room.copyArea({ x: 90, y: 90, width: 20, height: 20 });
     const [id] = room.paste(clip, 0, 0).texts;
-    expect(room.textsMap.get(id ?? "")?.overFog).toBeUndefined();
+    expect(textOf(id).overFog).toBeUndefined();
   });
 
   it("deletes selected texts and texts in an area", () => {

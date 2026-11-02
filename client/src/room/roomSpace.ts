@@ -13,7 +13,7 @@ export function megabytes(bytes: number) {
 }
 
 // Measured on a copy: undo keeps deleted content in a document, but the server drops it.
-export function storedBytes(doc: Y.Doc) {
+function storedBytes(doc: Y.Doc) {
   const copy = new Y.Doc();
   Y.applyUpdate(copy, Y.encodeStateAsUpdate(doc));
   return Y.encodeStateAsUpdate(copy).byteLength;

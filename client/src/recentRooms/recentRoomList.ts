@@ -1,6 +1,6 @@
 import { isValidRoomId } from "../../../shared/roomId";
 
-export interface RecentRoom {
+interface RecentRoom {
   id: string;
   number: number;
   visitedAt: number;
