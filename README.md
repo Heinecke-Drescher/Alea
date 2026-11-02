@@ -108,8 +108,23 @@ sync server together.
 | `client/src/pages/`            | Start page, room page and the parts of its header              |
 | `server/`                      | The sync server: Hocuspocus with file storage                  |
 | `shared/`                      | Code used by both: room ids and the room limits                |
+| `scripts/`                     | Tools for developers, such as the load test                    |
 
 `board/` and the feature folders may import `room/`, never the other way round.
 Components change the room only through the functions `createRoom` returns.
+
+To see how many games a server can carry, start a second sync server without
+the website, so no rate limit applies and no real room is touched, and let
+`npm run load-test` fill it with simulated players:
+
+```sh
+PORT=3001 DATA_DIR=/tmp/alea-load node server/index.ts
+npm run load-test -- --url ws://localhost:3001 --rooms 60 --players 6
+```
+
+It opens one more room every 10 seconds and prints how long a change takes to
+reach the other players. Run it from another computer through an SSH tunnel
+(`ssh -L 3001:localhost:3001 <server>`), as it is about as busy as the server.
+Delete `/tmp/alea-load` afterwards.
 
 </details>
