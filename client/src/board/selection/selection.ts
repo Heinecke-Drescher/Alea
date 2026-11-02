@@ -57,12 +57,6 @@ export function selectedItems(selection: Selection) {
   return selection.kind === "items" ? selection.items : NO_ITEMS;
 }
 
-export function resizableTokenId({ strokes, tokens, texts }: Items) {
-  const [id, ...others] = tokens;
-  const isOnly = others.length === 0 && strokes.length + texts.length === 0;
-  return id && isOnly ? id : null;
-}
-
 export function reshapableStrokeId({ strokes, tokens, texts }: Items) {
   const [id, ...others] = strokes;
   const isOnly = others.length === 0 && tokens.length + texts.length === 0;

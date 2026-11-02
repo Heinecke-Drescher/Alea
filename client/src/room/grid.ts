@@ -185,17 +185,6 @@ export function snapMapBounds(box: IRect, anchor: string) {
   return snapToCells(box, anchor, MIN_MAP_CELLS, MAX_MAP_CELLS);
 }
 
-// Tokens keep their aspect ratio while resized, so the width alone gives their size.
-export function snapTokenSquare(box: IRect, anchor: string): Square {
-  const { x, y, columns } = snapToCells(
-    { ...box, height: box.width },
-    anchor,
-    1,
-    MAX_TOKEN_SIZE,
-  );
-  return { x, y, size: columns };
-}
-
 // Keeps the edge opposite to the dragged anchor in place when the size hits its limits.
 function snapToCells(
   box: IRect,

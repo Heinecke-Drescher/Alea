@@ -38,7 +38,6 @@ import { paintColorValue, type PaintColor } from "./paintColors";
 import {
   itemsSelection,
   reshapableStrokeId,
-  resizableTokenId,
   type Selection,
 } from "./selection/selection";
 import { SelectionFrame } from "./selection/SelectionFrame";
@@ -434,7 +433,6 @@ export function Board({
               listening={isSelecting}
               selection={area}
               selectedIds={items.tokens}
-              resizableId={resizableTokenId(items)}
               onTokenPress={pressItem("tokens")}
               onTokenClick={clickItem("tokens")}
               onTokenContextMenu={tokenMenu.open}

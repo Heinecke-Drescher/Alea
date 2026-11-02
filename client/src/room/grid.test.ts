@@ -6,11 +6,9 @@ import {
   clampToMap,
   dropCells,
   MAX_MAP_CELLS,
-  MAX_TOKEN_SIZE,
   MIN_MAP_CELLS,
   nearestFreeSquare,
   snapMapBounds,
-  snapTokenSquare,
   snapToCorner,
 } from "./grid";
 
@@ -222,36 +220,5 @@ describe("nearestFreeSquare", () => {
     const first = square(0, 0);
     const tokens = [first, square(1, 0)];
     expect(nearestFreeSquare(first, tokens, tinyMap)).toBeNull();
-  });
-});
-
-describe("snapTokenSquare", () => {
-  it("grows from the bottom right corner in whole cells", () => {
-    expect(snapTokenSquare(box(2, 3, 2.2, 2.2), "bottom-right")).toEqual({
-      x: 2,
-      y: 3,
-      size: 2,
-    });
-  });
-
-  it("keeps the bottom right corner when dragged at the top left", () => {
-    expect(snapTokenSquare(box(1, 2, 3, 3), "top-left")).toEqual({
-      x: 1,
-      y: 2,
-      size: 3,
-    });
-    expect(snapTokenSquare(box(-8, -7, 12, 12), "top-left")).toEqual({
-      x: 4 - MAX_TOKEN_SIZE,
-      y: 5 - MAX_TOKEN_SIZE,
-      size: MAX_TOKEN_SIZE,
-    });
-  });
-
-  it("never shrinks below one cell", () => {
-    expect(snapTokenSquare(box(5, 5, 0.2, 0.2), "bottom-left")).toEqual({
-      x: 4,
-      y: 5,
-      size: 1,
-    });
   });
 });

@@ -26,6 +26,8 @@ import { itemsSelection } from "../selection/selection";
 import { shortcut } from "../selection/useBoardMenu";
 import type { useClipboard } from "../selection/useClipboard";
 import { showMenuAt } from "./showMenuAt";
+import { TokenSizeControl } from "./TokenSizeControl";
+import { CELL_SIZE } from "../../room/grid";
 import type { SelectionControls } from "../selection/useSelection";
 
 export function useTokenMenu(
@@ -83,6 +85,18 @@ export function useTokenMenu(
             }}
             onHide={() => {}}
             submenuProps={{}}
+          />
+          <TokenSizeControl
+            room={room}
+            tokenId={token.id}
+            allows={({ x, y, size }) =>
+              !fogGuard.hidesRect({
+                x: x * CELL_SIZE,
+                y: y * CELL_SIZE,
+                width: size * CELL_SIZE,
+                height: size * CELL_SIZE,
+              })
+            }
           />
           <ContextMenuDivider />
           {STATUS_EFFECTS.map((effect) => {
