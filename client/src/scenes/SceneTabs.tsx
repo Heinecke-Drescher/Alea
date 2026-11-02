@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Group,
+  ScrollArea,
   Tabs,
   Text,
   TextInput,
@@ -10,7 +11,7 @@ import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { IconPlus, IconTrash } from "@tabler/icons-react";
 import { useContextMenu } from "mantine-contextmenu";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { usePlayer } from "../player/PlayerContext";
 import { useRoom } from "../room/RoomContext";
 import { useDm } from "../room/useDm";
@@ -45,6 +46,14 @@ export function SceneTabs() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const tabs = visibleSceneTabs(scenes);
   const isOnlyScene = tabs[0] === ONLY_SCENE;
+  const strip = useRef<HTMLDivElement>(null);
+
+  // A new or switched-to scene may sit beyond the visible part of the strip.
+  useEffect(() => {
+    strip.current
+      ?.querySelector('[aria-selected="true"]')
+      ?.scrollIntoView({ block: "nearest", inline: "nearest" });
+  }, [activeId]);
 
   // Players would see what the DM has prepared, so only the DM sees the scenes.
   if (dm !== null && !isDm) return null;
@@ -88,65 +97,81 @@ export function SceneTabs() {
   }
 
   return (
-    <Group gap={4} wrap="nowrap">
-      <Tabs
-        variant="pills"
-        value={isOnlyScene ? ONLY_SCENE.id : (activeId ?? null)}
-        // Arrow keys only move the focus; switching changes the map for everyone.
-        activateTabWithKeyboard={false}
-        onChange={(id) => {
-          const tab = tabs.find((scene) => scene.id === id);
-          if (tab && !isOnlyScene) switchTo(tab);
+    <Group gap={4} wrap="nowrap" miw={0}>
+      {/* Many scenes scroll sideways instead of pushing the header into a second line. */}
+      <ScrollArea
+        scrollbars="x"
+        scrollbarSize={4}
+        miw={0}
+        viewportRef={strip}
+        viewportProps={{
+          // A mouse wheel only scrolls up and down, which the strip turns sideways.
+          onWheel: (event) => {
+            if (event.deltaX === 0)
+              event.currentTarget.scrollLeft += event.deltaY;
+          },
         }}
       >
-        <Tabs.List>
-          {tabs.map((tab) =>
-            tab.id === editingId ? (
-              <TextInput
-                key={tab.id}
-                value={tab.name}
-                onChange={(event) =>
-                  room.renameScene(tab.id, event.target.value)
-                }
-                onBlur={() => setEditingId(null)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter" || event.key === "Escape") {
-                    setEditingId(null);
+        <Tabs
+          variant="pills"
+          value={isOnlyScene ? ONLY_SCENE.id : (activeId ?? null)}
+          // Arrow keys only move the focus; switching changes the map for everyone.
+          activateTabWithKeyboard={false}
+          onChange={(id) => {
+            const tab = tabs.find((scene) => scene.id === id);
+            if (tab && !isOnlyScene) switchTo(tab);
+          }}
+        >
+          {/* Room for the focus ring, which the scrolling strip would cut off. */}
+          <Tabs.List p={4} style={{ flexWrap: "nowrap" }}>
+            {tabs.map((tab) =>
+              tab.id === editingId ? (
+                <TextInput
+                  key={tab.id}
+                  value={tab.name}
+                  onChange={(event) =>
+                    room.renameScene(tab.id, event.target.value)
                   }
-                }}
-                aria-label="Scene name"
-                size="xs"
-                w={140}
-                autoFocus
-              />
-            ) : (
-              <Tooltip
-                key={tab.id}
-                label="Double-click to rename, right-click to delete"
-                openDelay={500}
-              >
-                <Tabs.Tab
-                  value={tab.id}
-                  c={tab.name === "" ? "dimmed" : undefined}
-                  onDoubleClick={() => startRenaming(tab)}
-                  onContextMenu={showContextMenu([
-                    {
-                      key: "delete",
-                      title: "Delete scene…",
-                      icon: <IconTrash size={16} />,
-                      color: "red",
-                      disabled: tabs.length === 1,
-                      onClick: () => confirmDelete(tab),
-                    },
-                  ])}
+                  onBlur={() => setEditingId(null)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === "Escape") {
+                      setEditingId(null);
+                    }
+                  }}
+                  aria-label="Scene name"
+                  size="xs"
+                  w={140}
+                  autoFocus
+                />
+              ) : (
+                <Tooltip
+                  key={tab.id}
+                  label="Double-click to rename, right-click to delete"
+                  openDelay={500}
                 >
-                  {sceneName(tab)}
-                </Tabs.Tab>
-              </Tooltip>
-            ),
-          )}
-        </Tabs.List>
-      </Tabs>
+                  <Tabs.Tab
+                    value={tab.id}
+                    c={tab.name === "" ? "dimmed" : undefined}
+                    onDoubleClick={() => startRenaming(tab)}
+                    onContextMenu={showContextMenu([
+                      {
+                        key: "delete",
+                        title: "Delete scene…",
+                        icon: <IconTrash size={16} />,
+                        color: "red",
+                        disabled: tabs.length === 1,
+                        onClick: () => confirmDelete(tab),
+                      },
+                    ])}
+                  >
+                    {sceneName(tab)}
+                  </Tabs.Tab>
+                </Tooltip>
+              ),
+            )}
+          </Tabs.List>
+        </Tabs>
+      </ScrollArea>
       <Tooltip label="Add scene">
         <ActionIcon variant="subtle" aria-label="Add scene" onClick={addScene}>
           <IconPlus size={18} />

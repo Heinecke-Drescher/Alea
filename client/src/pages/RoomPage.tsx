@@ -26,6 +26,7 @@ import {
   useCriticalRolls,
 } from "../dice/useCriticalRolls";
 import { MusicMenu } from "../music/MusicMenu";
+import { MusicPanel } from "../music/MusicPanel";
 import { RoomContext } from "../room/RoomContext";
 import { PlayerContext } from "../player/PlayerContext";
 import { recordVisit } from "../recentRooms/useRecentRooms";
@@ -84,7 +85,8 @@ function RoomView({ roomId }: { roomId: string }) {
   const alignMapImage = () => board.current?.alignMapImage();
   const isWide = useWideLayout();
   const hasDiceBar = useNarrowPortrait();
-  // On a narrow screen they move from the header into the side panel, which has the room.
+  // On a narrow screen they and the music move from the header into the side panel, which has
+  // the room. Crossing the breakpoint loads the music player anew in its other place.
   const playerControls = (
     <>
       {isSynced && !needsName && <DmControl awareness={awareness} />}
@@ -122,8 +124,8 @@ function RoomView({ roomId }: { roomId: string }) {
               }}
             >
               <AppShell.Header>
-                <Group h="100%" px="md" justify="space-between">
-                  <Group gap="sm">
+                <Group h="100%" px="md" justify="space-between" wrap="nowrap">
+                  <Group gap="sm" wrap="nowrap" flex={1} miw={0}>
                     <AleaMenu
                       isSynced={isSynced}
                       connection={connection}
@@ -131,14 +133,25 @@ function RoomView({ roomId }: { roomId: string }) {
                     />
                     {isSynced && <SceneTabs />}
                     {connection === "disconnected" && (
-                      <Badge color="red" variant="light">
-                        Not connected. Changes are not saved yet.
+                      // Keeps its width, so the scene tabs give way and the warning stays readable.
+                      <Badge
+                        color="red"
+                        variant="light"
+                        style={{ flexShrink: 0 }}
+                      >
+                        {isWide
+                          ? "Not connected. Changes are not saved yet."
+                          : "Not connected"}
                       </Badge>
                     )}
                   </Group>
-                  <Group gap="xs">
-                    {isWide && playerControls}
-                    <MusicMenu />
+                  <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
+                    {isWide && (
+                      <>
+                        {playerControls}
+                        <MusicMenu />
+                      </>
+                    )}
                     <Burger
                       opened={asideOpened}
                       onClick={toggleAside}
@@ -178,6 +191,12 @@ function RoomView({ roomId }: { roomId: string }) {
                       </SelectedTokensContext>
                     </FocusTokenContext>
                     {!hasDiceBar && <DicePanel />}
+                    {!isWide && (
+                      <Stack gap="xs">
+                        <Title order={4}>Music</Title>
+                        <MusicPanel />
+                      </Stack>
+                    )}
                   </Stack>
                 </AppShell.Section>
               </AppShell.Aside>
