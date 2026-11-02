@@ -19,8 +19,8 @@ interface TextsProps {
   selection: IRect | null;
   selectedIds: string[];
   draggable: boolean;
-  onTextPress: (id: string, event: KonvaEventObject<MouseEvent>) => void;
-  onTextClick: (id: string, event: KonvaEventObject<MouseEvent>) => void;
+  onTextPress: (id: string, event: KonvaEventObject<PointerEvent>) => void;
+  onTextClick: (id: string, event: KonvaEventObject<PointerEvent>) => void;
 }
 
 export function Texts({
@@ -50,11 +50,11 @@ export function Texts({
   return (
     <Group
       listening={listening}
-      onMouseDown={(event) => {
+      onPointerDown={(event) => {
         const id = textIdAt(event.target);
         if (id) onTextPress(id, event);
       }}
-      onClick={(event) => {
+      onPointerClick={(event) => {
         const id = textIdAt(event.target);
         if (id) onTextClick(id, event);
       }}

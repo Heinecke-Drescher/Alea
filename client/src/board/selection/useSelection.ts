@@ -23,7 +23,9 @@ export type SelectionControls = ReturnType<typeof useSelection>;
 
 export function useSelection(room: Room) {
   const [selection, setSelection] = useState<Selection>(NO_SELECTION);
-  const areaStart = useRef<Vector2d | null>(null);
+  const areaStart = useRef<{ point: Vector2d; clickDistance: number } | null>(
+    null,
+  );
   const addedOnPress = useRef<string | null>(null);
   const fogGuard = useFogGuard();
   const area = selectedArea(selection);
@@ -39,15 +41,15 @@ export function useSelection(room: Room) {
     setSelection(NO_SELECTION);
   }
 
-  function beginArea(point: Vector2d) {
-    areaStart.current = point;
+  function beginArea(point: Vector2d, clickDistance: number) {
+    areaStart.current = { point, clickDistance };
     clear();
   }
 
   function extendArea(point: Vector2d) {
     if (!areaStart.current) return;
     const next = clipToMap(
-      boxBetween(areaStart.current, point),
+      boxBetween(areaStart.current.point, point),
       room.mapBounds(),
     );
     if (next && fogGuard.hidesRect(next)) return;
@@ -59,8 +61,8 @@ export function useSelection(room: Room) {
   function endArea() {
     const start = areaStart.current;
     areaStart.current = null;
-    if (!start || !isClickArea(area)) return;
-    const cell = cellAt(start);
+    if (!start || !isClickArea(area, start.clickDistance)) return;
+    const cell = cellAt(start.point);
     if (!room.cellsMap.has(cellKey(cell.x, cell.y))) return;
     if (fogGuard.hidesCell(cell.x, cell.y)) return;
     setSelection(areaSelection(cellRect(cell)));

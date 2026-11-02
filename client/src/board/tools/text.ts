@@ -78,8 +78,6 @@ export function useTextTool(room: Room, color: string, fontSize: TextFontSize) {
     selectsItems: false,
     listensToDrawings: false,
     onDown({ point, event }) {
-      // Otherwise the browser moves the focus to the clicked map and the new field closes at once.
-      event.evt.preventDefault();
       if (current.current) {
         finish();
         return;

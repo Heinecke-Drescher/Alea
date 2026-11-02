@@ -38,8 +38,8 @@ interface StrokesProps {
   selectedIds: string[];
   listening: boolean;
   draggable: boolean;
-  onStrokePress: (id: string, event: KonvaEventObject<MouseEvent>) => void;
-  onStrokeClick: (id: string, event: KonvaEventObject<MouseEvent>) => void;
+  onStrokePress: (id: string, event: KonvaEventObject<PointerEvent>) => void;
+  onStrokeClick: (id: string, event: KonvaEventObject<PointerEvent>) => void;
 }
 
 export function StrokeLine({
@@ -99,11 +99,11 @@ export function Strokes({
   return (
     <Group
       listening={listening}
-      onMouseDown={(event) => {
+      onPointerDown={(event) => {
         const id = event.target.id();
         if (id) onStrokePress(id, event);
       }}
-      onClick={(event) => {
+      onPointerClick={(event) => {
         const id = event.target.id();
         if (id) onStrokeClick(id, event);
       }}

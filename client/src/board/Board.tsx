@@ -59,7 +59,7 @@ import { textIdAt } from "./texts/textNodes";
 import { Texts } from "./texts/Texts";
 import { isFogTool, type Tool } from "./tools/tool";
 import { useBoardTools } from "./tools/useBoardTools";
-import { LEFT_MOUSE_BUTTON } from "./mouse";
+import { PRIMARY_BUTTON, PRIMARY_BUTTON_FLAG } from "./pointer";
 import { useBoardView } from "./useBoardView";
 import { useCursorBroadcast } from "./useCursorBroadcast";
 import { useFitOnNewMap } from "./useFitOnNewMap";
@@ -69,7 +69,7 @@ import { ViewControls } from "./ViewControls";
 
 function pointerOnMap(event: KonvaEventObject<MouseEvent>) {
   const pointer = event.target.getStage()?.getRelativePointerPosition();
-  if (!pointer) throw new Error("Mouse event without stage pointer");
+  if (!pointer) throw new Error("Pointer event without stage pointer");
   return pointer;
 }
 
@@ -128,6 +128,8 @@ export function Board({
   const reshapableId = reshapableStrokeId(items);
   const itemDrag = useItemDrag(room, items);
   const lastPointer = useRef<Vector2d | null>(null);
+  // The pointer that started the tool, so other fingers and a second end event change nothing.
+  const toolPointer = useRef<number | null>(null);
   const clipboard = useClipboard({
     room,
     selection,
@@ -188,12 +190,14 @@ export function Board({
     onTextClick: clickItem("texts"),
   };
 
-  function isSelectClick(event: KonvaEventObject<MouseEvent>) {
-    return isSelecting && event.evt.button === LEFT_MOUSE_BUTTON;
+  function isSelectClick(event: KonvaEventObject<PointerEvent>) {
+    return (
+      isSelecting && event.evt.button === PRIMARY_BUTTON && event.evt.isPrimary
+    );
   }
 
   function pressItem(type: ItemType) {
-    return (id: string, event: KonvaEventObject<MouseEvent>) => {
+    return (id: string, event: KonvaEventObject<PointerEvent>) => {
       if (isSelectClick(event)) {
         selection.pressItem(type, id, isAddKeyPressed(event));
       }
@@ -201,7 +205,7 @@ export function Board({
   }
 
   function clickItem(type: ItemType) {
-    return (id: string, event: KonvaEventObject<MouseEvent>) => {
+    return (id: string, event: KonvaEventObject<PointerEvent>) => {
       if (isSelectClick(event)) {
         selection.clickItem(type, id, isAddKeyPressed(event));
       }
@@ -219,7 +223,7 @@ export function Board({
   };
 
   function changeTool(nextTool: Tool) {
-    handleMouseUp();
+    endTool();
     setTool(nextTool);
     selection.clear();
   }
@@ -241,24 +245,48 @@ export function Board({
     centerOn(squareCenter(token.x, token.y, token.size));
   }
 
-  function handleMouseDown(event: KonvaEventObject<MouseEvent>) {
-    if (event.evt.button !== LEFT_MOUSE_BUTTON) return;
+  function isOtherPointer(event: KonvaEventObject<PointerEvent>) {
+    return (
+      toolPointer.current !== null &&
+      event.evt.pointerId !== toolPointer.current
+    );
+  }
+
+  function handlePointerDown(event: KonvaEventObject<PointerEvent>) {
+    // A second finger does not start the tool again; two-finger gestures come separately.
+    if (event.evt.button !== PRIMARY_BUTTON || !event.evt.isPrimary) return;
+    toolPointer.current = event.evt.pointerId;
     activeTool.onDown({ point: pointerOnMap(event), event });
   }
 
-  function handleMouseMove(event: KonvaEventObject<MouseEvent>) {
+  function handlePointerMove(event: KonvaEventObject<PointerEvent>) {
+    if (isOtherPointer(event)) return;
+    // Releasing the left button while another one is still pressed sends no pointerup.
+    const isReleased = !(event.evt.buttons & PRIMARY_BUTTON_FLAG);
+    if (toolPointer.current !== null && isReleased) endTool();
+    followPointer(event);
+  }
+
+  function followPointer(event: KonvaEventObject<MouseEvent>) {
     lastPointer.current = pointerOnMap(event);
     cursor.move(lastPointer.current);
     activeTool.onMove({ point: lastPointer.current, event });
   }
 
-  function handleMouseUp() {
-    activeTool.onUp();
+  // Also gets the pointerup that Konva sends after each pointercancel.
+  function handlePointerUp(event: KonvaEventObject<PointerEvent>) {
+    if (event.evt.pointerId === toolPointer.current) endTool();
   }
 
-  function handleMouseLeave() {
+  function handlePointerLeave(event: KonvaEventObject<PointerEvent>) {
+    if (isOtherPointer(event)) return;
     cursor.leave();
-    handleMouseUp();
+    if (toolPointer.current !== null) endTool();
+  }
+
+  function endTool() {
+    toolPointer.current = null;
+    activeTool.onUp();
   }
 
   useImperativeHandle(ref, () => ({
@@ -274,11 +302,19 @@ export function Board({
         h="calc(100dvh - var(--app-shell-header-height))"
         style={{
           cursor: cursorArrowCss(theme.colors[player.color][6]),
+          // Otherwise the browser pans or zooms the page where no shape listens.
+          touchAction: "none",
           backgroundImage: backgroundImage
             ? `url("${backgroundImage}")`
             : "none",
           backgroundSize: "cover",
           backgroundPosition: "center",
+        }}
+        onMouseDown={(event) => {
+          // Keeps the focus in a new text field: the browser moves it on mousedown, also after a
+          // cancelled pointerdown and after a tap. Clicks into the field itself are left alone.
+          const isOnMap = event.target instanceof HTMLCanvasElement;
+          if (tool === "text" && isOnMap) event.preventDefault();
         }}
         onDragOver={drops.onDragOver}
         onDrop={drops.onDrop}
@@ -292,13 +328,14 @@ export function Board({
           onWheel={(event) => {
             panOrZoom(event);
             // The map moved under a still pointer, so tools and cursors follow as if it had moved.
-            handleMouseMove(event);
+            followPointer(event);
           }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseLeave}
-          onDblClick={(event) => {
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onPointerLeave={handlePointerLeave}
+          onPointerDblClick={(event) => {
             if (tool !== "select") return;
             const textId = textIdAt(event.target);
             if (textId) {

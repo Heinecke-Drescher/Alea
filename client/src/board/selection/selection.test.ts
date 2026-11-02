@@ -131,13 +131,18 @@ describe("reshapableStrokeId", () => {
 
 describe("isClickArea", () => {
   it("counts no frame or a tiny one as a click", () => {
-    expect(isClickArea(null)).toBe(true);
-    expect(isClickArea({ x: 5, y: 5, width: 3, height: 2 })).toBe(true);
+    expect(isClickArea(null, 4)).toBe(true);
+    expect(isClickArea({ x: 5, y: 5, width: 3, height: 2 }, 4)).toBe(true);
   });
 
   it("counts a frame drawn in either direction as a frame", () => {
-    expect(isClickArea({ x: 5, y: 5, width: 4, height: 1 })).toBe(false);
-    expect(isClickArea({ x: 5, y: 5, width: 0, height: 30 })).toBe(false);
+    expect(isClickArea({ x: 5, y: 5, width: 4, height: 1 }, 4)).toBe(false);
+    expect(isClickArea({ x: 5, y: 5, width: 0, height: 30 }, 4)).toBe(false);
+  });
+
+  it("allows a larger click distance for a finger", () => {
+    expect(isClickArea({ x: 5, y: 5, width: 9, height: 7 }, 10)).toBe(true);
+    expect(isClickArea({ x: 5, y: 5, width: 10, height: 2 }, 10)).toBe(false);
   });
 });
 

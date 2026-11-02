@@ -14,8 +14,8 @@ interface TokensProps {
   selection: IRect | null;
   selectedIds: string[];
   resizableId: string | null;
-  onTokenPress: (id: string, event: KonvaEventObject<MouseEvent>) => void;
-  onTokenClick: (id: string, event: KonvaEventObject<MouseEvent>) => void;
+  onTokenPress: (id: string, event: KonvaEventObject<PointerEvent>) => void;
+  onTokenClick: (id: string, event: KonvaEventObject<PointerEvent>) => void;
   onTokenContextMenu: (
     token: Token,
     event: KonvaEventObject<MouseEvent>,

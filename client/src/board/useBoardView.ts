@@ -5,7 +5,7 @@ import type { IRect, Vector2d } from "konva/lib/types";
 import type { RefObject } from "react";
 import type { Room } from "../room/createRoom";
 import { clampToMap, mapRect } from "../room/grid";
-import { LEFT_MOUSE_BUTTON } from "./mouse";
+import { PRIMARY_BUTTON } from "./pointer";
 
 // Keeps the fitted map clear of the toolbar and the fit button; the same on every side, so the map stays centered.
 export const VIEW_MARGIN = 72;
@@ -129,7 +129,9 @@ export function useBoardView(
   function panOnlyWithMiddleButton(event: KonvaEventObject<DragEvent>) {
     const stage = event.target;
     if (stage !== stageRef.current) return;
-    if (event.evt.button === LEFT_MOUSE_BUTTON) stage.stopDrag();
+    // Konva starts a finger's drag from a touch event, which has no button.
+    const isFinger = event.evt.type.startsWith("touch");
+    if (isFinger || event.evt.button === PRIMARY_BUTTON) stage.stopDrag();
   }
 
   function pointAtStageCenter(stage: StageNode) {

@@ -9,7 +9,7 @@ import type { Critical } from "../../dice/criticalRoll";
 import { ROLL_SECONDS } from "../dice/throwPath";
 import { mapRect } from "../../room/grid";
 import { useRoom } from "../../room/RoomContext";
-import { LEFT_MOUSE_BUTTON } from "../mouse";
+import { PRIMARY_BUTTON } from "../pointer";
 
 const FADE_SECONDS = 0.5;
 const DARKENING = 0.4;
@@ -103,9 +103,9 @@ export function CriticalScene({
         width={CLICK_CATCHER_SIZE}
         height={CLICK_CATCHER_SIZE}
         fill="transparent"
-        onMouseDown={(event) => {
+        onPointerDown={(event) => {
           // Other buttons pass through, so the view can still be panned.
-          if (event.evt.button !== LEFT_MOUSE_BUTTON) return;
+          if (event.evt.button !== PRIMARY_BUTTON) return;
           event.cancelBubble = true;
           onDone(id);
         }}

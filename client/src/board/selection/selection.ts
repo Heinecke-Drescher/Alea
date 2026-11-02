@@ -23,10 +23,12 @@ export type Selection =
 export const NO_SELECTION: Selection = { kind: "none" };
 
 // Below this a frame counts as a click, as the mouse barely moves while clicking.
-const CLICK_DISTANCE = 4;
+export const CLICK_DISTANCE = 4;
+// A finger moves more while tapping. In screen pixels, as a finger does not zoom with the map.
+export const TAP_SCREEN_DISTANCE = 10;
 
-export function isClickArea(area: IRect | null) {
-  return !area || (area.width < CLICK_DISTANCE && area.height < CLICK_DISTANCE);
+export function isClickArea(area: IRect | null, clickDistance: number) {
+  return !area || (area.width < clickDistance && area.height < clickDistance);
 }
 
 export function cellRect({ x, y }: Vector2d): IRect {

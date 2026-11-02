@@ -26,10 +26,14 @@ export interface ToolPointer {
   event: KonvaEventObject<MouseEvent>;
 }
 
+export interface ToolPress extends ToolPointer {
+  event: KonvaEventObject<PointerEvent>;
+}
+
 export interface BoardTool {
   selectsItems: boolean;
   listensToDrawings: boolean;
-  onDown: (pointer: ToolPointer) => void;
+  onDown: (press: ToolPress) => void;
   onMove: (pointer: ToolPointer) => void;
   onUp: () => void;
   onCancel?: () => void;

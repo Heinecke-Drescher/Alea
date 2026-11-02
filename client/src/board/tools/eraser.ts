@@ -19,7 +19,7 @@ export function useEraserTool(room: Room): BoardTool {
     const stage = event.target.getStage();
     const pointer = stage?.getPointerPosition();
     if (!stage || !pointer)
-      throw new Error("Mouse event without stage pointer");
+      throw new Error("Pointer event without stage pointer");
     const id = stage.getIntersection(pointer)?.id();
     if (!id) return;
     if (room.strokesMap.has(id)) room.removeStroke(id);
