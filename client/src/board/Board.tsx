@@ -1,4 +1,5 @@
 import { Box, useMantineTheme } from "@mantine/core";
+import Konva from "konva";
 import { useElementSize, useHotkeys } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
@@ -64,6 +65,7 @@ import { PRIMARY_BUTTON, PRIMARY_BUTTON_FLAG } from "./pointer";
 import { useBoardView } from "./useBoardView";
 import { useCursorBroadcast } from "./useCursorBroadcast";
 import { useFitOnNewMap } from "./useFitOnNewMap";
+import { useLongPress } from "./useLongPress";
 import { usePingBroadcast } from "./usePingBroadcast";
 import { useBoardDrops } from "./useBoardDrops";
 import { ViewControls } from "./ViewControls";
@@ -141,6 +143,7 @@ export function Board({
   });
   const tokenMenu = useTokenMenu(room, selection, clipboard);
   const boardMenu = useBoardMenu(selection, clipboard);
+  const longPress = useLongPress(openPressMenu);
   const stageRef = useRef<StageNode>(null);
   const {
     panOrZoom,
@@ -173,9 +176,7 @@ export function Board({
     [
       "Escape",
       () => {
-        toolPointer.current = null;
-        selectionBeforePress.current = null;
-        activeTool.onCancel();
+        dropTool();
         selection.clear();
       },
     ],
@@ -261,6 +262,7 @@ export function Board({
   }
 
   function handlePointerDown(event: KonvaEventObject<PointerEvent>) {
+    if (!event.evt.isPrimary) longPress.cancel();
     if (event.evt.button !== PRIMARY_BUTTON || !event.evt.isPrimary) return;
     // Each kind of pointer has its own primary one, e.g. a hand resting while a pen draws.
     const { pointerId: id, pointerType: type } = event.evt;
@@ -274,6 +276,7 @@ export function Board({
     // Still the selection from before this press: items change it only for the next render.
     selectionBeforePress.current = selection.selection;
     activeTool.onDown({ point: pointerOnMap(event), event });
+    if (isSelecting) longPress.begin(event);
   }
 
   function handlePointerMove(event: KonvaEventObject<PointerEvent>) {
@@ -282,6 +285,7 @@ export function Board({
     // Releasing the left button while another one is still pressed sends no pointerup.
     const isReleased = !(event.evt.buttons & PRIMARY_BUTTON_FLAG);
     if (toolPointer.current !== null && isReleased) endTool();
+    longPress.move(event);
     followPointer(event);
   }
 
@@ -303,6 +307,7 @@ export function Board({
   }
 
   function endTool() {
+    longPress.cancel();
     toolPointer.current = null;
     selectionBeforePress.current = null;
     activeTool.onUp();
@@ -319,14 +324,27 @@ export function Board({
     else endPinch();
   }
 
+  function dropTool() {
+    longPress.cancel();
+    toolPointer.current = null;
+    selectionBeforePress.current = null;
+    activeTool.onCancel();
+  }
+
   // Also takes back what the press did to the selection.
   function cancelTool() {
     const before = selectionBeforePress.current;
     if (toolPointer.current === null || !before) return;
-    toolPointer.current = null;
-    selectionBeforePress.current = null;
-    activeTool.onCancel();
+    dropTool();
     selection.set(before);
+  }
+
+  // Goes through the right click's handlers, so the press keeps the item it selected for the menu.
+  // A dragged item keeps moving instead, as Konva sends no pointer moves to cancel the press then.
+  function openPressMenu(event: KonvaEventObject<PointerEvent>) {
+    if (Konva.isDragging()) return;
+    dropTool();
+    event.target.fire("contextmenu", { evt: event.evt }, true);
   }
 
   useImperativeHandle(ref, () => ({
