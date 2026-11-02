@@ -1,25 +1,41 @@
 import { useComputedColorScheme, useMantineTheme } from "@mantine/core";
 import type { Vector2d } from "konva/lib/types";
 import { Group, Label, Tag, Text } from "react-konva";
+import { labelPlace } from "./labelSide";
 
 interface ToolLabelProps {
   at: Vector2d;
+  // The other end of the line, where the pointer is and a finger would cover the label.
+  awayFrom: Vector2d;
+  // In map pixels, so the label can keep clear of what lies at `at`.
+  gap: number;
   zoom: number;
   color: string;
   text: string;
 }
 
-export function ToolLabel({ at, zoom, color, text }: ToolLabelProps) {
+export function ToolLabel({
+  at,
+  awayFrom,
+  gap,
+  zoom,
+  color,
+  text,
+}: ToolLabelProps) {
   const theme = useMantineTheme();
   const dark = useComputedColorScheme("light") === "dark";
+  const { pointer, x, y } = labelPlace(at, awayFrom, gap);
 
   return (
-    <Group {...at} scaleX={1 / zoom} scaleY={1 / zoom}>
-      <Label x={14} y={16}>
+    <Group x={x} y={y} scaleX={1 / zoom} scaleY={1 / zoom}>
+      <Label>
         <Tag
           fill={dark ? theme.colors.dark[7] : theme.white}
           stroke={color}
           cornerRadius={4}
+          pointerDirection={pointer}
+          pointerWidth={10}
+          pointerHeight={8}
         />
         <Text
           text={text}

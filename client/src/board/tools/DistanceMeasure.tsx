@@ -1,5 +1,5 @@
 import { Group, Line } from "react-konva";
-import { FEET_PER_CELL, squareCenter } from "../../room/grid";
+import { CELL_SIZE, FEET_PER_CELL, squareCenter } from "../../room/grid";
 import { cellDistance, type Measurement } from "./measurement";
 import { ToolLabel } from "./ToolLabel";
 import { useStageZoom } from "../useStageZoom";
@@ -45,7 +45,10 @@ export function DistanceMeasure({ measurement, color }: DistanceMeasureProps) {
         </Group>
       ))}
       <ToolLabel
-        at={to}
+        at={from}
+        awayFrom={to}
+        // Clear of the start cell, which often holds the measuring token.
+        gap={CELL_SIZE / 2}
         zoom={zoom}
         color={color}
         text={`${cells * FEET_PER_CELL} ft · ${cells} ${cells === 1 ? "cell" : "cells"}`}

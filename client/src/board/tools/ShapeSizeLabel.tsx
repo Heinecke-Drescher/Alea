@@ -13,7 +13,9 @@ export function ShapeSizeLabel({ shape, zoom, color }: ShapeSizeLabelProps) {
 
   return (
     <ToolLabel
-      at={shape.to}
+      at={shape.from}
+      awayFrom={shape.to}
+      gap={0}
       zoom={zoom}
       color={color}
       text={shape.kind === "circle" ? `${feet} ft radius` : `${feet} ft`}
