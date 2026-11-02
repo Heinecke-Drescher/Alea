@@ -56,6 +56,12 @@ export function useSelection(room: Room) {
     setSelection(areaSelection(next));
   }
 
+  function cancelArea() {
+    if (!areaStart.current) return;
+    areaStart.current = null;
+    clear();
+  }
+
   // A click on a painted cell selects it as a frame around that cell, so moving, copying and
   // deleting work as for any frame.
   function endArea() {
@@ -101,6 +107,7 @@ export function useSelection(room: Room) {
     beginArea,
     extendArea,
     endArea,
+    cancelArea,
     moveArea,
     pressItem,
     clickItem,

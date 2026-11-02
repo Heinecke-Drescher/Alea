@@ -7,4 +7,5 @@ export const ownEventsTool: BoardTool = {
   onDown() {},
   onMove() {},
   onUp() {},
+  onCancel() {},
 };

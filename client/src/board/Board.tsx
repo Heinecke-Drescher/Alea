@@ -36,6 +36,7 @@ import {
   itemsSelection,
   reshapableStrokeId,
   resizableTokenId,
+  type Selection,
 } from "./selection/selection";
 import { SelectionFrame } from "./selection/SelectionFrame";
 import { ShapeResizer } from "./selection/ShapeResizer";
@@ -129,7 +130,9 @@ export function Board({
   const itemDrag = useItemDrag(room, items);
   const lastPointer = useRef<Vector2d | null>(null);
   // The pointer that started the tool, so other fingers and a second end event change nothing.
-  const toolPointer = useRef<number | null>(null);
+  const toolPointer = useRef<{ id: number; type: string } | null>(null);
+  // Items under the first finger select themselves before a second finger makes it a pinch.
+  const selectionBeforePress = useRef<Selection | null>(null);
   const clipboard = useClipboard({
     room,
     selection,
@@ -141,6 +144,9 @@ export function Board({
   const stageRef = useRef<StageNode>(null);
   const {
     panOrZoom,
+    pinch,
+    endPinch,
+    isPinching,
     panOnlyWithMiddleButton,
     viewCenter,
     fitMap,
@@ -167,7 +173,9 @@ export function Board({
     [
       "Escape",
       () => {
-        activeTool.onCancel?.();
+        toolPointer.current = null;
+        selectionBeforePress.current = null;
+        activeTool.onCancel();
         selection.clear();
       },
     ],
@@ -248,19 +256,29 @@ export function Board({
   function isOtherPointer(event: KonvaEventObject<PointerEvent>) {
     return (
       toolPointer.current !== null &&
-      event.evt.pointerId !== toolPointer.current
+      event.evt.pointerId !== toolPointer.current.id
     );
   }
 
   function handlePointerDown(event: KonvaEventObject<PointerEvent>) {
-    // A second finger does not start the tool again; two-finger gestures come separately.
     if (event.evt.button !== PRIMARY_BUTTON || !event.evt.isPrimary) return;
-    toolPointer.current = event.evt.pointerId;
+    // Each kind of pointer has its own primary one, e.g. a hand resting while a pen draws.
+    const { pointerId: id, pointerType: type } = event.evt;
+    const current = toolPointer.current;
+    if (current && current.type !== type) {
+      // A pen takes over from a hand that touched first; the other way round the hand is ignored.
+      if (type !== "pen") return;
+      cancelTool();
+    }
+    toolPointer.current = { id, type };
+    // Still the selection from before this press: items change it only for the next render.
+    selectionBeforePress.current = selection.selection;
     activeTool.onDown({ point: pointerOnMap(event), event });
   }
 
   function handlePointerMove(event: KonvaEventObject<PointerEvent>) {
-    if (isOtherPointer(event)) return;
+    const isPinchingFinger = event.evt.pointerType === "touch" && isPinching();
+    if (isOtherPointer(event) || isPinchingFinger) return;
     // Releasing the left button while another one is still pressed sends no pointerup.
     const isReleased = !(event.evt.buttons & PRIMARY_BUTTON_FLAG);
     if (toolPointer.current !== null && isReleased) endTool();
@@ -275,7 +293,7 @@ export function Board({
 
   // Also gets the pointerup that Konva sends after each pointercancel.
   function handlePointerUp(event: KonvaEventObject<PointerEvent>) {
-    if (event.evt.pointerId === toolPointer.current) endTool();
+    if (event.evt.pointerId === toolPointer.current?.id) endTool();
   }
 
   function handlePointerLeave(event: KonvaEventObject<PointerEvent>) {
@@ -286,7 +304,29 @@ export function Board({
 
   function endTool() {
     toolPointer.current = null;
+    selectionBeforePress.current = null;
     activeTool.onUp();
+  }
+
+  // Read from the touches, as an item under the second finger may keep its pointerdown to itself.
+  function handleTouchMove(event: KonvaEventObject<TouchEvent>) {
+    // A hand resting while a pen or mouse draws neither stops it nor moves the view.
+    const drawingType = toolPointer.current?.type;
+    if (drawingType && drawingType !== "touch") return;
+    // A second finger turns the touch into moving the view, so the tool stops without a trace.
+    if (event.evt.touches.length > 1) cancelTool();
+    if (event.evt.touches.length === 2) pinch();
+    else endPinch();
+  }
+
+  // Also takes back what the press did to the selection.
+  function cancelTool() {
+    const before = selectionBeforePress.current;
+    if (toolPointer.current === null || !before) return;
+    toolPointer.current = null;
+    selectionBeforePress.current = null;
+    activeTool.onCancel();
+    selection.set(before);
   }
 
   useImperativeHandle(ref, () => ({
@@ -330,6 +370,9 @@ export function Board({
             // The map moved under a still pointer, so tools and cursors follow as if it had moved.
             followPointer(event);
           }}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={endPinch}
+          onTouchCancel={endPinch}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}

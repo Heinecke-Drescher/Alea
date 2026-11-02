@@ -19,5 +19,6 @@ export function selectTool(selection: SelectionControls): BoardTool {
     },
     onMove: ({ point }) => selection.extendArea(point),
     onUp: selection.endArea,
+    onCancel: selection.cancelArea,
   };
 }

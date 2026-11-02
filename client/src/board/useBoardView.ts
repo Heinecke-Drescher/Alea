@@ -1,8 +1,9 @@
 import { clamp } from "@mantine/hooks";
-import type { KonvaEventObject } from "konva/lib/Node";
+import Konva from "konva";
+import type { KonvaEventObject, Node } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { IRect, Vector2d } from "konva/lib/types";
-import type { RefObject } from "react";
+import { useRef, type RefObject } from "react";
 import type { Room } from "../room/createRoom";
 import { clampToMap, mapRect } from "../room/grid";
 import { PRIMARY_BUTTON } from "./pointer";
@@ -27,25 +28,61 @@ export interface View {
   y: number;
 }
 
+export interface Pinch {
+  center: Vector2d;
+  distance: number;
+}
+
+// The point of the map that was at `from` on the screen ends up at `to`.
+function movedView(
+  view: View,
+  from: Vector2d,
+  to: Vector2d,
+  scale: number,
+): View {
+  const pointOnMap = {
+    x: (from.x - view.x) / view.scale,
+    y: (from.y - view.y) / view.scale,
+  };
+  return {
+    scale,
+    x: to.x - pointOnMap.x * scale,
+    y: to.y - pointOnMap.y * scale,
+  };
+}
+
 // Keeps the point of the map under the pointer where it is.
 export function zoomedView(
   view: View,
   pointer: Vector2d,
   deltaY: number,
 ): View {
-  const pointOnMap = {
-    x: (pointer.x - view.x) / view.scale,
-    y: (pointer.y - view.y) / view.scale,
-  };
   const scale = clamp(
     view.scale * ZOOM_STEP ** clamp(-deltaY / PIXELS_PER_ZOOM_STEP, -1, 1),
     MIN_ZOOM,
     MAX_ZOOM,
   );
+  return movedView(view, pointer, pointer, scale);
+}
+
+// Keeps the point of the map between two fingers between them while they move and spread.
+export function pinchedView(view: View, from: Pinch, to: Pinch): View {
+  if (from.distance === 0) return view;
+  const scale = clamp(
+    (view.scale * to.distance) / from.distance,
+    MIN_ZOOM,
+    MAX_ZOOM,
+  );
+  return movedView(view, from.center, to.center, scale);
+}
+
+function pinchOf(stage: StageNode): Pinch | null {
+  const fingers = stage.getPointersPositions();
+  const [a, b] = fingers;
+  if (fingers.length !== 2 || !a || !b) return null;
   return {
-    scale,
-    x: pointer.x - pointOnMap.x * scale,
-    y: pointer.y - pointOnMap.y * scale,
+    center: { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 },
+    distance: Math.hypot(b.x - a.x, b.y - a.y),
   };
 }
 
@@ -98,6 +135,8 @@ export function useBoardView(
   room: Room,
   stageRef: RefObject<StageNode | null>,
 ) {
+  const lastPinch = useRef<Pinch | null>(null);
+
   function mountedStage() {
     const stage = stageRef.current;
     if (!stage) throw new Error("Stage is not mounted");
@@ -179,8 +218,41 @@ export function useBoardView(
     stage.position({ x, y });
   }
 
+  // Two fingers move and zoom the view; a token dragged by one of them is dropped where it got to.
+  function pinch() {
+    const stage = mountedStage();
+    const next = pinchOf(stage);
+    if (!next) {
+      lastPinch.current = null;
+      return;
+    }
+    if (Konva.isDragging()) {
+      for (const node of stage.find((node: Node) => node.isDragging())) {
+        node.stopDrag();
+      }
+    }
+    if (lastPinch.current) {
+      const view = { scale: stage.scaleX(), x: stage.x(), y: stage.y() };
+      const { scale, x, y } = pinchedView(view, lastPinch.current, next);
+      stage.scale({ x: scale, y: scale });
+      stage.position({ x, y });
+    }
+    lastPinch.current = next;
+  }
+
+  function endPinch() {
+    lastPinch.current = null;
+  }
+
+  function isPinching() {
+    return lastPinch.current !== null;
+  }
+
   return {
     panOrZoom,
+    pinch,
+    endPinch,
+    isPinching,
     panOnlyWithMiddleButton,
     viewCenter,
     fitMap,

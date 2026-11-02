@@ -36,5 +36,5 @@ export interface BoardTool {
   onDown: (press: ToolPress) => void;
   onMove: (pointer: ToolPointer) => void;
   onUp: () => void;
-  onCancel?: () => void;
+  onCancel: () => void;
 }

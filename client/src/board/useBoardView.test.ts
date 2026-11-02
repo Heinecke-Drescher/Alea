@@ -5,6 +5,7 @@ import {
   VIEW_MARGIN,
   centeredView,
   fittedView,
+  pinchedView,
   wheelPixels,
   zoomedView,
   type View,
@@ -54,6 +55,63 @@ describe("zoomedView", () => {
     const largest = { scale: MAX_ZOOM, x: 0, y: 0 };
     expect(zoomedView(smallest, pointer, 100).scale).toBe(MIN_ZOOM);
     expect(zoomedView(largest, pointer, -100).scale).toBe(MAX_ZOOM);
+  });
+});
+
+describe("pinchedView", () => {
+  const view = { scale: 1.5, x: 40, y: -60 };
+
+  function mapPoint(at: { x: number; y: number }, on: View) {
+    return { x: (at.x - on.x) / on.scale, y: (at.y - on.y) / on.scale };
+  }
+
+  it("moves the map with the center between the fingers", () => {
+    const from = { center: { x: 100, y: 100 }, distance: 80 };
+    const to = { center: { x: 130, y: 90 }, distance: 80 };
+    const pinched = pinchedView(view, from, to);
+    expect(pinched.scale).toBe(view.scale);
+    expect(mapPoint(to.center, pinched).x).toBeCloseTo(
+      mapPoint(from.center, view).x,
+    );
+    expect(mapPoint(to.center, pinched).y).toBeCloseTo(
+      mapPoint(from.center, view).y,
+    );
+  });
+
+  it("zooms by how far the fingers spread, around their center", () => {
+    const from = { center: { x: 100, y: 100 }, distance: 80 };
+    const to = { center: { x: 100, y: 100 }, distance: 120 };
+    const pinched = pinchedView(view, from, to);
+    expect(pinched.scale).toBeCloseTo(2.25);
+    expect(mapPoint(to.center, pinched).x).toBeCloseTo(
+      mapPoint(from.center, view).x,
+    );
+    expect(mapPoint(to.center, pinched).y).toBeCloseTo(
+      mapPoint(from.center, view).y,
+    );
+  });
+
+  it("stays between the smallest and the largest zoom", () => {
+    const center = { x: 0, y: 0 };
+    const spread = pinchedView(
+      view,
+      { center, distance: 10 },
+      { center, distance: 1000 },
+    );
+    const closed = pinchedView(
+      view,
+      { center, distance: 1000 },
+      { center, distance: 1 },
+    );
+    expect(spread.scale).toBe(MAX_ZOOM);
+    expect(closed.scale).toBe(MIN_ZOOM);
+  });
+
+  it("keeps the view when both fingers started on the same spot", () => {
+    const center = { x: 50, y: 50 };
+    expect(
+      pinchedView(view, { center, distance: 0 }, { center, distance: 40 }),
+    ).toBe(view);
   });
 });
 

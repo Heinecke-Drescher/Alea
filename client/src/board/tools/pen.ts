@@ -21,6 +21,9 @@ export function usePenTool(room: Room, color: string) {
       }
       setDraftPoints(null);
     },
+    onCancel() {
+      setDraftPoints(null);
+    },
   };
 
   return { tool, draftPoints };

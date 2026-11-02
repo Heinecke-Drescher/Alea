@@ -2,6 +2,7 @@ import type { Vector2d } from "konva/lib/types";
 import { useRef } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
 import type { Room } from "../../room/createRoom";
+import { useGestureUndo } from "./gestureUndo";
 import { cellsAlong } from "../../room/grid";
 import type { BoardTool, ToolPointer } from "./tool";
 
@@ -9,6 +10,7 @@ export function useEraserTool(room: Room): BoardTool {
   // Mouse events skip cells when moving fast, so every cell since the last point is erased.
   const lastPoint = useRef<Vector2d | null>(null);
   const fogGuard = useFogGuard();
+  const gesture = useGestureUndo(room);
 
   function erase({ point, event }: ToolPointer) {
     // Concurrent resizing can leave cells outside the map that still need erasing.
@@ -30,7 +32,7 @@ export function useEraserTool(room: Room): BoardTool {
     selectsItems: false,
     listensToDrawings: true,
     onDown(pointer) {
-      room.undoManager.stopCapturing();
+      gesture.begin();
       erase(pointer);
     },
     onMove(pointer) {
@@ -38,6 +40,11 @@ export function useEraserTool(room: Room): BoardTool {
     },
     onUp() {
       lastPoint.current = null;
+      gesture.finish();
+    },
+    onCancel() {
+      lastPoint.current = null;
+      gesture.takeBack();
     },
   };
 }

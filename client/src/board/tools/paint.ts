@@ -2,6 +2,7 @@ import type { Vector2d } from "konva/lib/types";
 import { useRef } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
 import type { Room } from "../../room/createRoom";
+import { useGestureUndo } from "./gestureUndo";
 import { cellsAlong, containsCell } from "../../room/grid";
 import type { BoardTool } from "./tool";
 
@@ -9,6 +10,7 @@ export function usePaintTool(room: Room, color: string): BoardTool {
   // Mouse events skip cells when moving fast, so every cell since the last point is painted.
   const lastPoint = useRef<Vector2d | null>(null);
   const fogGuard = useFogGuard();
+  const gesture = useGestureUndo(room);
 
   function paint(point: Vector2d) {
     for (const cell of cellsAlong(lastPoint.current ?? point, point)) {
@@ -23,7 +25,7 @@ export function usePaintTool(room: Room, color: string): BoardTool {
     selectsItems: false,
     listensToDrawings: false,
     onDown({ point }) {
-      room.undoManager.stopCapturing();
+      gesture.begin();
       paint(point);
     },
     onMove({ point }) {
@@ -31,6 +33,11 @@ export function usePaintTool(room: Room, color: string): BoardTool {
     },
     onUp() {
       lastPoint.current = null;
+      gesture.finish();
+    },
+    onCancel() {
+      lastPoint.current = null;
+      gesture.takeBack();
     },
   };
 }
