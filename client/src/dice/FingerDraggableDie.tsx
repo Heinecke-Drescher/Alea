@@ -33,7 +33,7 @@ interface FingerDraggableDieProps {
 }
 
 // Fingers and pens cannot use the browser's drag and drop in every browser, so the die follows
-// the pointer itself. A mouse never sees this button, as only phones held upright show it.
+// them itself. A mouse keeps the browser's drag.
 export function FingerDraggableDie({
   sides,
   color,
@@ -57,7 +57,7 @@ export function FingerDraggableDie({
       <DieButton
         sides={sides}
         color={color}
-        isDraggable={false}
+        isDraggable
         onRoll={() => {
           if (!ignoresClick.current) onRoll();
         }}
@@ -107,6 +107,7 @@ export function FingerDraggableDie({
           onPointerCancel(event) {
             if (press.current?.pointerId === event.pointerId) stop();
           },
+          isPressed: () => press.current !== null,
         }}
       />
       {ghostStart && (

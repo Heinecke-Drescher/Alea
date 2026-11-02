@@ -8,29 +8,27 @@ import { useDice } from "./useDice";
 interface DieButtonsProps {
   columns: number;
   spacing: MantineSpacing;
-  // The side panel keeps the browser's drag for the mouse; the dice bar on a phone follows the finger.
-  dragWith: "mouse" | "finger";
 }
 
-export function DieButtons({ columns, spacing, dragWith }: DieButtonsProps) {
+export function DieButtons({ columns, spacing }: DieButtonsProps) {
   const { color } = usePlayer();
   const { isSecret, roll } = useDice();
   return (
     <SimpleGrid cols={columns} spacing={spacing}>
       {DIE_SIDES.map((sides) =>
-        dragWith === "finger" && !isSecret ? (
-          <FingerDraggableDie
-            key={sides}
-            sides={sides}
-            color={color}
-            onRoll={() => roll(sides)}
-          />
-        ) : (
+        isSecret ? (
           <DieButton
             key={sides}
             sides={sides}
             color={color}
-            isDraggable={dragWith === "mouse" && !isSecret}
+            isDraggable={false}
+            onRoll={() => roll(sides)}
+          />
+        ) : (
+          <FingerDraggableDie
+            key={sides}
+            sides={sides}
+            color={color}
             onRoll={() => roll(sides)}
           />
         ),

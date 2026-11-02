@@ -56,6 +56,7 @@ export interface FingerDragHandlers {
   onPointerMove: PointerEventHandler<HTMLButtonElement>;
   onPointerUp: PointerEventHandler<HTMLButtonElement>;
   onPointerCancel: PointerEventHandler<HTMLButtonElement>;
+  isPressed: () => boolean;
 }
 
 interface DieButtonProps {
@@ -80,9 +81,19 @@ export function DieButton({
       style={fingerDrag && { touchAction: "none" }}
       aria-label={`Roll d${sides}`}
       draggable={isDraggable}
-      onDragStart={(event) => startDieDrag(event.dataTransfer, sides)}
+      onDragStart={(event) => {
+        // Chrome on Android starts its own drag after a long press; the finger drags the die already.
+        if (fingerDrag?.isPressed()) {
+          event.preventDefault();
+          return;
+        }
+        startDieDrag(event.dataTransfer, sides);
+      }}
       onClick={onRoll}
-      {...fingerDrag}
+      onPointerDown={fingerDrag?.onPointerDown}
+      onPointerMove={fingerDrag?.onPointerMove}
+      onPointerUp={fingerDrag?.onPointerUp}
+      onPointerCancel={fingerDrag?.onPointerCancel}
     >
       <DieFace sides={sides} color={color} />
     </UnstyledButton>

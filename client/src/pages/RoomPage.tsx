@@ -120,96 +120,94 @@ function RoomView({ roomId }: { roomId: string }) {
       <PlayerContext value={player}>
         <ShowCriticalContext value={criticals.show}>
           <DiceProvider>
-            <AppShell
-              header={{ height: 60 }}
-              aside={{
-                width: 320,
-                breakpoint: "sm",
-                collapsed: { mobile: !asideOpened },
-              }}
-            >
-              <AppShell.Header>
-                <Group h="100%" px="md" justify="space-between" wrap="nowrap">
-                  <Group gap="sm" wrap="nowrap" flex={1} miw={0}>
-                    <AleaMenu
-                      isSynced={isSynced}
-                      connection={connection}
-                      onMapImageSet={alignMapImage}
-                    />
-                    {isSynced && <SceneTabs />}
-                    {connection === "disconnected" && (
-                      // Keeps its width, so the scene tabs give way and the warning stays readable.
-                      <Badge
-                        color="red"
-                        variant="light"
-                        style={{ flexShrink: 0 }}
-                      >
-                        {isWide
-                          ? "Not connected. Changes are not saved yet."
-                          : "Not connected"}
-                      </Badge>
-                    )}
-                  </Group>
-                  <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-                    {isWide && (
-                      <>
-                        {playerControls}
-                        <MusicMenu />
-                      </>
-                    )}
-                    <Burger
-                      opened={asideOpened}
-                      onClick={toggleAside}
-                      hiddenFrom="sm"
-                      size="sm"
-                    />
-                  </Group>
-                </Group>
-              </AppShell.Header>
-              <AppShell.Main>
-                <Stack
-                  gap={0}
-                  h="calc(100dvh - var(--app-shell-header-height))"
-                >
-                  <Box flex={1} mih={0}>
-                    <ErrorBoundary FallbackComponent={MapError}>
-                      <Board
-                        ref={board}
-                        onSelectedTokensChange={setSelectedTokens}
-                        awareness={awareness}
+            <ThrowDieContext value={throwDie}>
+              <AppShell
+                header={{ height: 60 }}
+                aside={{
+                  width: 320,
+                  breakpoint: "sm",
+                  collapsed: { mobile: !asideOpened },
+                }}
+              >
+                <AppShell.Header>
+                  <Group h="100%" px="md" justify="space-between" wrap="nowrap">
+                    <Group gap="sm" wrap="nowrap" flex={1} miw={0}>
+                      <AleaMenu
                         isSynced={isSynced}
-                        critical={criticals.critical}
-                        onCriticalDone={criticals.clear}
+                        connection={connection}
+                        onMapImageSet={alignMapImage}
                       />
-                    </ErrorBoundary>
-                  </Box>
-                  {hasDiceBar && (
-                    <ThrowDieContext value={throwDie}>
-                      <DiceBar />
-                    </ThrowDieContext>
-                  )}
-                </Stack>
-              </AppShell.Main>
-              <AppShell.Aside>
-                <AppShell.Section grow component={ScrollArea} p="md">
-                  <Stack>
-                    {!isWide && <Group gap="xs">{playerControls}</Group>}
-                    <FocusTokenContext value={focusToken}>
-                      <SelectedTokensContext value={selectedTokens}>
-                        <TokenPanel />
-                      </SelectedTokensContext>
-                    </FocusTokenContext>
-                    {!hasDiceBar && <DicePanel />}
-                    {!isWide && (
-                      <Stack gap="xs">
-                        <Title order={4}>Music</Title>
-                        <MusicPanel />
-                      </Stack>
-                    )}
+                      {isSynced && <SceneTabs />}
+                      {connection === "disconnected" && (
+                        // Keeps its width, so the scene tabs give way and the warning stays readable.
+                        <Badge
+                          color="red"
+                          variant="light"
+                          style={{ flexShrink: 0 }}
+                        >
+                          {isWide
+                            ? "Not connected. Changes are not saved yet."
+                            : "Not connected"}
+                        </Badge>
+                      )}
+                    </Group>
+                    <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
+                      {isWide && (
+                        <>
+                          {playerControls}
+                          <MusicMenu />
+                        </>
+                      )}
+                      <Burger
+                        opened={asideOpened}
+                        onClick={toggleAside}
+                        hiddenFrom="sm"
+                        size="sm"
+                      />
+                    </Group>
+                  </Group>
+                </AppShell.Header>
+                <AppShell.Main>
+                  <Stack
+                    gap={0}
+                    h="calc(100dvh - var(--app-shell-header-height))"
+                  >
+                    <Box flex={1} mih={0}>
+                      <ErrorBoundary FallbackComponent={MapError}>
+                        <Board
+                          ref={board}
+                          onSelectedTokensChange={setSelectedTokens}
+                          awareness={awareness}
+                          isSynced={isSynced}
+                          critical={criticals.critical}
+                          onCriticalDone={criticals.clear}
+                        />
+                      </ErrorBoundary>
+                    </Box>
+                    {hasDiceBar && <DiceBar />}
                   </Stack>
-                </AppShell.Section>
-              </AppShell.Aside>
-            </AppShell>
+                </AppShell.Main>
+                <AppShell.Aside>
+                  <AppShell.Section grow component={ScrollArea} p="md">
+                    <Stack>
+                      {!isWide && <Group gap="xs">{playerControls}</Group>}
+                      <FocusTokenContext value={focusToken}>
+                        <SelectedTokensContext value={selectedTokens}>
+                          <TokenPanel />
+                        </SelectedTokensContext>
+                      </FocusTokenContext>
+                      {!hasDiceBar && <DicePanel />}
+                      {!isWide && (
+                        <Stack gap="xs">
+                          <Title order={4}>Music</Title>
+                          <MusicPanel />
+                        </Stack>
+                      )}
+                    </Stack>
+                  </AppShell.Section>
+                </AppShell.Aside>
+              </AppShell>
+            </ThrowDieContext>
           </DiceProvider>
           <PlayerNameModal
             opened={needsName || isEditingName}
