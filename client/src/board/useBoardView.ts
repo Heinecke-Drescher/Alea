@@ -244,15 +244,10 @@ export function useBoardView(
     lastPinch.current = null;
   }
 
-  function isPinching() {
-    return lastPinch.current !== null;
-  }
-
   return {
     panOrZoom,
     pinch,
     endPinch,
-    isPinching,
     panOnlyWithMiddleButton,
     viewCenter,
     fitMap,

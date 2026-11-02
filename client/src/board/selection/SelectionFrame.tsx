@@ -9,6 +9,7 @@ import { cellOffset } from "./selection";
 
 interface SelectionFrameProps {
   area: IRect | null;
+  draggable: boolean;
   onMove: (dx: number, dy: number) => void;
 }
 
@@ -18,7 +19,11 @@ function setCursor(event: KonvaEventObject<MouseEvent>, cursor: string) {
   stage.container().style.cursor = cursor;
 }
 
-export function SelectionFrame({ area, onMove }: SelectionFrameProps) {
+export function SelectionFrame({
+  area,
+  draggable,
+  onMove,
+}: SelectionFrameProps) {
   const room = useRoom();
   const theme = useMantineTheme();
   const color = highlightColor(theme);
@@ -41,7 +46,7 @@ export function SelectionFrame({ area, onMove }: SelectionFrameProps) {
           strokeWidth={2}
           dash={[8, 4]}
           strokeScaleEnabled={false}
-          draggable
+          draggable={draggable}
           onMouseEnter={(event) => setCursor(event, "move")}
           onMouseLeave={(event) => setCursor(event, "")}
           onDragMove={(event) => snapToCells(event, area)}

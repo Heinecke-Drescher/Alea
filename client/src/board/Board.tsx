@@ -137,6 +137,10 @@ export function Board({
   const toolPointer = useRef<{ id: number; type: string } | null>(null);
   // Items under the first finger select themselves before a second finger makes it a pinch.
   const selectionBeforePress = useRef<Selection | null>(null);
+  // Once two fingers touched, fingers do nothing until all are lifted (like Krita), as a finger
+  // lifted or briefly lost during a pinch would otherwise select, drag or draw.
+  const [areFingersLocked, setFingersLocked] = useState(false);
+  const canDragItems = !areFingersLocked;
   const clipboard = useClipboard({
     room,
     selection,
@@ -151,7 +155,6 @@ export function Board({
     panOrZoom,
     pinch,
     endPinch,
-    isPinching,
     panOnlyWithMiddleButton,
     viewCenter,
     fitMap,
@@ -196,14 +199,17 @@ export function Board({
     editingId: texts.textDraft?.id ?? null,
     selection: area,
     selectedIds: items.texts,
-    draggable: isSelecting,
+    draggable: isSelecting && canDragItems,
     onTextPress: pressItem("texts"),
     onTextClick: clickItem("texts"),
   };
 
   function isSelectClick(event: KonvaEventObject<PointerEvent>) {
     return (
-      isSelecting && event.evt.button === PRIMARY_BUTTON && event.evt.isPrimary
+      isSelecting &&
+      event.evt.button === PRIMARY_BUTTON &&
+      event.evt.isPrimary &&
+      !isLockedFinger(event)
     );
   }
 
@@ -228,7 +234,7 @@ export function Board({
     selection: area,
     selectedIds: items.strokes,
     listening: activeTool.listensToDrawings,
-    draggable: isSelecting,
+    draggable: isSelecting && canDragItems,
     onStrokePress: pressItem("strokes"),
     onStrokeClick: clickItem("strokes"),
   };
@@ -263,8 +269,13 @@ export function Board({
     );
   }
 
+  function isLockedFinger(event: KonvaEventObject<PointerEvent>) {
+    return areFingersLocked && event.evt.pointerType === "touch";
+  }
+
   function handlePointerDown(event: KonvaEventObject<PointerEvent>) {
     if (!event.evt.isPrimary) longPress.cancel();
+    if (isLockedFinger(event)) return;
     if (event.evt.button !== PRIMARY_BUTTON || !event.evt.isPrimary) return;
     // Each kind of pointer has its own primary one, e.g. a hand resting while a pen draws.
     const { pointerId: id, pointerType: type } = event.evt;
@@ -282,8 +293,7 @@ export function Board({
   }
 
   function handlePointerMove(event: KonvaEventObject<PointerEvent>) {
-    const isPinchingFinger = event.evt.pointerType === "touch" && isPinching();
-    if (isOtherPointer(event) || isPinchingFinger) return;
+    if (isOtherPointer(event) || isLockedFinger(event)) return;
     // Releasing the left button while another one is still pressed sends no pointerup.
     const isReleased = !(event.evt.buttons & PRIMARY_BUTTON_FLAG);
     if (toolPointer.current !== null && isReleased) endTool();
@@ -315,16 +325,45 @@ export function Board({
     activeTool.onUp();
   }
 
-  // Read from the touches, as an item under the second finger may keep its pointerdown to itself.
-  function handleTouchMove(event: KonvaEventObject<TouchEvent>) {
-    // A hand resting while a pen or mouse draws neither stops it nor moves the view.
+  // A hand resting while a pen or mouse draws neither stops it nor moves the view.
+  function isHandResting() {
     const drawingType = toolPointer.current?.type;
-    if (drawingType && drawingType !== "touch") return;
-    // A second finger turns the touch into moving the view, so the tool stops without a trace.
-    if (event.evt.touches.length > 1) cancelTool();
+    return drawingType !== undefined && drawingType !== "touch";
+  }
+
+  // A second finger turns the touch into moving the view, so the tool stops without a trace.
+  // Already when it lands: Konva sends no moves while the first finger drags an item.
+  function handleTouchStart(event: KonvaEventObject<TouchEvent>) {
+    if (event.evt.touches.length < 2 || isHandResting()) return;
+    lockFingers();
+    pinch();
+  }
+
+  // Read from the touches, as a second finger may land outside the map, e.g. on its buttons.
+  function handleTouchMove(event: KonvaEventObject<TouchEvent>) {
+    if (isHandResting()) return;
+    if (event.evt.touches.length > 1) lockFingers();
     if (event.evt.touches.length === 2) pinch();
     else endPinch();
   }
+
+  function lockFingers() {
+    setFingersLocked(true);
+    cancelTool();
+  }
+
+  // On the window, as the last finger may have started on something else than the map.
+  useEffect(() => {
+    function unlockWhenAllLifted(event: TouchEvent) {
+      if (event.touches.length === 0) setFingersLocked(false);
+    }
+    window.addEventListener("touchend", unlockWhenAllLifted);
+    window.addEventListener("touchcancel", unlockWhenAllLifted);
+    return () => {
+      window.removeEventListener("touchend", unlockWhenAllLifted);
+      window.removeEventListener("touchcancel", unlockWhenAllLifted);
+    };
+  }, []);
 
   function dropTool() {
     longPress.cancel();
@@ -391,6 +430,7 @@ export function Board({
             // The map moved under a still pointer, so tools and cursors follow as if it had moved.
             followPointer(event);
           }}
+          onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={endPinch}
           onTouchCancel={endPinch}
@@ -400,7 +440,7 @@ export function Board({
           onPointerCancel={handlePointerUp}
           onPointerLeave={handlePointerLeave}
           onPointerDblClick={(event) => {
-            if (tool !== "select") return;
+            if (tool !== "select" || isLockedFinger(event)) return;
             const textId = textIdAt(event.target);
             if (textId) {
               texts.editText(textId);
@@ -433,6 +473,7 @@ export function Board({
               listening={isSelecting}
               selection={area}
               selectedIds={items.tokens}
+              draggable={canDragItems}
               onTokenPress={pressItem("tokens")}
               onTokenClick={clickItem("tokens")}
               onTokenContextMenu={tokenMenu.open}
@@ -457,9 +498,13 @@ export function Board({
             {tool === "resize" && <MapResizer />}
             {tool === "alignImage" && <MapImageAligner />}
             {isSelecting && reshapableId && (
-              <ShapeResizer strokeId={reshapableId} />
+              <ShapeResizer strokeId={reshapableId} draggable={canDragItems} />
             )}
-            <SelectionFrame area={area} onMove={selection.moveArea} />
+            <SelectionFrame
+              area={area}
+              draggable={canDragItems}
+              onMove={selection.moveArea}
+            />
             {isSynced && (
               <ThrownDice viewCenter={viewCenter} landings={landings} />
             )}

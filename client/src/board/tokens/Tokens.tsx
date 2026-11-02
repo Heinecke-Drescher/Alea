@@ -12,6 +12,7 @@ interface TokensProps {
   listening: boolean;
   selection: IRect | null;
   selectedIds: string[];
+  draggable: boolean;
   onTokenPress: (id: string, event: KonvaEventObject<PointerEvent>) => void;
   onTokenClick: (id: string, event: KonvaEventObject<PointerEvent>) => void;
   onTokenContextMenu: (
@@ -24,6 +25,7 @@ export function Tokens({
   listening,
   selection,
   selectedIds,
+  draggable,
   onTokenPress,
   onTokenClick,
   onTokenContextMenu,
@@ -45,6 +47,7 @@ export function Tokens({
           key={token.id}
           token={token}
           imageDataUrl={imageDataUrl}
+          draggable={draggable}
           isHighlighted={
             selectedIds.includes(token.id) ||
             (selection !== null &&

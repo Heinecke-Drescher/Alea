@@ -16,9 +16,10 @@ const HANDLE_RADIUS = 7;
 
 interface ShapeResizerProps {
   strokeId: string;
+  draggable: boolean;
 }
 
-export function ShapeResizer({ strokeId }: ShapeResizerProps) {
+export function ShapeResizer({ strokeId, draggable }: ShapeResizerProps) {
   const room = useRoom();
   const theme = useMantineTheme();
   const strokes = useY(room.strokesMap);
@@ -53,7 +54,7 @@ export function ShapeResizer({ strokeId }: ShapeResizerProps) {
         fill={theme.white}
         stroke={highlightColor(theme)}
         strokeWidth={2 / zoom}
-        draggable
+        draggable={draggable}
         onDragMove={(event) =>
           setDraft({ ...shape, to: event.target.position() })
         }

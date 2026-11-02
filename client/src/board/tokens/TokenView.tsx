@@ -19,6 +19,7 @@ interface TokenViewProps {
   token: Token;
   imageDataUrl: string;
   isHighlighted: boolean;
+  draggable: boolean;
   onPress: (event: KonvaEventObject<PointerEvent>) => void;
   onClick: (event: KonvaEventObject<PointerEvent>) => void;
   onContextMenu: (event: KonvaEventObject<MouseEvent>) => void;
@@ -28,6 +29,7 @@ export function TokenView({
   token,
   imageDataUrl,
   isHighlighted,
+  draggable,
   onPress,
   onClick,
   onContextMenu,
@@ -59,7 +61,7 @@ export function TokenView({
       name={TOKEN_NAME}
       x={token.x * CELL_SIZE}
       y={token.y * CELL_SIZE}
-      draggable
+      draggable={draggable}
       onPointerDown={onPress}
       onPointerClick={onClick}
       onContextMenu={onContextMenu}
