@@ -1,5 +1,5 @@
 import { createTheme, Tooltip, useMantineTheme } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
+import { useMediaQuery, useOrientation } from "@mantine/hooks";
 
 export const TOOLTIP_DELAY = 500;
 
@@ -21,4 +21,12 @@ export function useWideLayout() {
   return useMediaQuery(`(min-width: ${breakpoints.sm})`, undefined, {
     getInitialValueInEffect: false,
   });
+}
+
+// A phone held upright, whose fitted map usually leaves room below it. The screen's orientation,
+// not the page's, as the on-screen keyboard makes the page wider than high.
+export function useNarrowPortrait() {
+  const isWide = useWideLayout();
+  const { type } = useOrientation({ getInitialValueInEffect: false });
+  return !isWide && type.startsWith("portrait");
 }

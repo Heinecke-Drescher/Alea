@@ -1,6 +1,7 @@
 import {
   AppShell,
   Badge,
+  Box,
   Burger,
   Button,
   Center,
@@ -17,7 +18,9 @@ import { Link, useParams } from "react-router";
 import { isValidRoomId } from "../../../shared/roomId";
 import { Board, type BoardHandle } from "../board/Board";
 import { MapError } from "../board/MapError";
+import { DiceBar } from "../dice/DiceBar";
 import { DicePanel } from "../dice/DicePanel";
+import { DiceProvider } from "../dice/DiceProvider";
 import {
   ShowCriticalContext,
   useCriticalRolls,
@@ -36,7 +39,7 @@ import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
 import { ColorSchemeToggle } from "./ColorSchemeToggle";
 import { DmControl } from "./DmControl";
-import { useWideLayout } from "../theme";
+import { useNarrowPortrait, useWideLayout } from "../theme";
 import { PlayerNameModal } from "./PlayerNameModal";
 
 export function RoomPage() {
@@ -80,6 +83,7 @@ function RoomView({ roomId }: { roomId: string }) {
   );
   const alignMapImage = () => board.current?.alignMapImage();
   const isWide = useWideLayout();
+  const hasDiceBar = useNarrowPortrait();
   // On a narrow screen they move from the header into the side panel, which has the room.
   const playerControls = (
     <>
@@ -108,67 +112,77 @@ function RoomView({ roomId }: { roomId: string }) {
     <RoomContext value={room}>
       <PlayerContext value={player}>
         <ShowCriticalContext value={criticals.show}>
-          <AppShell
-            header={{ height: 60 }}
-            aside={{
-              width: 320,
-              breakpoint: "sm",
-              collapsed: { mobile: !asideOpened },
-            }}
-          >
-            <AppShell.Header>
-              <Group h="100%" px="md" justify="space-between">
-                <Group gap="sm">
-                  <AleaMenu
-                    isSynced={isSynced}
-                    connection={connection}
-                    onMapImageSet={alignMapImage}
-                  />
-                  {isSynced && <SceneTabs />}
-                  {connection === "disconnected" && (
-                    <Badge color="red" variant="light">
-                      Not connected. Changes are not saved yet.
-                    </Badge>
-                  )}
+          <DiceProvider>
+            <AppShell
+              header={{ height: 60 }}
+              aside={{
+                width: 320,
+                breakpoint: "sm",
+                collapsed: { mobile: !asideOpened },
+              }}
+            >
+              <AppShell.Header>
+                <Group h="100%" px="md" justify="space-between">
+                  <Group gap="sm">
+                    <AleaMenu
+                      isSynced={isSynced}
+                      connection={connection}
+                      onMapImageSet={alignMapImage}
+                    />
+                    {isSynced && <SceneTabs />}
+                    {connection === "disconnected" && (
+                      <Badge color="red" variant="light">
+                        Not connected. Changes are not saved yet.
+                      </Badge>
+                    )}
+                  </Group>
+                  <Group gap="xs">
+                    {isWide && playerControls}
+                    <MusicMenu />
+                    <Burger
+                      opened={asideOpened}
+                      onClick={toggleAside}
+                      hiddenFrom="sm"
+                      size="sm"
+                    />
+                  </Group>
                 </Group>
-                <Group gap="xs">
-                  {isWide && playerControls}
-                  <MusicMenu />
-                  <Burger
-                    opened={asideOpened}
-                    onClick={toggleAside}
-                    hiddenFrom="sm"
-                    size="sm"
-                  />
-                </Group>
-              </Group>
-            </AppShell.Header>
-            <AppShell.Main>
-              <ErrorBoundary FallbackComponent={MapError}>
-                <Board
-                  ref={board}
-                  onSelectedTokensChange={setSelectedTokens}
-                  awareness={awareness}
-                  isSynced={isSynced}
-                  critical={criticals.critical}
-                  onCriticalDone={criticals.clear}
-                />
-              </ErrorBoundary>
-            </AppShell.Main>
-            <AppShell.Aside>
-              <AppShell.Section grow component={ScrollArea} p="md">
-                <Stack>
-                  {!isWide && <Group gap="xs">{playerControls}</Group>}
-                  <FocusTokenContext value={focusToken}>
-                    <SelectedTokensContext value={selectedTokens}>
-                      <TokenPanel />
-                    </SelectedTokensContext>
-                  </FocusTokenContext>
-                  <DicePanel />
+              </AppShell.Header>
+              <AppShell.Main>
+                <Stack
+                  gap={0}
+                  h="calc(100dvh - var(--app-shell-header-height))"
+                >
+                  <Box flex={1} mih={0}>
+                    <ErrorBoundary FallbackComponent={MapError}>
+                      <Board
+                        ref={board}
+                        onSelectedTokensChange={setSelectedTokens}
+                        awareness={awareness}
+                        isSynced={isSynced}
+                        critical={criticals.critical}
+                        onCriticalDone={criticals.clear}
+                      />
+                    </ErrorBoundary>
+                  </Box>
+                  {hasDiceBar && <DiceBar />}
                 </Stack>
-              </AppShell.Section>
-            </AppShell.Aside>
-          </AppShell>
+              </AppShell.Main>
+              <AppShell.Aside>
+                <AppShell.Section grow component={ScrollArea} p="md">
+                  <Stack>
+                    {!isWide && <Group gap="xs">{playerControls}</Group>}
+                    <FocusTokenContext value={focusToken}>
+                      <SelectedTokensContext value={selectedTokens}>
+                        <TokenPanel />
+                      </SelectedTokensContext>
+                    </FocusTokenContext>
+                    {!hasDiceBar && <DicePanel />}
+                  </Stack>
+                </AppShell.Section>
+              </AppShell.Aside>
+            </AppShell>
+          </DiceProvider>
           <PlayerNameModal
             opened={needsName || isEditingName}
             currentName={name}

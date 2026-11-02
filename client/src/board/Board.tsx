@@ -357,7 +357,7 @@ export function Board({
       <Box
         ref={sizeRef}
         pos="relative"
-        h="calc(100dvh - var(--app-shell-header-height))"
+        h="100%"
         style={{
           cursor: cursorArrowCss(theme.colors[player.color][6]),
           // Otherwise the browser pans or zooms the page where no shape listens.
