@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { labelPlace } from "./labelSide";
+import { labelPlace } from "./labelPlace";
 
 const AT = { x: 100, y: 100 };
 

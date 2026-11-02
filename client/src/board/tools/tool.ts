@@ -26,7 +26,7 @@ export interface ToolPointer {
   event: KonvaEventObject<MouseEvent>;
 }
 
-export interface ToolPress extends ToolPointer {
+interface ToolPress extends ToolPointer {
   event: KonvaEventObject<PointerEvent>;
 }
 

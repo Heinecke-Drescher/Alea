@@ -12,7 +12,6 @@ interface TokenSizeControlProps {
   allows: (square: Square) => boolean;
 }
 
-// Grows and shrinks from the top left corner, inside the map.
 export function TokenSizeControl({
   room,
   tokenId,

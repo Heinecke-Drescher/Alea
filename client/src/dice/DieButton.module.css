@@ -1,10 +1,15 @@
 .button {
   display: block;
-  cursor: grab;
+  cursor: pointer;
 }
 
-.button[draggable="false"] {
-  cursor: pointer;
+.draggable {
+  composes: button;
+  cursor: grab;
+  /* The drag needs every move, so the browser must not take a touch for scrolling. */
+  touch-action: none;
+  /* Otherwise a mouse drag selects the page's text on its way to the map. */
+  user-select: none;
 }
 
 .die {

@@ -1,18 +1,12 @@
 import type { Stage as StageNode } from "konva/lib/Stage";
-import { useRef, type DragEvent, type RefObject } from "react";
-import { droppedDie, isDieDrag } from "../dice/dieDrag";
+import type { RefObject } from "react";
 import type { ScreenSample } from "../dice/throwDie";
-import {
-  dragVelocity,
-  SWING_WINDOW_MS,
-  throwPath,
-  type DragSample,
-} from "./dice/throwPath";
+import { dragVelocity, throwPath, type DragSample } from "./dice/throwPath";
 import { usePlayer } from "../player/PlayerContext";
 import { rollDie, type DieSides } from "../room/dice";
 import { cellAt, containsCell } from "../room/grid";
 import { useRoom } from "../room/RoomContext";
-import { dropPointOnMap, screenPointOnMap } from "./dropPoint";
+import { screenPointOnMap } from "./dropPoint";
 
 interface DieDropOptions {
   stageRef: RefObject<StageNode | null>;
@@ -21,19 +15,6 @@ interface DieDropOptions {
 export function useDieDrop({ stageRef }: DieDropOptions) {
   const room = useRoom();
   const player = usePlayer();
-  const dragSamples = useRef<DragSample[]>([]);
-
-  function trackDieDrag(event: DragEvent<HTMLElement>) {
-    if (!isDieDrag(event.dataTransfer)) return;
-    event.preventDefault();
-    const time = event.timeStamp;
-    dragSamples.current = [
-      ...dragSamples.current.filter(
-        (sample) => time - sample.time <= SWING_WINDOW_MS,
-      ),
-      { ...dropPointOnMap(stageRef.current, event), time },
-    ];
-  }
 
   // The last sample is where the die was let go; the ones before give the swing.
   function rollAlong(sides: DieSides, samples: DragSample[]) {
@@ -55,20 +36,7 @@ export function useDieDrop({ stageRef }: DieDropOptions) {
     );
   }
 
-  function rollDroppedDie(event: DragEvent<HTMLElement>) {
-    const sides = droppedDie(event.dataTransfer);
-    if (!sides) return;
-    event.preventDefault();
-    const point = dropPointOnMap(stageRef.current, event);
-    const samples = [
-      ...dragSamples.current,
-      { ...point, time: event.timeStamp },
-    ];
-    dragSamples.current = [];
-    rollAlong(sides, samples);
-  }
-
-  // A finger drags a die from the dice bar below the map, so its path comes in screen pixels.
+  // A die is dragged from outside the map, so its path comes in screen pixels.
   function rollFromScreen(sides: DieSides, samples: ScreenSample[]) {
     const stage = stageRef.current;
     if (!stage) throw new Error("Stage is not mounted");
@@ -86,5 +54,5 @@ export function useDieDrop({ stageRef }: DieDropOptions) {
     );
   }
 
-  return { onDragOver: trackDieDrag, onDrop: rollDroppedDie, rollFromScreen };
+  return { rollFromScreen };
 }

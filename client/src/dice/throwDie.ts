@@ -1,7 +1,7 @@
 import { createContext, useContext } from "react";
 import type { DieSides } from "../room/dice";
 
-// Where a finger was, in pixels of the browser window.
+// Where the pointer was, in pixels of the browser window.
 export interface ScreenSample {
   x: number;
   y: number;

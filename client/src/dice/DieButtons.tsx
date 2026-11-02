@@ -2,7 +2,7 @@ import { SimpleGrid, Switch, type MantineSpacing } from "@mantine/core";
 import { usePlayer } from "../player/PlayerContext";
 import { DIE_SIDES } from "../room/dice";
 import { DieButton } from "./DieButton";
-import { FingerDraggableDie } from "./FingerDraggableDie";
+import { DraggableDie } from "./DraggableDie";
 import { useDice } from "./useDice";
 
 interface DieButtonsProps {
@@ -21,11 +21,10 @@ export function DieButtons({ columns, spacing }: DieButtonsProps) {
             key={sides}
             sides={sides}
             color={color}
-            isDraggable={false}
             onRoll={() => roll(sides)}
           />
         ) : (
-          <FingerDraggableDie
+          <DraggableDie
             key={sides}
             sides={sides}
             color={color}

@@ -28,7 +28,7 @@ export interface View {
   y: number;
 }
 
-export interface Pinch {
+interface Pinch {
   center: Vector2d;
   distance: number;
 }

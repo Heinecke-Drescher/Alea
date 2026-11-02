@@ -1,7 +1,7 @@
 import { useMantineTheme } from "@mantine/core";
 import { Group } from "react-konva";
 import { highlightColor } from "../selection/highlight";
-import { ToolLabel } from "../tools/ToolLabel";
+import { MapLabel } from "../MapLabel";
 import { useStageZoom } from "../useStageZoom";
 
 interface TokenNameLabelProps {
@@ -18,7 +18,7 @@ export function TokenNameLabel({ name, size, gap }: TokenNameLabelProps) {
 
   return (
     <Group ref={groupRef} listening={false}>
-      <ToolLabel
+      <MapLabel
         at={bottom}
         awayFrom={{ x: size / 2, y: size / 2 }}
         gap={gap}

@@ -3,7 +3,6 @@ import type { PointerEventHandler } from "react";
 import type { DieSides } from "../room/dice";
 import type { PlayerColor } from "../room/playerColors";
 import { dieColors } from "./dieColors";
-import { startDieDrag } from "./dieDrag";
 import classes from "./DieButton.module.css";
 import { dieShape } from "./dieShapes";
 
@@ -51,49 +50,27 @@ export function DieFace({ sides, color }: DieFaceProps) {
   );
 }
 
-export interface FingerDragHandlers {
+interface DragHandlers {
   onPointerDown: PointerEventHandler<HTMLButtonElement>;
   onPointerMove: PointerEventHandler<HTMLButtonElement>;
   onPointerUp: PointerEventHandler<HTMLButtonElement>;
   onPointerCancel: PointerEventHandler<HTMLButtonElement>;
-  isPressed: () => boolean;
 }
 
 interface DieButtonProps {
   sides: DieSides;
   color: PlayerColor;
-  isDraggable: boolean;
   onRoll: () => void;
-  fingerDrag?: FingerDragHandlers;
+  drag?: DragHandlers;
 }
 
-export function DieButton({
-  sides,
-  color,
-  isDraggable,
-  onRoll,
-  fingerDrag,
-}: DieButtonProps) {
+export function DieButton({ sides, color, onRoll, drag }: DieButtonProps) {
   return (
     <UnstyledButton
-      className={classes.button}
-      // The finger drag needs every move, so the browser must not take the touch for scrolling.
-      style={fingerDrag && { touchAction: "none" }}
+      className={drag ? classes.draggable : classes.button}
       aria-label={`Roll d${sides}`}
-      draggable={isDraggable}
-      onDragStart={(event) => {
-        // Chrome on Android starts its own drag after a long press; the finger drags the die already.
-        if (fingerDrag?.isPressed()) {
-          event.preventDefault();
-          return;
-        }
-        startDieDrag(event.dataTransfer, sides);
-      }}
       onClick={onRoll}
-      onPointerDown={fingerDrag?.onPointerDown}
-      onPointerMove={fingerDrag?.onPointerMove}
-      onPointerUp={fingerDrag?.onPointerUp}
-      onPointerCancel={fingerDrag?.onPointerCancel}
+      {...drag}
     >
       <DieFace sides={sides} color={color} />
     </UnstyledButton>

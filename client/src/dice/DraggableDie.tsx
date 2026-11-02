@@ -2,10 +2,11 @@ import { Box, Portal } from "@mantine/core";
 import { useRef, useState, type PointerEvent } from "react";
 import type { DieSides } from "../room/dice";
 import type { PlayerColor } from "../room/playerColors";
+import { PRIMARY_BUTTON } from "../board/pointer";
 import { DieButton, DieFace } from "./DieButton";
 import { useThrowDie, type ScreenSample } from "./throwDie";
 
-// Below this a finger taps the die; beyond it, it drags the die towards the map.
+// Below this a press clicks the die; beyond it, it drags the die towards the map.
 const DRAG_DISTANCE = 10;
 // Only the end of the drag gives the throw its swing.
 const KEPT_SAMPLES_MS = 200;
@@ -26,19 +27,15 @@ interface Press {
   isDragging: boolean;
 }
 
-interface FingerDraggableDieProps {
+interface DraggableDieProps {
   sides: DieSides;
   color: PlayerColor;
   onRoll: () => void;
 }
 
 // Fingers and pens cannot use the browser's drag and drop in every browser, so the die follows
-// them itself. A mouse keeps the browser's drag.
-export function FingerDraggableDie({
-  sides,
-  color,
-  onRoll,
-}: FingerDraggableDieProps) {
+// every pointer itself.
+export function DraggableDie({ sides, color, onRoll }: DraggableDieProps) {
   const throwDie = useThrowDie();
   const press = useRef<Press | null>(null);
   const [ghostStart, setGhostStart] = useState<ScreenSample | null>(null);
@@ -57,13 +54,12 @@ export function FingerDraggableDie({
       <DieButton
         sides={sides}
         color={color}
-        isDraggable
         onRoll={() => {
           if (!ignoresClick.current) onRoll();
         }}
-        fingerDrag={{
+        drag={{
           onPointerDown(event) {
-            if (event.pointerType === "mouse" || press.current) return;
+            if (event.button !== PRIMARY_BUTTON || press.current) return;
             event.currentTarget.setPointerCapture(event.pointerId);
             const start = sampleOf(event);
             press.current = {
@@ -107,7 +103,6 @@ export function FingerDraggableDie({
           onPointerCancel(event) {
             if (press.current?.pointerId === event.pointerId) stop();
           },
-          isPressed: () => press.current !== null,
         }}
       />
       {ghostStart && (

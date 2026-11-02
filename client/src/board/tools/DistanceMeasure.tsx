@@ -1,7 +1,7 @@
 import { Group, Line } from "react-konva";
 import { CELL_SIZE, FEET_PER_CELL, squareCenter } from "../../room/grid";
 import { cellDistance, type Measurement } from "./measurement";
-import { ToolLabel } from "./ToolLabel";
+import { MapLabel } from "../MapLabel";
 import { useStageZoom } from "../useStageZoom";
 
 interface DistanceMeasureProps {
@@ -44,7 +44,7 @@ export function DistanceMeasure({ measurement, color }: DistanceMeasureProps) {
           />
         </Group>
       ))}
-      <ToolLabel
+      <MapLabel
         at={from}
         awayFrom={to}
         // Clear of the start cell, which often holds the measuring token.

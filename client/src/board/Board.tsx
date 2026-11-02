@@ -69,6 +69,7 @@ import { useFitOnNewMap } from "./useFitOnNewMap";
 import { useLongPress } from "./useLongPress";
 import { usePingBroadcast } from "./usePingBroadcast";
 import { useBoardDrops } from "./useBoardDrops";
+import { useDieDrop } from "./useDieDrop";
 import { ViewControls } from "./ViewControls";
 
 function pointerOnMap(event: KonvaEventObject<MouseEvent>) {
@@ -165,6 +166,7 @@ export function Board({
   const cursor = useCursorBroadcast(awareness);
   const sendPing = usePingBroadcast(awareness);
   const drops = useBoardDrops(stageRef, selectToken);
+  const dieDrop = useDieDrop({ stageRef });
   const backgroundImage = useBackgroundImage();
   useFitOnNewMap(fitMap, width > 0 && height > 0, isSynced);
 
@@ -391,7 +393,7 @@ export function Board({
   useImperativeHandle(ref, () => ({
     focusToken,
     alignMapImage: () => setTool("alignImage"),
-    throwDie: drops.rollFromScreen,
+    throwDie: dieDrop.rollFromScreen,
   }));
 
   return (
