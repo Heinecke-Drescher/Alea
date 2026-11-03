@@ -12,10 +12,12 @@ import {
   addTokenFromFile,
   TOKEN_FILE_MEGABYTES,
 } from "../tokens/addTokenFromFile";
+import { isTokenDrag } from "../tokens/tokenDrag";
 import { dropPointOnMap } from "./dropPoint";
 
+// Chrome adds the image of a token dragged from the list as a file named "download".
 function isFileDrag(dataTransfer: DataTransfer) {
-  return dataTransfer.types.includes("Files");
+  return dataTransfer.types.includes("Files") && !isTokenDrag(dataTransfer);
 }
 
 export function useImageDrop(stageRef: RefObject<StageNode | null>) {
