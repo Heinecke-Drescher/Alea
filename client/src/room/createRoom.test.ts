@@ -197,6 +197,42 @@ describe("addToken", () => {
   });
 });
 
+describe("addTokens", () => {
+  const GOBLINS = ["Goblin 1", "Goblin 2", "Goblin 3"].map((name) => ({
+    name,
+    imageDataUrl: IMAGE,
+  }));
+
+  it("places every token on its own free cell, skipping blocked ones", () => {
+    room.addToken("Dragon", IMAGE);
+    room.addTokens(GOBLINS, [{ x: 1, y: 0, size: 1 }]);
+    const positions = Array.from(room.tokensMap.values(), (t) => [t.x, t.y]);
+    expect(positions).toEqual(
+      expect.arrayContaining([
+        [0, 0],
+        [2, 0],
+        [3, 0],
+        [4, 0],
+      ]),
+    );
+    expect(room.imagesMap.size).toBe(4);
+  });
+
+  it("adds all tokens in one undo step", () => {
+    room.addTokens(GOBLINS);
+    expect(room.tokensMap.size).toBe(3);
+    room.undoManager.undo();
+    expect(room.tokensMap.size).toBe(0);
+    expect(room.imagesMap.size).toBe(0);
+  });
+
+  it("adds none when the map has no room for all", () => {
+    for (let i = 0; i < columns * rows - 2; i++) room.addToken("Crowd", IMAGE);
+    expect(() => room.addTokens(GOBLINS)).toThrow();
+    expect(room.tokensMap.size).toBe(columns * rows - 2);
+  });
+});
+
 describe("changing tokens", () => {
   it("resizes a token to a new place and size in a single undo step", () => {
     room.addToken("Dragon", IMAGE);

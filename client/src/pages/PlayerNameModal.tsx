@@ -1,19 +1,7 @@
-import {
-  Button,
-  CheckIcon,
-  ColorSwatch,
-  Group,
-  Modal,
-  Stack,
-  TextInput,
-  useMantineTheme,
-} from "@mantine/core";
+import { Button, Group, Modal, Stack, TextInput } from "@mantine/core";
 import { useState } from "react";
-import {
-  defaultPlayerColor,
-  PLAYER_COLORS,
-  type PlayerColor,
-} from "../room/playerColors";
+import { PlayerColorPicker } from "../player/PlayerColorPicker";
+import { defaultPlayerColor, type PlayerColor } from "../room/playerColors";
 
 const MAX_NAME_LENGTH = 32;
 
@@ -57,7 +45,6 @@ function PlayerForm({
   currentColor,
   onSave,
 }: Pick<PlayerNameModalProps, "currentName" | "currentColor" | "onSave">) {
-  const theme = useMantineTheme();
   const [name, setName] = useState(currentName);
   const [pickedColor, setPickedColor] = useState(currentColor);
   const trimmedName = name.trim();
@@ -78,21 +65,7 @@ function PlayerForm({
           placeholder="Shown next to your dice rolls"
           data-autofocus
         />
-        <Group gap={6}>
-          {PLAYER_COLORS.map((option) => (
-            <ColorSwatch
-              key={option}
-              component="button"
-              type="button"
-              color={theme.colors[option][6]}
-              size={26}
-              aria-label={`Use ${option}`}
-              onClick={() => setPickedColor(option)}
-            >
-              {option === color && <CheckIcon size={12} color="white" />}
-            </ColorSwatch>
-          ))}
-        </Group>
+        <PlayerColorPicker value={color} onChange={setPickedColor} />
         <Group justify="flex-end">
           <Button type="submit" color={color} disabled={!trimmedName}>
             Save

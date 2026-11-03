@@ -9,6 +9,11 @@ export type ImageSize = Pick<
 // sync quickly to every player.
 export const LARGE_IMAGE_SIZE = { maxWidth: 2500, maxHeight: 2500 };
 export const LARGE_IMAGE_FILE_MEGABYTES = 20;
+export const TOKEN_IMAGE_SIZE = {
+  width: 128,
+  height: 128,
+  resize: "cover",
+} as const;
 
 export async function createImage(
   file: File,

@@ -19,16 +19,41 @@ export function createTokens(
     cell?: { x: number; y: number },
     blocked: Square[] = [],
   ) {
-    const { x, y } = cell
+    const at = cell
       ? placeToken(mapBounds(), { ...cell, size: 1 }, 0, 0)
       : findFreeCell(blocked);
     undoManager.stopCapturing();
+    doc.transact(() => putToken(name, imageDataUrl, at));
+  }
+
+  // Cells are found before anything is added, so a full map adds none of them.
+  function addTokens(
+    tokens: { name: string; imageDataUrl: string }[],
+    blocked: Square[] = [],
+  ) {
+    const taken = [...blocked];
+    const placed = tokens.map((token) => {
+      const cell = findFreeCell(taken);
+      taken.push({ ...cell, size: 1 });
+      return { ...token, cell };
+    });
+    undoManager.stopCapturing();
+    doc.transact(() => {
+      for (const { name, imageDataUrl, cell } of placed) {
+        putToken(name, imageDataUrl, cell);
+      }
+    });
+  }
+
+  function putToken(
+    name: string,
+    imageDataUrl: string,
+    { x, y }: { x: number; y: number },
+  ) {
     const id = nanoid();
     const imageId = nanoid();
-    doc.transact(() => {
-      imagesMap.set(imageId, imageDataUrl);
-      tokensMap.set(id, { id, name, imageId, x, y, size: 1 });
-    });
+    imagesMap.set(imageId, imageDataUrl);
+    tokensMap.set(id, { id, name, imageId, x, y, size: 1 });
   }
 
   function renameToken(id: string, name: string) {
@@ -89,5 +114,12 @@ export function createTokens(
     throw new Error("No free cell left on the map");
   }
 
-  return { addToken, renameToken, toggleEffect, resizeToken, removeToken };
+  return {
+    addToken,
+    addTokens,
+    renameToken,
+    toggleEffect,
+    resizeToken,
+    removeToken,
+  };
 }

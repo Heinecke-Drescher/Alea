@@ -57,6 +57,13 @@ describe("room space", () => {
     );
   });
 
+  it("counts several new images together", () => {
+    expect(() => room.assertSpaceForImages([TWO_MB, TWO_MB])).not.toThrow();
+    expect(() => room.assertSpaceForImages([TWO_MB, TWO_MB, TWO_MB])).toThrow(
+      "Not enough space in this room for these images",
+    );
+  });
+
   it("frees the space of the image that gets replaced", () => {
     room.setBackground(THREE_MB);
     expect(() =>

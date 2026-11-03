@@ -49,6 +49,11 @@ export function createRoomSpace({ doc, imagesMap, undoManager }: RoomStore) {
     assertSpace(doc, image.length - replaced, "this image");
   }
 
+  function assertSpaceForImages(images: string[]) {
+    const added = images.reduce((sum, image) => sum + image.length, 0);
+    assertSpace(doc, added, "these images");
+  }
+
   // Y.UndoManager has no dry run, so a step that would overfill the room is taken back at
   // once, before the server saves. Steps that shrink the room always go through.
   function stepWithin(step: () => unknown, reverse: () => unknown) {
@@ -76,5 +81,5 @@ export function createRoomSpace({ doc, imagesMap, undoManager }: RoomStore) {
     );
   }
 
-  return { assertSpaceForImage, undo, redo };
+  return { assertSpaceForImage, assertSpaceForImages, undo, redo };
 }
