@@ -1,7 +1,7 @@
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
 import { Group } from "react-konva";
-import { hasCenterIn } from "../../room/areaActions";
+import { isTouchedBy } from "../../room/areaActions";
 import type { Token } from "../../room/roomStore";
 import { embeddedImage } from "../../room/tokens";
 import { useRoom } from "../../room/RoomContext";
@@ -51,7 +51,7 @@ export function Tokens({
           isHighlighted={
             selectedIds.includes(token.id) ||
             (selection !== null &&
-              hasCenterIn(selection, token.x, token.y, token.size))
+              isTouchedBy(selection, token.x, token.y, token.size))
           }
           onPress={(event) => onTokenPress(token.id, event)}
           onClick={(event) => onTokenClick(token.id, event)}

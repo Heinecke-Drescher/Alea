@@ -1,12 +1,7 @@
 import type { IRect } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import { tokenEffects, type StatusEffect } from "./effects";
-import {
-  CELL_SIZE,
-  nearestFreeSquare,
-  squareCenter,
-  type Square,
-} from "./grid";
+import { CELL_SIZE, nearestFreeSquare, type Square } from "./grid";
 import {
   isOverFog,
   newStroke,
@@ -77,13 +72,19 @@ function validTexts(values: unknown[]) {
   return values.flatMap((value) => validMapText(value) ?? []);
 }
 
-export function hasCenterIn(area: IRect, x: number, y: number, size: number) {
-  const center = squareCenter(x, y, size);
+// How far the area has to reach into a cell or token, so that only grazing it does not count.
+const TOUCH_BUFFER = 10;
+
+export function isTouchedBy(area: IRect, x: number, y: number, size: number) {
+  const left = x * CELL_SIZE + TOUCH_BUFFER;
+  const top = y * CELL_SIZE + TOUCH_BUFFER;
+  const right = (x + size) * CELL_SIZE - TOUCH_BUFFER;
+  const bottom = (y + size) * CELL_SIZE - TOUCH_BUFFER;
   return (
-    center.x >= area.x &&
-    center.x <= area.x + area.width &&
-    center.y >= area.y &&
-    center.y <= area.y + area.height
+    area.x < right &&
+    area.x + area.width > left &&
+    area.y < bottom &&
+    area.y + area.height > top
   );
 }
 
@@ -143,13 +144,13 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
 
   function cellsIn(area: IRect) {
     return Array.from(cellsMap.values()).filter((cell) =>
-      hasCenterIn(area, cell.x, cell.y, 1),
+      isTouchedBy(area, cell.x, cell.y, 1),
     );
   }
 
   function tokensIn(area: IRect) {
     return Array.from(tokensMap.values()).filter((token) =>
-      hasCenterIn(area, token.x, token.y, token.size),
+      isTouchedBy(area, token.x, token.y, token.size),
     );
   }
 

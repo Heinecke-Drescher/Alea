@@ -469,11 +469,18 @@ describe("moveArea", () => {
     height: height * CELL_SIZE,
   });
 
-  it("moves the cells whose center is inside the area", () => {
+  it("moves the cells inside the area", () => {
     room.paintCell(1, 1, "#ff0000");
     room.paintCell(5, 5, "#00ff00");
     room.moveArea({ x: 40, y: 40, width: 40, height: 40 }, 2, 3);
     expect(Object.keys(room.cellsMap.toJSON()).sort()).toEqual(["3,4", "5,5"]);
+  });
+
+  it("moves cells the area reaches into, but not the ones it grazes", () => {
+    room.paintCell(1, 1, "#ff0000");
+    room.paintCell(3, 1, "#00ff00");
+    room.moveArea({ x: 85, y: 50, width: 75, height: 50 }, 0, 2);
+    expect(Object.keys(room.cellsMap.toJSON()).sort()).toEqual(["1,3", "3,1"]);
   });
 
   it("paints over cells at the destination", () => {
@@ -485,7 +492,7 @@ describe("moveArea", () => {
     });
   });
 
-  it("moves tokens whose center is inside and keeps them on the map", () => {
+  it("moves tokens the area reaches into and keeps them on the map", () => {
     room.addToken("Dragon", IMAGE);
     room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
     room.moveArea(cellArea(1, 1, 1, 1), columns, 2);

@@ -1,7 +1,7 @@
 import { useMantineTheme } from "@mantine/core";
 import type { IRect } from "konva/lib/types";
 import { Group, Rect } from "react-konva";
-import { hasCenterIn } from "../../room/areaActions";
+import { isTouchedBy } from "../../room/areaActions";
 import { CELL_SIZE } from "../../room/grid";
 import { useRoom } from "../../room/RoomContext";
 import { useY } from "../../room/useY";
@@ -30,7 +30,7 @@ export function Cells({ selection }: CellsProps) {
       ))}
       {cells
         .filter(
-          ([, cell]) => selection && hasCenterIn(selection, cell.x, cell.y, 1),
+          ([, cell]) => selection && isTouchedBy(selection, cell.x, cell.y, 1),
         )
         .map(([key, cell]) => (
           <Rect
