@@ -1,4 +1,12 @@
-import { ActionIcon, Group, Menu, Stack, Title, Tooltip } from "@mantine/core";
+import {
+  ActionIcon,
+  Box,
+  Group,
+  Menu,
+  Stack,
+  Title,
+  Tooltip,
+} from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconPlus } from "@tabler/icons-react";
 import { useFogGuard } from "../fog/useFogGuard";
@@ -20,8 +28,9 @@ export function TokenPanel() {
   });
 
   return (
-    <Stack gap="xs">
-      <Group justify="space-between">
+    // Fills a panel of limited height and scrolls the list below the title.
+    <Stack gap="xs" mih={0} flex={1}>
+      <Group justify="space-between" wrap="nowrap">
         <Title order={4}>Tokens</Title>
         <Menu position="bottom-end" shadow="md">
           <Menu.Target>
@@ -39,7 +48,9 @@ export function TokenPanel() {
           </Menu.Dropdown>
         </Menu>
       </Group>
-      <TokenList />
+      <Box mih={0} style={{ overflowY: "auto", scrollbarWidth: "thin" }}>
+        <TokenList />
+      </Box>
       <PlaceholderModal
         opened={isPlaceholderOpen}
         onClose={placeholderModal.close}

@@ -16,6 +16,7 @@ import {
   IconEye,
   IconEyeOff,
 } from "@tabler/icons-react";
+import type { ComponentProps } from "react";
 import { FloatingPanel } from "../FloatingPanel";
 import { usePlayer } from "../player/PlayerContext";
 import { DieButtons } from "./DieButtons";
@@ -23,7 +24,6 @@ import { NewestRoll, RollHistory } from "./RollHistory";
 import { SecretRolls } from "./SecretRolls";
 import { useDice } from "./useDice";
 
-const TRAY_WIDTH = 240;
 const HISTORY_HEIGHT = 300;
 
 function SecretToggle() {
@@ -87,19 +87,10 @@ function TrayHistory() {
   );
 }
 
-// Always in the same place, so no player has to look for the dice or arrange them.
-export function DiceTray() {
+export function DiceTray(props: ComponentProps<typeof FloatingPanel>) {
   const { isSecret } = useDice();
   return (
-    <FloatingPanel
-      pos="absolute"
-      // Right above the zoom and undo buttons in the lower right corner.
-      right={12}
-      bottom={68}
-      w={TRAY_WIDTH}
-      pt="xs"
-      style={{ zIndex: 10 }}
-    >
+    <FloatingPanel pt="xs" {...props}>
       <Tooltip
         label={
           isSecret
@@ -108,7 +99,7 @@ export function DiceTray() {
         }
         openDelay={500}
         multiline
-        w={TRAY_WIDTH - 40}
+        w={200}
       >
         <Box
           mx="xs"

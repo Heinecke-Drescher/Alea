@@ -1,5 +1,4 @@
 import {
-  ActionIcon,
   AppShell,
   Badge,
   Box,
@@ -11,10 +10,8 @@ import {
   Stack,
   Text,
   Title,
-  Tooltip,
 } from "@mantine/core";
-import { useDisclosure, useHotkeys, useLocalStorage } from "@mantine/hooks";
-import { IconChessKnight } from "@tabler/icons-react";
+import { useDisclosure, useHotkeys } from "@mantine/hooks";
 import {
   useCallback,
   useEffect,
@@ -53,6 +50,7 @@ import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
 import { ColorSchemeToggle } from "./ColorSchemeToggle";
 import { DmControl } from "./DmControl";
+import { TokenDrawer } from "../tokens/TokenDrawer";
 import { useNarrowPortrait, useWideLayout } from "../theme";
 import { PlayerNameModal } from "./PlayerNameModal";
 
@@ -81,12 +79,6 @@ function RoomView({ roomId }: { roomId: string }) {
   const { room, awareness, isSynced, connection, isFull } =
     useRoomConnection(roomId);
   const [asideOpened, { toggle: toggleAside }] = useDisclosure();
-  // Like a box of tokens next to the table: open when needed, remembered per browser.
-  const [tokensOpened, setTokensOpened] = useLocalStorage({
-    key: "alea-tokens-opened",
-    defaultValue: true,
-    getInitialValueInEffect: false,
-  });
   const [isEditingName, { open: editName, close: stopEditingName }] =
     useDisclosure();
   const localPlayer = useLocalPlayer();
@@ -124,6 +116,15 @@ function RoomView({ roomId }: { roomId: string }) {
       </Button>
     </>
   );
+  const tokenPanel = (
+    <FocusTokenContext value={focusToken}>
+      <TokenMenuContext value={openTokenMenu}>
+        <SelectedTokensContext value={selectedTokens}>
+          <TokenPanel />
+        </SelectedTokensContext>
+      </TokenMenuContext>
+    </FocusTokenContext>
+  );
 
   // Only rooms that really loaded are worth finding again.
   useEffect(() => {
@@ -149,7 +150,8 @@ function RoomView({ roomId }: { roomId: string }) {
                 aside={{
                   width: 320,
                   breakpoint: "sm",
-                  collapsed: { mobile: !asideOpened, desktop: !tokensOpened },
+                  // Wide screens show the tokens in a panel over the map instead.
+                  collapsed: { mobile: !asideOpened, desktop: true },
                 }}
               >
                 <AppShell.Header>
@@ -176,21 +178,6 @@ function RoomView({ roomId }: { roomId: string }) {
                     </Group>
                     <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
                       {isWide && playerControls}
-                      {isWide && (
-                        <Tooltip
-                          label={tokensOpened ? "Hide tokens" : "Tokens"}
-                        >
-                          <ActionIcon
-                            variant={tokensOpened ? "light" : "subtle"}
-                            color="gray"
-                            aria-label={tokensOpened ? "Hide tokens" : "Tokens"}
-                            aria-pressed={tokensOpened}
-                            onClick={() => setTokensOpened(!tokensOpened)}
-                          >
-                            <IconChessKnight size={20} />
-                          </ActionIcon>
-                        </Tooltip>
-                      )}
                       <Burger
                         opened={asideOpened}
                         onClick={toggleAside}
@@ -216,7 +203,24 @@ function RoomView({ roomId }: { roomId: string }) {
                           onCriticalDone={criticals.clear}
                         />
                       </ErrorBoundary>
-                      {isWide && <DiceTray />}
+                      {isWide && (
+                        // Between the toolbar and the zoom buttons, so no panel covers another.
+                        <Stack
+                          pos="absolute"
+                          top={68}
+                          bottom={68}
+                          right={12}
+                          w={240}
+                          gap={12}
+                          style={{ pointerEvents: "none", zIndex: 10 }}
+                        >
+                          <TokenDrawer>{tokenPanel}</TokenDrawer>
+                          <DiceTray
+                            mt="auto"
+                            style={{ pointerEvents: "auto", flexShrink: 0 }}
+                          />
+                        </Stack>
+                      )}
                     </Box>
                     {hasDiceBar && <DiceBar />}
                   </Stack>
@@ -225,13 +229,7 @@ function RoomView({ roomId }: { roomId: string }) {
                   <AppShell.Section grow component={ScrollArea} p="md">
                     <Stack>
                       {!isWide && <Group gap="xs">{playerControls}</Group>}
-                      <FocusTokenContext value={focusToken}>
-                        <TokenMenuContext value={openTokenMenu}>
-                          <SelectedTokensContext value={selectedTokens}>
-                            <TokenPanel />
-                          </SelectedTokensContext>
-                        </TokenMenuContext>
-                      </FocusTokenContext>
+                      {!isWide && tokenPanel}
                       {!hasDiceBar && !isWide && <DicePanel />}
                     </Stack>
                   </AppShell.Section>
