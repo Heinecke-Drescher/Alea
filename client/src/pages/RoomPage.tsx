@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   AppShell,
   Badge,
   Box,
@@ -10,8 +11,10 @@ import {
   Stack,
   Text,
   Title,
+  Tooltip,
 } from "@mantine/core";
-import { useDisclosure, useHotkeys } from "@mantine/hooks";
+import { useDisclosure, useHotkeys, useLocalStorage } from "@mantine/hooks";
+import { IconChessKnight } from "@tabler/icons-react";
 import {
   useCallback,
   useEffect,
@@ -78,6 +81,12 @@ function RoomView({ roomId }: { roomId: string }) {
   const { room, awareness, isSynced, connection, isFull } =
     useRoomConnection(roomId);
   const [asideOpened, { toggle: toggleAside }] = useDisclosure();
+  // Like a box of tokens next to the table: open when needed, remembered per browser.
+  const [tokensOpened, setTokensOpened] = useLocalStorage({
+    key: "alea-tokens-opened",
+    defaultValue: true,
+    getInitialValueInEffect: false,
+  });
   const [isEditingName, { open: editName, close: stopEditingName }] =
     useDisclosure();
   const localPlayer = useLocalPlayer();
@@ -140,7 +149,7 @@ function RoomView({ roomId }: { roomId: string }) {
                 aside={{
                   width: 320,
                   breakpoint: "sm",
-                  collapsed: { mobile: !asideOpened },
+                  collapsed: { mobile: !asideOpened, desktop: !tokensOpened },
                 }}
               >
                 <AppShell.Header>
@@ -167,6 +176,21 @@ function RoomView({ roomId }: { roomId: string }) {
                     </Group>
                     <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
                       {isWide && playerControls}
+                      {isWide && (
+                        <Tooltip
+                          label={tokensOpened ? "Hide tokens" : "Tokens"}
+                        >
+                          <ActionIcon
+                            variant={tokensOpened ? "light" : "subtle"}
+                            color="gray"
+                            aria-label={tokensOpened ? "Hide tokens" : "Tokens"}
+                            aria-pressed={tokensOpened}
+                            onClick={() => setTokensOpened(!tokensOpened)}
+                          >
+                            <IconChessKnight size={20} />
+                          </ActionIcon>
+                        </Tooltip>
+                      )}
                       <Burger
                         opened={asideOpened}
                         onClick={toggleAside}
