@@ -6,6 +6,7 @@ import {
   Group,
   ScrollArea,
   Stack,
+  Text,
   Tooltip,
   UnstyledButton,
 } from "@mantine/core";
@@ -86,7 +87,8 @@ function TrayHistory() {
       >
         <Group wrap="nowrap" gap="xs">
           <Box flex={1} miw={0}>
-            <NewestRoll compact />
+            {/* Open, the list below starts with the newest roll itself. */}
+            {isOpen ? <Text size="sm">Rolls</Text> : <NewestRoll compact />}
           </Box>
           {isOpen ? <IconChevronDown size={18} /> : <IconChevronUp size={18} />}
         </Group>
