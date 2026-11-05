@@ -28,7 +28,6 @@ import {
   useCriticalRolls,
 } from "../dice/useCriticalRolls";
 import { MusicMenu } from "../music/MusicMenu";
-import { MusicPanel } from "../music/MusicPanel";
 import { RoomContext } from "../room/RoomContext";
 import { PlayerContext } from "../player/PlayerContext";
 import { recordVisit } from "../recentRooms/useRecentRooms";
@@ -90,8 +89,7 @@ function RoomView({ roomId }: { roomId: string }) {
     board.current?.throwDie(sides, samples);
   const isWide = useWideLayout();
   const hasDiceBar = useNarrowPortrait();
-  // On a narrow screen they and the music move from the header into the side panel, which has
-  // the room. Crossing the breakpoint loads the music player anew in its other place.
+  // On a narrow screen they move from the header into the side panel, which has the room.
   const playerControls = (
     <>
       {isSynced && !needsName && <DmControl awareness={awareness} />}
@@ -152,12 +150,8 @@ function RoomView({ roomId }: { roomId: string }) {
                       )}
                     </Group>
                     <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-                      {isWide && (
-                        <>
-                          {playerControls}
-                          <MusicMenu />
-                        </>
-                      )}
+                      {isWide && playerControls}
+                      <MusicMenu />
                       <Burger
                         opened={asideOpened}
                         onClick={toggleAside}
@@ -197,12 +191,6 @@ function RoomView({ roomId }: { roomId: string }) {
                         </SelectedTokensContext>
                       </FocusTokenContext>
                       {!hasDiceBar && <DicePanel />}
-                      {!isWide && (
-                        <Stack gap="xs">
-                          <Title order={4}>Music</Title>
-                          <MusicPanel />
-                        </Stack>
-                      )}
                     </Stack>
                   </AppShell.Section>
                 </AppShell.Aside>

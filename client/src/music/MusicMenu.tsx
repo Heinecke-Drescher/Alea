@@ -2,8 +2,8 @@ import { ActionIcon, Popover, Tooltip } from "@mantine/core";
 import { IconMusic } from "@tabler/icons-react";
 import { MusicPanel } from "./MusicPanel";
 
-// Wide enough for YouTube to show its volume control.
-const MENU_WIDTH = 800;
+// Wide enough for YouTube to show its volume control, yet within a phone's screen.
+const MENU_WIDTH = "min(800px, calc(100vw - 32px))";
 
 export function MusicMenu() {
   return (
