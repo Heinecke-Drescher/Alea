@@ -14,7 +14,7 @@ export interface Placeholders {
   name: string;
   count: number;
   color: PlayerColor;
-  // Without an icon, each placeholder shows its initial and number instead.
+  // Without an icon, each placeholder shows its initial and number instead, if it has them.
   icon: PlaceholderIcon | null;
 }
 
@@ -22,10 +22,15 @@ export function placeholderNames(name: string, count: number) {
   if (!Number.isInteger(count) || count < 1 || count > MAX_PLACEHOLDERS) {
     throw new Error(`Invalid placeholder count ${count}`);
   }
-  const initial = initialOf(name);
-  if (count === 1) return [{ name, label: initial, number: null }];
+  const trimmed = name.trim();
+  const initial = trimmed === "" ? "" : initialOf(trimmed);
+  if (count === 1) {
+    return [
+      { name: trimmed, label: initial === "" ? null : initial, number: null },
+    ];
+  }
   return Array.from({ length: count }, (_, index) => ({
-    name: `${name} ${index + 1}`,
+    name: trimmed === "" ? `${index + 1}` : `${trimmed} ${index + 1}`,
     label: `${initial}${index + 1}`,
     number: index + 1,
   }));
@@ -53,7 +58,7 @@ export async function addPlaceholders(
 
 // Some letters grow when upper-cased (ß becomes SS) and would not fit.
 function initialOf(name: string) {
-  const [initial] = visibleCharacters(name.trim());
+  const [initial] = visibleCharacters(name);
   if (!initial) throw new Error("A placeholder needs a name");
   const upper = initial.toUpperCase();
   return visibleCharacters(upper).length === 1 ? upper : initial;

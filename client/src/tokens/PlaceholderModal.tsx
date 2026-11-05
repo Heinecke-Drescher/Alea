@@ -73,8 +73,7 @@ function PlaceholderForm({ onDone }: { onDone: () => void }) {
   const [content, setContent] = useState<"letter" | "icon">("letter");
   const [icon, setIcon] = useState<PlaceholderIcon>("chest");
   const [isAdding, setIsAdding] = useState(false);
-  const trimmedName = name.trim();
-  const canAdd = trimmedName !== "" && typeof count === "number" && !isAdding;
+  const canAdd = typeof count === "number" && !isAdding;
 
   return (
     <form
@@ -86,7 +85,7 @@ function PlaceholderForm({ onDone }: { onDone: () => void }) {
           room,
           theme,
           {
-            name: trimmedName,
+            name,
             count,
             color,
             icon: content === "icon" ? icon : null,

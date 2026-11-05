@@ -47,8 +47,9 @@ const ICON_SVGS: Record<PlaceholderIcon, string> = {
   pin: mapPinSvg,
 };
 
+// Without a label the token is a plain disc in the player color.
 export type PlaceholderContent =
-  { label: string } | { icon: PlaceholderIcon; number: number | null };
+  { label: string | null } | { icon: PlaceholderIcon; number: number | null };
 
 const SIZE = 128;
 const ICON_SIZE = 80;
@@ -67,11 +68,21 @@ export function placeholderSvg(
   const ink = isLightColor(fill, theme.luminanceThreshold)
     ? theme.black
     : theme.white;
-  const inner =
-    "label" in content
-      ? labelSvg(content.label, ink, theme.fontFamily)
-      : numberedIconSvg(content.icon, content.number, fill, ink, theme);
+  const inner = contentSvg(content, fill, ink, theme);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}"><rect width="${SIZE}" height="${SIZE}" fill="${fill}"/>${inner}</svg>`;
+}
+
+function contentSvg(
+  content: PlaceholderContent,
+  fill: string,
+  ink: string,
+  theme: MantineTheme,
+) {
+  if (!("label" in content)) {
+    return numberedIconSvg(content.icon, content.number, fill, ink, theme);
+  }
+  if (content.label === null) return "";
+  return labelSvg(content.label, ink, theme.fontFamily);
 }
 
 export function createPlaceholderImage(

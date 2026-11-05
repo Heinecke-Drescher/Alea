@@ -37,12 +37,32 @@ describe("placeholderNames", () => {
     ).not.toThrow();
   });
 
-  it("rejects invalid counts and names", () => {
+  it("leaves a single placeholder without a name blank", () => {
+    expect(placeholderNames("  ", 1)).toEqual([
+      { name: "", label: null, number: null },
+    ]);
+  });
+
+  it("names and labels placeholders without a name by their number", () => {
+    expect(placeholderNames("", 2)).toEqual([
+      { name: "1", label: "1", number: 1 },
+      { name: "2", label: "2", number: 2 },
+    ]);
+  });
+
+  it("trims the name", () => {
+    expect(placeholderNames(" Ogre ", 2)[0]).toEqual({
+      name: "Ogre 1",
+      label: "O1",
+      number: 1,
+    });
+  });
+
+  it("rejects invalid counts", () => {
     for (const count of [0, 1.5, MAX_PLACEHOLDERS + 1]) {
       expect(() => placeholderNames("Goblin", count)).toThrow(
         "Invalid placeholder count",
       );
     }
-    expect(() => placeholderNames("  ", 1)).toThrow("needs a name");
   });
 });

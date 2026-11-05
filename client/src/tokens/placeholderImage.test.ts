@@ -34,6 +34,12 @@ describe("placeholderSvg", () => {
     expect(svg).toContain('font-size="72"');
   });
 
+  it("draws only the player color without a label", () => {
+    const svg = placeholderSvg({ label: null }, "blue", DEFAULT_THEME);
+    expect(svg).toContain(`fill="${DEFAULT_THEME.colors.blue[6]}"/></svg>`);
+    expect(svg).not.toContain("<text");
+  });
+
   it("rejects empty, blank and too long labels", () => {
     for (const label of ["", " ", "G123"]) {
       expect(() => placeholderSvg({ label }, "blue", DEFAULT_THEME)).toThrow(
