@@ -81,7 +81,7 @@ export function useTokenMenu(
     return (close) => (
       <>
         <ContextMenuItem
-          title="Rename…"
+          title="Rename"
           icon={<IconCursorText size={16} />}
           onClick={() => openRenameDialog(room, token.id)}
           onHide={close}

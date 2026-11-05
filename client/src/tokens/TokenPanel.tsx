@@ -41,9 +41,9 @@ export function TokenPanel() {
             </Tooltip>
           </Menu.Target>
           <Menu.Dropdown>
-            <Menu.Item onClick={chooseTokens}>Upload images…</Menu.Item>
+            <Menu.Item onClick={chooseTokens}>Upload images</Menu.Item>
             <Menu.Item onClick={placeholderModal.open}>
-              Add placeholders…
+              Add placeholders
             </Menu.Item>
           </Menu.Dropdown>
         </Menu>

@@ -23,12 +23,12 @@ export function MapMenuItems({
         </>
       )}
       {files.canImport && (
-        <Menu.Item onClick={files.importMap}>Import map…</Menu.Item>
+        <Menu.Item onClick={files.importMap}>Import map</Menu.Item>
       )}
       <Menu.Item onClick={files.exportMap}>Export map</Menu.Item>
       <Menu.Divider />
       {mapImage.canSet && (
-        <Menu.Item onClick={mapImage.chooseMapImage}>Set map image…</Menu.Item>
+        <Menu.Item onClick={mapImage.chooseMapImage}>Set map image</Menu.Item>
       )}
       {mapImage.canSet && mapImage.hasMapImage && (
         <Menu.Item color="red" onClick={mapImage.removeMapImage}>
@@ -36,7 +36,7 @@ export function MapMenuItems({
         </Menu.Item>
       )}
       <Menu.Item onClick={background.chooseBackground}>
-        Set background…
+        Set background
       </Menu.Item>
       {background.hasBackground && (
         <Menu.Item color="red" onClick={background.removeBackground}>
@@ -46,7 +46,7 @@ export function MapMenuItems({
       {(drawings.canClear || scene) && <Menu.Divider />}
       {drawings.canClear && (
         <Menu.Item color="red" onClick={drawings.clearDrawings}>
-          Clear drawings…
+          Clear drawings
         </Menu.Item>
       )}
       {scene && (
@@ -55,7 +55,7 @@ export function MapMenuItems({
           disabled={!scene.canDelete}
           onClick={scene.deleteScene}
         >
-          Delete scene…
+          Delete scene
         </Menu.Item>
       )}
     </>

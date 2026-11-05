@@ -218,7 +218,7 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
                                 },
                                 {
                                   key: "delete",
-                                  title: "Delete scene…",
+                                  title: "Delete scene",
                                   icon: <IconTrash size={16} />,
                                   color: "red",
                                   onClick: () => confirmDelete(tab),
