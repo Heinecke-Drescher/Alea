@@ -1,19 +1,16 @@
-import { useMantineTheme } from "@mantine/core";
 import { Grayscale } from "konva/lib/filters/Grayscale";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Image as ImageNode } from "konva/lib/shapes/Image";
 import { useEffect, useRef } from "react";
-import { Circle, Group, Image } from "react-konva";
+import { Group, Image } from "react-konva";
 import useImage from "use-image";
 import { tokenEffects } from "../../room/effects";
 import type { Token } from "../../room/roomStore";
 import { CELL_SIZE } from "../../room/grid";
-import { HIGHLIGHT_OPACITY, highlightColor } from "../selection/highlight";
+import { SelectionRing, SelectionTint } from "./SelectionRing";
 import { TokenEffects } from "./TokenEffects";
 import { TokenNameLabel } from "./TokenNameLabel";
 import { TOKEN_BODY_NAME, TOKEN_NAME } from "./tokenNodes";
-
-const HIGHLIGHT_RING = 10;
 
 interface TokenViewProps {
   token: Token;
@@ -34,7 +31,6 @@ export function TokenView({
   onClick,
   onContextMenu,
 }: TokenViewProps) {
-  const theme = useMantineTheme();
   const [image, status] = useImage(imageDataUrl);
   const imageRef = useRef<ImageNode>(null);
   const size = token.size * CELL_SIZE;
@@ -66,17 +62,7 @@ export function TokenView({
       onPointerClick={onClick}
       onContextMenu={onContextMenu}
     >
-      {isHighlighted && (
-        <Circle
-          x={size / 2}
-          y={size / 2}
-          radius={size / 2 + HIGHLIGHT_RING / 2}
-          stroke={highlightColor(theme)}
-          strokeWidth={HIGHLIGHT_RING}
-          opacity={HIGHLIGHT_OPACITY}
-          listening={false}
-        />
-      )}
+      {isHighlighted && <SelectionRing size={size} />}
       <Group
         name={TOKEN_BODY_NAME}
         x={size / 2}
@@ -92,11 +78,11 @@ export function TokenView({
           cornerRadius={size / 2}
           filters={isOutOfFight ? [Grayscale] : []}
         />
+        {isHighlighted && <SelectionTint size={size} />}
         <TokenEffects effects={effects} tokenSize={token.size} />
       </Group>
       {isHighlighted && token.name && (
-        // Clear of the highlight ring.
-        <TokenNameLabel name={token.name} size={size} gap={HIGHLIGHT_RING} />
+        <TokenNameLabel name={token.name} size={size} />
       )}
     </Group>
   );
