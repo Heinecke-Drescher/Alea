@@ -27,6 +27,7 @@ import { Board, type BoardHandle } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { DiceBar } from "../dice/DiceBar";
 import { DicePanel } from "../dice/DicePanel";
+import { DiceTray } from "../dice/DiceTray";
 import { DiceProvider } from "../dice/DiceProvider";
 import { ThrowDieContext, type ScreenSample } from "../dice/throwDie";
 import type { DieSides } from "../room/dice";
@@ -180,7 +181,7 @@ function RoomView({ roomId }: { roomId: string }) {
                     gap={0}
                     h="calc(100dvh - var(--app-shell-header-height))"
                   >
-                    <Box flex={1} mih={0}>
+                    <Box flex={1} mih={0} pos="relative">
                       <ErrorBoundary FallbackComponent={MapError}>
                         <Board
                           ref={board}
@@ -191,6 +192,7 @@ function RoomView({ roomId }: { roomId: string }) {
                           onCriticalDone={criticals.clear}
                         />
                       </ErrorBoundary>
+                      {isWide && <DiceTray />}
                     </Box>
                     {hasDiceBar && <DiceBar />}
                   </Stack>
