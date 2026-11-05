@@ -1,10 +1,9 @@
-import { useMantineTheme } from "@mantine/core";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
-import { Group, Rect } from "react-konva";
+import { Group } from "react-konva";
 import { useRoom } from "../../room/RoomContext";
 import { CELL_SIZE } from "../../room/grid";
-import { highlightColor } from "./highlight";
+import { DashedFrame } from "./DashedFrame";
 import { cellOffset } from "./selection";
 
 interface SelectionFrameProps {
@@ -25,8 +24,6 @@ export function SelectionFrame({
   onMove,
 }: SelectionFrameProps) {
   const room = useRoom();
-  const theme = useMantineTheme();
-  const color = highlightColor(theme);
 
   function snapToCells(event: KonvaEventObject<DragEvent>, frame: IRect) {
     const node = event.target;
@@ -35,29 +32,24 @@ export function SelectionFrame({
     return { dx, dy };
   }
 
+  if (!area) return null;
+
   return (
-    <Group>
-      {area && (
-        <Rect
-          {...area}
-          fill={color}
-          opacity={0.15}
-          stroke={color}
-          strokeWidth={2}
-          dash={[8, 4]}
-          strokeScaleEnabled={false}
-          draggable={draggable}
-          onMouseEnter={(event) => setCursor(event, "move")}
-          onMouseLeave={(event) => setCursor(event, "")}
-          onDragMove={(event) => snapToCells(event, area)}
-          onDragEnd={(event) => {
-            const { dx, dy } = snapToCells(event, area);
-            // React draws the frame from the selection, so the node goes back first.
-            event.target.position({ x: area.x, y: area.y });
-            onMove(dx, dy);
-          }}
-        />
-      )}
+    <Group
+      x={area.x}
+      y={area.y}
+      draggable={draggable}
+      onMouseEnter={(event) => setCursor(event, "move")}
+      onMouseLeave={(event) => setCursor(event, "")}
+      onDragMove={(event) => snapToCells(event, area)}
+      onDragEnd={(event) => {
+        const { dx, dy } = snapToCells(event, area);
+        // React draws the frame from the selection, so the node goes back first.
+        event.target.position({ x: area.x, y: area.y });
+        onMove(dx, dy);
+      }}
+    >
+      <DashedFrame width={area.width} height={area.height} />
     </Group>
   );
 }
