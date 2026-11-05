@@ -54,6 +54,11 @@ import { TokenDrawer } from "../tokens/TokenDrawer";
 import { useNarrowPortrait, useWideLayout } from "../theme";
 import { PlayerNameModal } from "./PlayerNameModal";
 
+// The column of panels over the right edge of the map on wide screens.
+const PANEL_COLUMN_WIDTH = 240;
+const PANEL_COLUMN_RIGHT = 12;
+const PANEL_GAP = 12;
+
 export function RoomPage() {
   const { roomId } = useParams();
   if (!roomId) throw new Error("Room page without room id");
@@ -197,6 +202,13 @@ function RoomView({ roomId }: { roomId: string }) {
                         <Board
                           ref={board}
                           onSelectedTokensChange={setSelectedTokens}
+                          coveredRight={
+                            isWide
+                              ? PANEL_COLUMN_RIGHT +
+                                PANEL_COLUMN_WIDTH +
+                                PANEL_GAP
+                              : 0
+                          }
                           awareness={awareness}
                           isSynced={isSynced}
                           critical={criticals.critical}
@@ -209,9 +221,9 @@ function RoomView({ roomId }: { roomId: string }) {
                           pos="absolute"
                           top={68}
                           bottom={68}
-                          right={12}
-                          w={240}
-                          gap={12}
+                          right={PANEL_COLUMN_RIGHT}
+                          w={PANEL_COLUMN_WIDTH}
+                          gap={PANEL_GAP}
                           style={{ pointerEvents: "none", zIndex: 10 }}
                         >
                           <TokenDrawer>{tokenPanel}</TokenDrawer>

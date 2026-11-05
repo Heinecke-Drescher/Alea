@@ -86,11 +86,15 @@ function pinchOf(stage: StageNode): Pinch | null {
   };
 }
 
+// `coveredRight` is the width of the panels over the right edge of the stage, which the map keeps clear of.
 export function fittedView(
   map: IRect,
   stage: { width: number; height: number },
+  coveredRight: number,
 ): View {
-  const width = stage.width - 2 * VIEW_MARGIN;
+  const left = VIEW_MARGIN;
+  const right = stage.width - Math.max(VIEW_MARGIN, coveredRight);
+  const width = right - left;
   const height = stage.height - 2 * VIEW_MARGIN;
   const scale = clamp(
     Math.min(width / map.width, height / map.height),
@@ -99,7 +103,7 @@ export function fittedView(
   );
   return {
     scale,
-    x: stage.width / 2 - (map.x + map.width / 2) * scale,
+    x: (left + right) / 2 - (map.x + map.width / 2) * scale,
     y: stage.height / 2 - (map.y + map.height / 2) * scale,
   };
 }
@@ -134,6 +138,7 @@ export function wheelPixels(
 export function useBoardView(
   room: Room,
   stageRef: RefObject<StageNode | null>,
+  coveredRight: number,
 ) {
   const lastPinch = useRef<Pinch | null>(null);
 
@@ -207,7 +212,11 @@ export function useBoardView(
 
   function fitMap() {
     const stage = mountedStage();
-    const { scale, x, y } = fittedView(mapRect(room.mapBounds()), stage.size());
+    const { scale, x, y } = fittedView(
+      mapRect(room.mapBounds()),
+      stage.size(),
+      coveredRight,
+    );
     stage.scale({ x: scale, y: scale });
     stage.position({ x, y });
   }

@@ -148,7 +148,7 @@ describe("fittedView", () => {
 
   it("shows the whole map clear of the toolbar and the fit button", () => {
     const map = { x: -500, y: 0, width: 1500, height: 1000 };
-    const view = fittedView(map, stage);
+    const view = fittedView(map, stage, 0);
     const topLeft = onScreen(view, map.x, map.y);
     const bottomRight = onScreen(view, map.x + map.width, map.y + map.height);
     // The map fills the width exactly, up to rounding.
@@ -160,17 +160,27 @@ describe("fittedView", () => {
 
   it("centers the map", () => {
     const map = { x: 0, y: 0, width: 500, height: 500 };
-    const view = fittedView(map, stage);
+    const view = fittedView(map, stage, 0);
     const middle = onScreen(view, 250, 250);
     expect(middle.x).toBeCloseTo(stage.width / 2);
     expect(middle.y).toBeCloseTo(stage.height / 2);
   });
 
+  it("keeps the map clear of panels over the right edge", () => {
+    const map = { x: 0, y: 0, width: 1500, height: 1000 };
+    const covered = 264;
+    const view = fittedView(map, stage, covered);
+    const topLeft = onScreen(view, map.x, map.y);
+    const bottomRight = onScreen(view, map.x + map.width, map.y + map.height);
+    expect(topLeft.x).toBeCloseTo(VIEW_MARGIN);
+    expect(bottomRight.x).toBeCloseTo(stage.width - covered);
+  });
+
   it("stays between the smallest and the largest zoom", () => {
     const tiny = { x: 0, y: 0, width: 10, height: 10 };
     const huge = { x: 0, y: 0, width: 100_000, height: 100_000 };
-    expect(fittedView(tiny, stage).scale).toBe(MAX_ZOOM);
-    expect(fittedView(huge, stage).scale).toBe(MIN_ZOOM);
+    expect(fittedView(tiny, stage, 0).scale).toBe(MAX_ZOOM);
+    expect(fittedView(huge, stage, 0).scale).toBe(MIN_ZOOM);
   });
 });
 

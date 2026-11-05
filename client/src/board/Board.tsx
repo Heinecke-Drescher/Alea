@@ -79,6 +79,8 @@ interface BoardProps {
   critical: Critical | null;
   onCriticalDone: (id: string) => void;
   onSelectedTokensChange: (ids: readonly string[]) => void;
+  // Width of the panels over the right edge of the board, which a fitted map keeps clear of.
+  coveredRight: number;
   ref: Ref<BoardHandle>;
 }
 
@@ -88,6 +90,7 @@ export function Board({
   critical,
   onCriticalDone,
   onSelectedTokensChange,
+  coveredRight,
   ref,
 }: BoardProps) {
   const room = useRoom();
@@ -129,7 +132,7 @@ export function Board({
     centerOn,
     zoomIn,
     zoomOut,
-  } = useBoardView(room, stageRef);
+  } = useBoardView(room, stageRef, coveredRight);
   const cursor = useCursorBroadcast(awareness);
   const isSelecting = activeTool.selectsItems;
   const input = useBoardInput({
