@@ -13,7 +13,7 @@ import { theme } from "./theme";
 
 export function App() {
   return (
-    <MantineProvider theme={theme} defaultColorScheme="auto">
+    <MantineProvider theme={theme} defaultColorScheme="dark">
       <Notifications />
       <ModalsProvider>
         <ContextMenuProvider>
