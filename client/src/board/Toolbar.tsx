@@ -6,6 +6,7 @@ import {
   Menu,
   Popover,
   Stack,
+  Text,
   Tooltip,
   useMantineTheme,
 } from "@mantine/core";
@@ -39,10 +40,17 @@ interface ToolButton {
   tool: Tool;
   label: string;
   icon: Icon;
+  // Shown below the label, for what the tool does that no button shows.
+  hint?: string;
 }
 
 const MAP_TOOLS: ToolButton[] = [
-  { tool: "select", label: "Select and move", icon: IconPointer },
+  {
+    tool: "select",
+    label: "Select and move",
+    icon: IconPointer,
+    hint: "Right-click for the menu, double-click to ping",
+  },
   { tool: "measure", label: "Measure distance", icon: IconRuler },
 ];
 
@@ -109,9 +117,25 @@ export function Toolbar({
   const pickedFromMenu = menuTools.find(({ tool }) => tool === activeTool);
   const MenuIcon = pickedFromMenu ? pickedFromMenu.icon : IconDots;
 
-  function toolButton({ tool, label, icon: ToolIcon }: ToolButton) {
+  function toolButton({ tool, label, icon: ToolIcon, hint }: ToolButton) {
     return (
-      <Tooltip key={tool} label={label} position="bottom">
+      <Tooltip
+        key={tool}
+        label={
+          hint ? (
+            <>
+              {label}
+              {/* Dimmed by opacity, as the tooltip's colors flip with the color scheme. */}
+              <Text size="xs" opacity={0.75}>
+                {hint}
+              </Text>
+            </>
+          ) : (
+            label
+          )
+        }
+        position="bottom"
+      >
         <ActionIcon
           variant={tool === activeTool ? "filled" : "subtle"}
           size="lg"

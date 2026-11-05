@@ -30,6 +30,14 @@ export function TokenList() {
   const selected = useSelectedTokens();
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  if (tokens.length === 0) {
+    return (
+      <Text size="sm" c="dimmed">
+        No tokens yet. Add them with +, or drop images onto the map.
+      </Text>
+    );
+  }
+
   return (
     <Stack gap={4}>
       {tokens.map((token) => {
