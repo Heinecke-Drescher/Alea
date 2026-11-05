@@ -1,39 +1,32 @@
-import { rgba, useComputedColorScheme, useMantineTheme } from "@mantine/core";
+import { rgba, useMantineTheme } from "@mantine/core";
 import { Circle, Group } from "react-konva";
-import { mapFillColor } from "../map/mapColors";
-import { highlightColor } from "../selection/highlight";
+import {
+  highlightColor,
+  OUTLINE_EDGE_WIDTH,
+  OUTLINE_WIDTH,
+  useOutlineColors,
+} from "../selection/highlight";
 import { useStageZoom } from "../useStageZoom";
 
-// In screen pixels, so the ring looks the same at every zoom. It touches the token, because a
-// gap shows every fraction of a pixel the token is drawn off by when zoomed out. The inner half
-// of the edge lies under the token.
-const RING_WIDTH = 3;
-const EDGE_WIDTH = 1;
-export const RING_OUTSIDE = RING_WIDTH + EDGE_WIDTH;
-
 export function SelectionRing({ size }: { size: number }) {
-  const theme = useMantineTheme();
-  const colorScheme = useComputedColorScheme("light");
+  const { color, edge } = useOutlineColors();
   const { groupRef, zoom } = useStageZoom();
   const ring = {
     x: size / 2,
     y: size / 2,
-    radius: size / 2 + RING_WIDTH / 2 / zoom,
+    radius: size / 2 + OUTLINE_WIDTH / 2 / zoom,
     strokeScaleEnabled: false,
   };
 
+  // The inner half of the edge lies under the token.
   return (
     <Group ref={groupRef} listening={false}>
       <Circle
         {...ring}
-        stroke={mapFillColor(theme, colorScheme)}
-        strokeWidth={RING_WIDTH + 2 * EDGE_WIDTH}
+        stroke={edge}
+        strokeWidth={OUTLINE_WIDTH + 2 * OUTLINE_EDGE_WIDTH}
       />
-      <Circle
-        {...ring}
-        stroke={highlightColor(theme)}
-        strokeWidth={RING_WIDTH}
-      />
+      <Circle {...ring} stroke={color} strokeWidth={OUTLINE_WIDTH} />
     </Group>
   );
 }

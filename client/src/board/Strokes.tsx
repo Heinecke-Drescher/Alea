@@ -1,4 +1,4 @@
-import { alpha, useMantineTheme } from "@mantine/core";
+import { alpha } from "@mantine/core";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
 import { Group, Line } from "react-konva";
@@ -6,11 +6,15 @@ import { isClosed, isOverFog } from "../room/drawing";
 import { useRoom } from "../room/RoomContext";
 import { strokeTouches } from "../room/strokeTouches";
 import { useY } from "../room/useY";
-import { HIGHLIGHT_OPACITY, highlightColor } from "./selection/highlight";
+import {
+  OUTLINE_OUTSIDE,
+  OUTLINE_WIDTH,
+  useOutlineColors,
+} from "./selection/highlight";
+import { useStageZoom } from "./useStageZoom";
 
 const STROKE_WIDTH = 4;
 const HIT_WIDTH = 16;
-const HIGHLIGHT_WIDTH = 14;
 const SHAPE_FILL_OPACITY = 0.25;
 const LINE_SHAPE = {
   tension: 0.5,
@@ -76,6 +80,37 @@ export function StrokeLine({
   );
 }
 
+// Drawn under the stroke and as wide as it plus the outline on both sides, so it touches it.
+// The id as name lets item drags move it along with its stroke.
+function StrokeOutline({
+  id,
+  points,
+  closed,
+}: {
+  id: string;
+  points: number[];
+  closed: boolean | undefined;
+}) {
+  const { color, edge } = useOutlineColors();
+  const { groupRef, zoom } = useStageZoom();
+  const line = { ...lineShape(closed), points };
+
+  return (
+    <Group ref={groupRef} name={id} listening={false}>
+      <Line
+        {...line}
+        stroke={edge}
+        strokeWidth={STROKE_WIDTH + (2 * OUTLINE_OUTSIDE) / zoom}
+      />
+      <Line
+        {...line}
+        stroke={color}
+        strokeWidth={STROKE_WIDTH + (2 * OUTLINE_WIDTH) / zoom}
+      />
+    </Group>
+  );
+}
+
 export function Strokes({
   overFog,
   draft,
@@ -87,7 +122,6 @@ export function Strokes({
   onStrokeClick,
 }: StrokesProps) {
   const room = useRoom();
-  const theme = useMantineTheme();
   const strokes = Object.values(useY(room.strokesMap)).filter(
     (stroke) => isOverFog(stroke) === overFog,
   );
@@ -109,15 +143,11 @@ export function Strokes({
       }}
     >
       {selected.map((stroke) => (
-        <Line
-          {...lineShape(isClosed(stroke))}
+        <StrokeOutline
           key={`highlight-${stroke.id}`}
-          name={stroke.id}
+          id={stroke.id}
           points={stroke.points}
-          stroke={highlightColor(theme)}
-          strokeWidth={HIGHLIGHT_WIDTH}
-          opacity={HIGHLIGHT_OPACITY}
-          listening={false}
+          closed={isClosed(stroke)}
         />
       ))}
       {strokes.map((stroke) => (

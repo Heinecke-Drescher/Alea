@@ -1,12 +1,11 @@
 import { useMantineTheme } from "@mantine/core";
 import { Group } from "react-konva";
-import { highlightColor } from "../selection/highlight";
+import { highlightColor, OUTLINE_OUTSIDE } from "../selection/highlight";
 import { MapLabel } from "../MapLabel";
 import { useStageZoom } from "../useStageZoom";
-import { RING_OUTSIDE } from "./SelectionRing";
 
 // In screen pixels, clear of the selection ring.
-const GAP = RING_OUTSIDE + 3;
+const GAP = OUTLINE_OUTSIDE + 3;
 
 interface TokenNameLabelProps {
   name: string;
