@@ -60,7 +60,8 @@ export function TokenDrawer({ children }: { children: ReactNode }) {
     <FloatingPanel
       pos="relative"
       p="sm"
-      mih={0}
+      // Shrinks in a low window, but keeps its title and its tab.
+      mih={TAB_HEIGHT + 2 * VIEW_GAP}
       display="flex"
       style={{ pointerEvents: "auto" }}
     >
