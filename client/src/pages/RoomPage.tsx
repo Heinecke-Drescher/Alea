@@ -208,7 +208,7 @@ function RoomView({ roomId }: { roomId: string }) {
                           </SelectedTokensContext>
                         </TokenMenuContext>
                       </FocusTokenContext>
-                      {!hasDiceBar && <DicePanel />}
+                      {!hasDiceBar && !isWide && <DicePanel />}
                     </Stack>
                   </AppShell.Section>
                 </AppShell.Aside>

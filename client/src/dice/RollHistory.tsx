@@ -13,7 +13,12 @@ function RollPlayer({ roll }: { roll: Roll }) {
   );
 }
 
-function RollEntry({ roll }: { roll: Roll }) {
+interface RollProps {
+  roll: Roll;
+  compact?: boolean;
+}
+
+function RollEntry({ roll, compact }: RollProps) {
   return (
     <RollRow
       label={
@@ -22,11 +27,12 @@ function RollEntry({ roll }: { roll: Roll }) {
         </>
       }
       value={roll.value}
+      compact={compact}
     />
   );
 }
 
-export function LastRoll({ roll }: { roll: Roll }) {
+function LastRoll({ roll, compact }: RollProps) {
   return (
     <motion.div
       key={roll.id}
@@ -42,9 +48,32 @@ export function LastRoll({ roll }: { roll: Roll }) {
           borderLeft: `4px solid var(--mantine-color-${rollColor(roll)}-6)`,
         }}
       >
-        <RollEntry roll={roll} />
+        <RollEntry roll={roll} compact={compact} />
       </Box>
     </motion.div>
+  );
+}
+
+// The DM's secret rolls and everyone's rolls share the line; the newest of both is shown.
+export function NewestRoll({ compact = false }: { compact?: boolean }) {
+  const { secretRolls, rolls } = useDice();
+  const [newestSecret] = secretRolls;
+  const [newest] = rolls;
+  const isSecretNewer =
+    newestSecret && (!newest || newestSecret.at.getTime() > newest.at);
+  if (isSecretNewer) {
+    return (
+      <RollRow
+        label={`Secret · d${newestSecret.sides}`}
+        value={newestSecret.value}
+        compact={compact}
+      />
+    );
+  }
+  return newest ? (
+    <LastRoll roll={newest} compact={compact} />
+  ) : (
+    <Text c="dimmed">No rolls yet</Text>
   );
 }
 

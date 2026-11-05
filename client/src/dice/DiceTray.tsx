@@ -1,15 +1,38 @@
-import { Box, Center, Paper } from "@mantine/core";
+import {
+  ActionIcon,
+  Box,
+  Center,
+  Collapse,
+  Group,
+  Paper,
+  ScrollArea,
+  Stack,
+  Tooltip,
+  UnstyledButton,
+} from "@mantine/core";
 import {
   clamp,
+  useDisclosure,
   useDrag,
   useElementSize,
   useLocalStorage,
 } from "@mantine/hooks";
-import { IconGripHorizontal } from "@tabler/icons-react";
+import {
+  IconChevronDown,
+  IconChevronUp,
+  IconEye,
+  IconEyeOff,
+  IconGripHorizontal,
+} from "@tabler/icons-react";
 import { useRef, useState } from "react";
+import { usePlayer } from "../player/PlayerContext";
 import { DieButtons } from "./DieButtons";
+import { NewestRoll, RollHistory } from "./RollHistory";
+import { SecretRolls } from "./SecretRolls";
+import { useDice } from "./useDice";
 
 const TRAY_WIDTH = 240;
+const HISTORY_HEIGHT = 300;
 // Right above the zoom and undo buttons in the lower right corner.
 const START_PLACE = { right: 12, bottom: 68 };
 
@@ -25,8 +48,64 @@ function isTrayPlace(value: unknown): value is TrayPlace {
   return Number.isFinite(right) && Number.isFinite(bottom);
 }
 
+function SecretToggle() {
+  const { isDm } = usePlayer();
+  const { wantsSecret, setWantsSecret } = useDice();
+  if (!isDm) return null;
+  const label = wantsSecret ? "Roll for everyone" : "Roll secretly";
+  return (
+    <Tooltip label={label}>
+      <ActionIcon
+        pos="absolute"
+        top={2}
+        right={8}
+        size="sm"
+        variant={wantsSecret ? "light" : "subtle"}
+        color="gray"
+        aria-label={label}
+        aria-pressed={wantsSecret}
+        onClick={() => setWantsSecret(!wantsSecret)}
+      >
+        {wantsSecret ? <IconEyeOff size={16} /> : <IconEye size={16} />}
+      </ActionIcon>
+    </Tooltip>
+  );
+}
+
+// The newest roll below the tray, which opens up into all rolls.
+function TrayHistory() {
+  const { isSecret, secretRolls } = useDice();
+  const [isOpen, { toggle }] = useDisclosure();
+  return (
+    <Box p="xs" pt={4}>
+      <UnstyledButton
+        w="100%"
+        aria-label={isOpen ? "Hide all rolls" : "Show all rolls"}
+        aria-expanded={isOpen}
+        onClick={toggle}
+      >
+        <Group wrap="nowrap" gap="xs">
+          <Box flex={1} miw={0}>
+            <NewestRoll compact />
+          </Box>
+          {isOpen ? <IconChevronDown size={18} /> : <IconChevronUp size={18} />}
+        </Group>
+      </UnstyledButton>
+      <Collapse expanded={isOpen}>
+        <ScrollArea.Autosize mah={HISTORY_HEIGHT} mt="xs">
+          <Stack>
+            {isSecret && <SecretRolls rolls={secretRolls} />}
+            <RollHistory />
+          </Stack>
+        </ScrollArea.Autosize>
+      </Collapse>
+    </Box>
+  );
+}
+
 // Floats over the map view at a place each player picks for themselves.
 export function DiceTray() {
+  const { isSecret } = useDice();
   const [stored, setStored] = useLocalStorage<unknown>({
     key: "alea-dice-tray",
     defaultValue: START_PLACE,
@@ -91,29 +170,48 @@ export function DiceTray() {
           pointerEvents: "auto",
         }}
       >
-        <Center
-          ref={handleRef}
-          h={20}
-          c="dimmed"
-          aria-label="Move the dice tray"
-          style={{
-            cursor: isMoving ? "grabbing" : "grab",
-            // Lets fingers move the tray instead of scrolling the page.
-            touchAction: "none",
-          }}
-        >
-          <IconGripHorizontal size={16} />
-        </Center>
-        <Box
-          m="xs"
-          mt={0}
-          p="xs"
-          bdrs="md"
-          bg="var(--mantine-color-default-hover)"
-          style={{ boxShadow: "inset 0 2px 6px rgb(0 0 0 / 35%)" }}
-        >
-          <DieButtons columns={4} spacing="xs" />
+        <Box pos="relative">
+          <Center
+            ref={handleRef}
+            h={28}
+            c="dimmed"
+            aria-label="Move the dice tray"
+            style={{
+              cursor: isMoving ? "grabbing" : "grab",
+              // Lets fingers move the tray instead of scrolling the page.
+              touchAction: "none",
+            }}
+          >
+            <IconGripHorizontal size={16} />
+          </Center>
+          <SecretToggle />
         </Box>
+        <Tooltip
+          label={
+            isSecret
+              ? "Click to roll secretly"
+              : "Drag a die onto the map to roll it there, or click to roll"
+          }
+          openDelay={500}
+          multiline
+          w={TRAY_WIDTH - 40}
+        >
+          <Box
+            mx="xs"
+            p="xs"
+            bdrs="md"
+            bg="var(--mantine-color-default-hover)"
+            style={{
+              boxShadow: "inset 0 2px 6px rgb(0 0 0 / 35%)",
+              outline: isSecret
+                ? "2px dashed var(--mantine-color-dimmed)"
+                : undefined,
+            }}
+          >
+            <DieButtons columns={4} spacing="xs" />
+          </Box>
+        </Tooltip>
+        <TrayHistory />
       </Paper>
     </Box>
   );

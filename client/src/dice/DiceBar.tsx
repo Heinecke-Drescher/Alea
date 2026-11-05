@@ -4,38 +4,14 @@ import {
   Group,
   Paper,
   Stack,
-  Text,
   UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconChevronUp } from "@tabler/icons-react";
 import { DieButtons, SecretSwitch } from "./DieButtons";
-import { LastRoll, RollHistory } from "./RollHistory";
-import { RollRow } from "./RollRow";
+import { NewestRoll, RollHistory } from "./RollHistory";
 import { SecretRolls } from "./SecretRolls";
 import { useDice } from "./useDice";
-
-// The DM's secret rolls and everyone's rolls share the line; the newest of both is shown.
-function NewestRoll() {
-  const { secretRolls, rolls } = useDice();
-  const [newestSecret] = secretRolls;
-  const [newest] = rolls;
-  const isSecretNewer =
-    newestSecret && (!newest || newestSecret.at.getTime() > newest.at);
-  if (isSecretNewer) {
-    return (
-      <RollRow
-        label={`Secret · d${newestSecret.sides}`}
-        value={newestSecret.value}
-      />
-    );
-  }
-  return newest ? (
-    <LastRoll roll={newest} />
-  ) : (
-    <Text c="dimmed">No rolls yet</Text>
-  );
-}
 
 // Below the map on a phone held upright, where the fitted map usually leaves room.
 export function DiceBar() {
