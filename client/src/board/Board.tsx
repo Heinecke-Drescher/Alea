@@ -8,6 +8,7 @@ import {
   useImperativeHandle,
   useRef,
   useState,
+  type MouseEvent as ReactMouseEvent,
   type Ref,
 } from "react";
 import { Layer, Stage } from "react-konva";
@@ -67,6 +68,7 @@ import { ViewControls } from "./ViewControls";
 
 export interface BoardHandle {
   focusToken: (id: string) => void;
+  openTokenMenu: (id: string, event: ReactMouseEvent) => void;
   alignMapImage: () => void;
   throwDie: (sides: DieSides, samples: ScreenSample[]) => void;
 }
@@ -220,8 +222,16 @@ export function Board({
     centerOn(squareCenter(token.x, token.y, token.size));
   }
 
+  function openTokenMenu(id: string, event: ReactMouseEvent) {
+    const token = room.tokensMap.get(id);
+    if (!token) return;
+    changeTool("select");
+    tokenMenu.openAt(token, event);
+  }
+
   useImperativeHandle(ref, () => ({
     focusToken,
+    openTokenMenu,
     alignMapImage: () => setTool("alignImage"),
     throwDie: dieDrop.rollFromScreen,
   }));

@@ -1,12 +1,13 @@
 import {
+  ActionIcon,
   Avatar,
-  CloseButton,
   Group,
   Stack,
   Text,
   TextInput,
   Tooltip,
 } from "@mantine/core";
+import { IconDots } from "@tabler/icons-react";
 import { useState } from "react";
 import { useFogGuard } from "../fog/useFogGuard";
 import { embeddedImage } from "../room/tokens";
@@ -14,6 +15,7 @@ import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import { useFocusToken } from "./focusToken";
 import { useSelectedTokens } from "./selectedTokens";
+import { useOpenTokenMenu } from "./tokenMenu";
 import { startTokenDrag } from "./tokenDrag";
 
 export function TokenList() {
@@ -24,6 +26,7 @@ export function TokenList() {
   );
   const images = useY(room.imagesMap);
   const focusToken = useFocusToken();
+  const openTokenMenu = useOpenTokenMenu();
   const selected = useSelectedTokens();
   const [editingId, setEditingId] = useState<string | null>(null);
 
@@ -56,6 +59,10 @@ export function TokenList() {
                 startTokenDrag(event.dataTransfer, token.id)
               }
               onClick={() => focusToken(token.id)}
+              // While editing, the name field keeps the browser's own menu.
+              onContextMenu={(event) => {
+                if (!isEditing) openTokenMenu(token.id, event);
+              }}
             >
               <Avatar src={embeddedImage(images[token.imageId])} size="sm" />
               {isEditing ? (
@@ -87,13 +94,17 @@ export function TokenList() {
                   {token.name === "" ? "Unnamed" : token.name}
                 </Text>
               )}
-              <CloseButton
+              <ActionIcon
+                variant="subtle"
+                color="gray"
                 onClick={(event) => {
                   event.stopPropagation();
-                  room.removeToken(token.id);
+                  openTokenMenu(token.id, event);
                 }}
-                aria-label="Remove token"
-              />
+                aria-label="Token menu"
+              >
+                <IconDots size={16} />
+              </ActionIcon>
             </Group>
           </Tooltip>
         );

@@ -12,7 +12,14 @@ import {
   Title,
 } from "@mantine/core";
 import { useDisclosure, useHotkeys } from "@mantine/hooks";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent,
+} from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { Link, useParams } from "react-router";
 import { isValidRoomId } from "../../../shared/roomId";
@@ -36,6 +43,7 @@ import { useRoomConnection } from "../room/connection/useRoomConnection";
 import { SceneTabs } from "../scenes/SceneTabs";
 import { FocusTokenContext } from "../tokens/focusToken";
 import { SelectedTokensContext } from "../tokens/selectedTokens";
+import { TokenMenuContext } from "../tokens/tokenMenu";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
@@ -81,6 +89,11 @@ function RoomView({ roomId }: { roomId: string }) {
   // Without a board, e.g. while the map shows an error, there is nothing to find.
   const focusToken = useCallback(
     (tokenId: string) => board.current?.focusToken(tokenId),
+    [],
+  );
+  const openTokenMenu = useCallback(
+    (tokenId: string, event: MouseEvent) =>
+      board.current?.openTokenMenu(tokenId, event),
     [],
   );
   const alignMapImage = () => board.current?.alignMapImage();
@@ -187,9 +200,11 @@ function RoomView({ roomId }: { roomId: string }) {
                     <Stack>
                       {!isWide && <Group gap="xs">{playerControls}</Group>}
                       <FocusTokenContext value={focusToken}>
-                        <SelectedTokensContext value={selectedTokens}>
-                          <TokenPanel />
-                        </SelectedTokensContext>
+                        <TokenMenuContext value={openTokenMenu}>
+                          <SelectedTokensContext value={selectedTokens}>
+                            <TokenPanel />
+                          </SelectedTokensContext>
+                        </TokenMenuContext>
                       </FocusTokenContext>
                       {!hasDiceBar && <DicePanel />}
                     </Stack>
