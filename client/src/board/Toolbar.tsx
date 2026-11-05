@@ -4,7 +4,6 @@ import {
   Divider,
   Group,
   Menu,
-  Paper,
   Popover,
   Stack,
   Tooltip,
@@ -28,6 +27,7 @@ import {
   IconSquare,
   type Icon,
 } from "@tabler/icons-react";
+import { FloatingPanel } from "../FloatingPanel";
 import { usePlayer } from "../player/PlayerContext";
 import { PAINT_COLORS, paintColorValue, type PaintColor } from "./paintColors";
 import type { TextFontSize } from "../room/texts";
@@ -125,14 +125,12 @@ export function Toolbar({
   }
 
   return (
-    <Paper
+    <FloatingPanel
       pos="absolute"
       top={12}
       left="50%"
       style={{ transform: "translateX(-50%)" }}
       p={4}
-      shadow="sm"
-      withBorder
     >
       <Tooltip.Group>
         <Group gap={4} wrap="nowrap">
@@ -235,6 +233,6 @@ export function Toolbar({
           )}
         </Group>
       </Tooltip.Group>
-    </Paper>
+    </FloatingPanel>
   );
 }

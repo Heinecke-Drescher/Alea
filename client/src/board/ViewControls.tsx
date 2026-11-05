@@ -1,5 +1,6 @@
-import { ActionIcon, Divider, Group, Paper, Tooltip } from "@mantine/core";
+import { ActionIcon, Divider, Group, Tooltip } from "@mantine/core";
 import { IconZoomIn, IconZoomOut, IconZoomScan } from "@tabler/icons-react";
+import { FloatingPanel } from "../FloatingPanel";
 import { UndoButtons } from "./UndoButtons";
 
 interface ViewControlsProps {
@@ -14,7 +15,7 @@ export function ViewControls({
   onFitMap,
 }: ViewControlsProps) {
   return (
-    <Paper pos="absolute" bottom={12} right={12} p={4} shadow="sm" withBorder>
+    <FloatingPanel pos="absolute" bottom={12} right={12} p={4}>
       <Group gap={4} wrap="nowrap">
         <UndoButtons />
         <Divider orientation="vertical" />
@@ -50,6 +51,6 @@ export function ViewControls({
           </ActionIcon>
         </Tooltip>
       </Group>
-    </Paper>
+    </FloatingPanel>
   );
 }

@@ -4,7 +4,6 @@ import {
   Center,
   Collapse,
   Group,
-  Paper,
   ScrollArea,
   Stack,
   Tooltip,
@@ -25,6 +24,7 @@ import {
   IconGripHorizontal,
 } from "@tabler/icons-react";
 import { useRef, useState } from "react";
+import { FloatingPanel } from "../FloatingPanel";
 import { usePlayer } from "../player/PlayerContext";
 import { DieButtons } from "./DieButtons";
 import { NewestRoll, RollHistory } from "./RollHistory";
@@ -157,13 +157,10 @@ export function DiceTray() {
       inset={0}
       style={{ pointerEvents: "none", zIndex: 10 }}
     >
-      <Paper
+      <FloatingPanel
         ref={trayRef}
         pos="absolute"
         w={TRAY_WIDTH}
-        withBorder
-        shadow="md"
-        radius="lg"
         style={{
           right: shown.right,
           bottom: shown.bottom,
@@ -212,7 +209,7 @@ export function DiceTray() {
           </Box>
         </Tooltip>
         <TrayHistory />
-      </Paper>
+      </FloatingPanel>
     </Box>
   );
 }

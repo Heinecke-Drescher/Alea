@@ -112,6 +112,7 @@ sync server together.
 
 `board/` and the feature folders may import `room/`, never the other way round.
 Components change the room only through the functions `createRoom` returns.
+Panels that float over the map use `FloatingPanel`, so they share one look.
 
 To see how many games a server can carry, start a second sync server without
 the website, so no rate limit applies and no real room is touched, and let
