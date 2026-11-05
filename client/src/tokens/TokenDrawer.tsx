@@ -1,10 +1,6 @@
-import { Box, Stack, Tooltip, UnstyledButton } from "@mantine/core";
+import { Box, Stack, Text, Tooltip, UnstyledButton } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
-import {
-  IconChessKnight,
-  IconChevronLeft,
-  IconChevronRight,
-} from "@tabler/icons-react";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import type { ReactNode } from "react";
 import { FloatingPanel } from "../FloatingPanel";
 
@@ -44,13 +40,15 @@ export function TokenDrawer({ children }: { children: ReactNode }) {
           aria-expanded={isOpen}
           onClick={() => setOpen(!isOpen)}
         >
-          <Stack gap="xs" align="center">
-            <IconChessKnight size={20} />
+          <Stack gap="xs" align="center" justify="center" h="100%">
             {isOpen ? (
               <IconChevronRight size={18} />
             ) : (
               <IconChevronLeft size={18} />
             )}
+            <Text size="sm" fw={500} style={{ writingMode: "vertical-rl" }}>
+              Tokens
+            </Text>
           </Stack>
         </UnstyledButton>
       </Tooltip>
