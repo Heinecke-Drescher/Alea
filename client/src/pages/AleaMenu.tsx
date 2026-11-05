@@ -1,28 +1,10 @@
 import { Button, Menu, Text, Title } from "@mantine/core";
 import { IconChevronDown } from "@tabler/icons-react";
 import { Link } from "react-router";
-import { useBackgroundFile } from "../background/useBackgroundFile";
-import { useClearDrawings } from "../drawings/useClearDrawings";
-import { useMapFiles } from "../mapFile/useMapFiles";
-import { useMapImageFile } from "../mapImage/useMapImageFile";
 import type { ConnectionState } from "../room/connection/connectRoom";
 
-interface AleaMenuProps {
-  isSynced: boolean;
-  connection: ConnectionState;
-  onMapImageSet: () => void;
-}
-
-export function AleaMenu({
-  isSynced,
-  connection,
-  onMapImageSet,
-}: AleaMenuProps) {
-  const mapFiles = useMapFiles();
+export function AleaMenu({ connection }: { connection: ConnectionState }) {
   const isDisconnected = connection === "disconnected";
-  const background = useBackgroundFile();
-  const mapImage = useMapImageFile(onMapImageSet);
-  const drawings = useClearDrawings();
 
   return (
     // A heading may hold a button, but not the other way round.
@@ -41,44 +23,6 @@ export function AleaMenu({
           </Button>
         </Menu.Target>
         <Menu.Dropdown>
-          {/* Before the sync, an export would hold an empty map and an import would mix with the loaded one. */}
-          {mapFiles.canImport && (
-            <Menu.Item disabled={!isSynced} onClick={mapFiles.importMap}>
-              Import map…
-            </Menu.Item>
-          )}
-          <Menu.Item disabled={!isSynced} onClick={mapFiles.exportMap}>
-            Export map
-          </Menu.Item>
-          <Menu.Divider />
-          <Menu.Item disabled={!isSynced} onClick={background.chooseBackground}>
-            Set background…
-          </Menu.Item>
-          {background.hasBackground && (
-            <Menu.Item color="red" onClick={background.removeBackground}>
-              Remove background
-            </Menu.Item>
-          )}
-          {mapImage.canSet && (
-            <Menu.Item disabled={!isSynced} onClick={mapImage.chooseMapImage}>
-              Set map image…
-            </Menu.Item>
-          )}
-          {mapImage.canSet && mapImage.hasMapImage && (
-            <Menu.Item color="red" onClick={mapImage.removeMapImage}>
-              Remove map image
-            </Menu.Item>
-          )}
-          {drawings.canClear && (
-            <Menu.Item
-              color="red"
-              disabled={!isSynced}
-              onClick={drawings.clearDrawings}
-            >
-              Clear drawings…
-            </Menu.Item>
-          )}
-          <Menu.Divider />
           {/* Without a connection, leaving would drop the changes that are not saved yet.
               A link ignores `disabled`, so the click itself is stopped too. */}
           <Menu.Item

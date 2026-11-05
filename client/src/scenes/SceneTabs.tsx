@@ -1,6 +1,8 @@
 import {
   ActionIcon,
+  Button,
   Group,
+  Menu,
   ScrollArea,
   Tabs,
   Text,
@@ -9,7 +11,12 @@ import {
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
-import { IconPlus, IconTrash } from "@tabler/icons-react";
+import {
+  IconChevronDown,
+  IconPencil,
+  IconPlus,
+  IconTrash,
+} from "@tabler/icons-react";
 import { useContextMenu } from "mantine-contextmenu";
 import { useEffect, useRef, useState } from "react";
 import { usePlayer } from "../player/PlayerContext";
@@ -23,6 +30,8 @@ import {
   visibleSceneTabs,
   type SceneTab,
 } from "../room/scenes";
+import { MapMenuItems } from "./MapMenuItems";
+import { useMapActions } from "./useMapActions";
 
 function sceneName(tab: SceneTab) {
   return tab.name === "" ? "Unnamed" : tab.name;
@@ -36,7 +45,7 @@ function showSceneError(title: string, error: unknown) {
   });
 }
 
-export function SceneTabs() {
+export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
   const room = useRoom();
   const dm = useDm();
   const { isDm } = usePlayer();
@@ -46,7 +55,11 @@ export function SceneTabs() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const tabs = visibleSceneTabs(scenes);
   const isOnlyScene = tabs[0] === ONLY_SCENE;
+  const activeTabId = isOnlyScene ? ONLY_SCENE.id : (activeId ?? null);
   const strip = useRef<HTMLDivElement>(null);
+  // Per tab, so a scene switch by someone else closes the menu instead of moving it.
+  const [menuTabId, setMenuTabId] = useState<string | null>(null);
+  const mapActions = useMapActions(onMapImageSet);
 
   // A new or switched-to scene may sit beyond the visible part of the strip.
   useEffect(() => {
@@ -56,7 +69,25 @@ export function SceneTabs() {
   }, [activeId]);
 
   // Players would see what the DM has prepared, so only the DM sees the scenes.
-  if (dm !== null && !isDm) return null;
+  if (dm !== null && !isDm) {
+    return (
+      <Menu position="bottom-start" shadow="md">
+        <Menu.Target>
+          <Button
+            variant="subtle"
+            color="gray"
+            px="xs"
+            rightSection={<IconChevronDown size={16} />}
+          >
+            Map
+          </Button>
+        </Menu.Target>
+        <Menu.Dropdown>
+          <MapMenuItems actions={mapActions} />
+        </Menu.Dropdown>
+      </Menu>
+    );
+  }
 
   function switchTo(tab: SceneTab) {
     try {
@@ -74,6 +105,7 @@ export function SceneTabs() {
   }
 
   function startRenaming(tab: SceneTab) {
+    setMenuTabId(null);
     setEditingId(tab === ONLY_SCENE ? room.saveOnlyScene() : tab.id);
   }
 
@@ -114,7 +146,7 @@ export function SceneTabs() {
       >
         <Tabs
           variant="pills"
-          value={isOnlyScene ? ONLY_SCENE.id : (activeId ?? null)}
+          value={activeTabId}
           // Arrow keys only move the focus; switching changes the map for everyone.
           activateTabWithKeyboard={false}
           onChange={(id) => {
@@ -144,29 +176,71 @@ export function SceneTabs() {
                   autoFocus
                 />
               ) : (
-                <Tooltip
+                <Menu
                   key={tab.id}
-                  label="Double-click to rename, right-click to delete"
-                  openDelay={500}
+                  opened={menuTabId === tab.id}
+                  // A click on another tab switches to it; only the active tab opens the menu.
+                  onChange={(isOpen) =>
+                    setMenuTabId(
+                      isOpen && tab.id === activeTabId ? tab.id : null,
+                    )
+                  }
+                  position="bottom-start"
+                  shadow="md"
                 >
-                  <Tabs.Tab
-                    value={tab.id}
-                    c={tab.name === "" ? "dimmed" : undefined}
-                    onDoubleClick={() => startRenaming(tab)}
-                    onContextMenu={showContextMenu([
-                      {
-                        key: "delete",
-                        title: "Delete scene…",
-                        icon: <IconTrash size={16} />,
-                        color: "red",
-                        disabled: tabs.length === 1,
-                        onClick: () => confirmDelete(tab),
-                      },
-                    ])}
-                  >
-                    {sceneName(tab)}
-                  </Tabs.Tab>
-                </Tooltip>
+                  <Menu.Target>
+                    <Tooltip
+                      label="Click for the scene menu"
+                      openDelay={500}
+                      disabled={tab.id !== activeTabId || menuTabId === tab.id}
+                    >
+                      <Tabs.Tab
+                        value={tab.id}
+                        c={tab.name === "" ? "dimmed" : undefined}
+                        rightSection={
+                          tab.id === activeTabId ? (
+                            <IconChevronDown size={14} />
+                          ) : undefined
+                        }
+                        onDoubleClick={() => startRenaming(tab)}
+                        onContextMenu={
+                          tab.id === activeTabId
+                            ? (event) => {
+                                event.preventDefault();
+                                setMenuTabId(tab.id);
+                              }
+                            : showContextMenu([
+                                {
+                                  key: "rename",
+                                  title: "Rename",
+                                  icon: <IconPencil size={16} />,
+                                  onClick: () => startRenaming(tab),
+                                },
+                                {
+                                  key: "delete",
+                                  title: "Delete scene…",
+                                  icon: <IconTrash size={16} />,
+                                  color: "red",
+                                  onClick: () => confirmDelete(tab),
+                                },
+                              ])
+                        }
+                      >
+                        {sceneName(tab)}
+                      </Tabs.Tab>
+                    </Tooltip>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <MapMenuItems
+                      actions={mapActions}
+                      scene={{
+                        rename: () => startRenaming(tab),
+                        deleteScene: () => confirmDelete(tab),
+                        canDelete: tabs.length > 1,
+                      }}
+                    />
+                  </Menu.Dropdown>
+                </Menu>
               ),
             )}
           </Tabs.List>

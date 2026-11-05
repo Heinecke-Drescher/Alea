@@ -162,12 +162,9 @@ function RoomView({ roomId }: { roomId: string }) {
                 <AppShell.Header>
                   <Group h="100%" px="md" justify="space-between" wrap="nowrap">
                     <Group gap="sm" wrap="nowrap" flex={1} miw={0}>
-                      <AleaMenu
-                        isSynced={isSynced}
-                        connection={connection}
-                        onMapImageSet={alignMapImage}
-                      />
-                      {isSynced && <SceneTabs />}
+                      <AleaMenu connection={connection} />
+                      {/* Before the sync, an export would hold an empty map and an import would mix with the loaded one. */}
+                      {isSynced && <SceneTabs onMapImageSet={alignMapImage} />}
                       {connection === "disconnected" && (
                         // Keeps its width, so the scene tabs give way and the warning stays readable.
                         <Badge
