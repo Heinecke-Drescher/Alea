@@ -90,9 +90,11 @@ function RoomView({ roomId }: { roomId: string }) {
   const isWide = useWideLayout();
   const hasDiceBar = useNarrowPortrait();
   // On a narrow screen they move from the header into the side panel, which has the room.
+  // Crossing the breakpoint loads the music player anew in its other place.
   const playerControls = (
     <>
       {isSynced && !needsName && <DmControl awareness={awareness} />}
+      <MusicMenu />
       <ColorSchemeToggle />
       <Button variant="subtle" color={color} onClick={editName}>
         {name}
@@ -151,7 +153,6 @@ function RoomView({ roomId }: { roomId: string }) {
                     </Group>
                     <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
                       {isWide && playerControls}
-                      <MusicMenu />
                       <Burger
                         opened={asideOpened}
                         onClick={toggleAside}
