@@ -2,7 +2,6 @@ import {
   AppShell,
   Badge,
   Box,
-  Burger,
   Button,
   Center,
   Group,
@@ -169,12 +168,16 @@ function RoomView({ roomId }: { roomId: string }) {
                       )}
                     </Group>
                     <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-                      <Burger
-                        opened={asideOpened}
-                        onClick={toggleAside}
+                      <Button
+                        variant={asideOpened ? "light" : "subtle"}
+                        color="gray"
+                        px="xs"
                         hiddenFrom="sm"
-                        size="sm"
-                      />
+                        aria-expanded={asideOpened}
+                        onClick={toggleAside}
+                      >
+                        Tokens
+                      </Button>
                     </Group>
                   </Group>
                 </AppShell.Header>
