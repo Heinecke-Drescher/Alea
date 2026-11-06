@@ -35,7 +35,6 @@ import {
   ShowCriticalContext,
   useCriticalRolls,
 } from "../dice/useCriticalRolls";
-import { MusicMenu } from "../music/MusicMenu";
 import { RoomContext } from "../room/RoomContext";
 import { PlayerContext } from "../player/PlayerContext";
 import { recordVisit } from "../recentRooms/useRecentRooms";
@@ -107,9 +106,6 @@ function RoomView({ roomId }: { roomId: string }) {
     board.current?.throwDie(sides, samples);
   const isWide = useWideLayout();
   const hasDiceBar = useNarrowPortrait();
-  // On a narrow screen they move from the header into the side panel, which has the room.
-  // Crossing the breakpoint loads the music player anew in its other place.
-  const playerControls = <MusicMenu />;
   const tokenPanel = (
     <FocusTokenContext value={focusToken}>
       <TokenMenuContext value={openTokenMenu}>
@@ -173,7 +169,6 @@ function RoomView({ roomId }: { roomId: string }) {
                       )}
                     </Group>
                     <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-                      {isWide && playerControls}
                       <Burger
                         opened={asideOpened}
                         onClick={toggleAside}
@@ -231,7 +226,6 @@ function RoomView({ roomId }: { roomId: string }) {
                 <AppShell.Aside>
                   <AppShell.Section grow component={ScrollArea} p="md">
                     <Stack>
-                      {!isWide && <Group gap="xs">{playerControls}</Group>}
                       {!isWide && tokenPanel}
                       {!hasDiceBar && !isWide && <DicePanel />}
                     </Stack>
