@@ -1,4 +1,4 @@
-import { Badge, Button, Group, Text } from "@mantine/core";
+import { Text } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import { notifications } from "@mantine/notifications";
 import { useEffect } from "react";
@@ -11,7 +11,13 @@ import { useAwareness } from "../room/connection/useAwareness";
 import { useDm } from "../room/useDm";
 import { usePlayer } from "../player/PlayerContext";
 
-export function DmControl({ awareness }: { awareness: Awareness | null }) {
+export type DmState =
+  | { kind: "none" }
+  | { kind: "self" }
+  | { kind: "other"; dm: DungeonMaster; isAway: boolean };
+
+// Called where it stays mounted, as it keeps the DM's name in step with the player's.
+export function useDmControl(awareness: Awareness | null) {
   const room = useRoom();
   const player = usePlayer();
   const dm = useDm();
@@ -19,7 +25,9 @@ export function DmControl({ awareness }: { awareness: Awareness | null }) {
   const { id, name, isDm } = player;
 
   useEffect(() => {
-    if (dm && isDm && dm.name !== name) room.becomeDm({ playerId: id, name });
+    if (dm && isDm && name !== "" && dm.name !== name) {
+      room.becomeDm({ playerId: id, name });
+    }
   }, [dm, isDm, id, name, room]);
 
   function becomeDm() {
@@ -56,42 +64,16 @@ export function DmControl({ awareness }: { awareness: Awareness | null }) {
     });
   }
 
-  if (!dm) {
-    return (
-      <Button variant="light" size="xs" onClick={becomeDm}>
-        Become DM
-      </Button>
-    );
-  }
+  const state: DmState = !dm
+    ? { kind: "none" }
+    : isDm
+      ? { kind: "self" }
+      : { kind: "other", dm, isAway: !presentPlayerIds.includes(dm.playerId) };
 
-  if (isDm) {
-    return (
-      <Group gap="xs" wrap="nowrap">
-        <Badge>DM</Badge>
-        <Button
-          variant="subtle"
-          size="xs"
-          color="gray"
-          onClick={() => room.releaseDm(id)}
-        >
-          Release DM
-        </Button>
-      </Group>
-    );
-  }
-
-  const isAway = !presentPlayerIds.includes(dm.playerId);
-  return (
-    <Group gap="xs" wrap="nowrap">
-      <Text size="sm" c="dimmed">
-        DM: {dm.name}
-        {isAway && " (away)"}
-      </Text>
-      {isAway && (
-        <Button variant="subtle" size="xs" onClick={() => confirmTakeOver(dm)}>
-          Take over
-        </Button>
-      )}
-    </Group>
-  );
+  return {
+    state,
+    becomeDm,
+    releaseDm: () => room.releaseDm(id),
+    confirmTakeOver,
+  };
 }

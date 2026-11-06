@@ -12,7 +12,11 @@ import { notifications } from "@mantine/notifications";
 import { IconCheck, IconChevronDown } from "@tabler/icons-react";
 import { Link } from "react-router";
 import { usePlayer } from "../player/PlayerContext";
-import type { ConnectionState } from "../room/connection/connectRoom";
+import type {
+  Awareness,
+  ConnectionState,
+} from "../room/connection/connectRoom";
+import { useDmControl } from "./useDmControl";
 
 function showCopyError(link: string) {
   notifications.show({
@@ -39,10 +43,18 @@ function copyRoomLink() {
 
 interface AleaMenuProps {
   connection: ConnectionState;
+  awareness: Awareness | null;
+  isSynced: boolean;
   onEditName: () => void;
 }
 
-export function AleaMenu({ connection, onEditName }: AleaMenuProps) {
+export function AleaMenu({
+  connection,
+  awareness,
+  isSynced,
+  onEditName,
+}: AleaMenuProps) {
+  const dmControl = useDmControl(awareness);
   const theme = useMantineTheme();
   const { name, color } = usePlayer();
   const isDisconnected = connection === "disconnected";
@@ -68,6 +80,8 @@ export function AleaMenu({ connection, onEditName }: AleaMenuProps) {
         <Menu.Dropdown>
           <Menu.Item onClick={copyRoomLink}>Copy room link</Menu.Item>
           <Menu.Divider />
+          {/* Before the sync the DM is unknown; without a name nobody could tell who took the role. */}
+          {isSynced && name !== "" && <DmItem dmControl={dmControl} />}
           <Menu.Item
             leftSection={
               <ColorSwatch color={theme.colors[color][6]} size={14} />
@@ -99,4 +113,22 @@ export function AleaMenu({ connection, onEditName }: AleaMenuProps) {
       </Menu>
     </Title>
   );
+}
+
+function DmItem({ dmControl }: { dmControl: ReturnType<typeof useDmControl> }) {
+  const { state, becomeDm, releaseDm, confirmTakeOver } = dmControl;
+  switch (state.kind) {
+    case "none":
+      return <Menu.Item onClick={becomeDm}>Become DM</Menu.Item>;
+    case "self":
+      return <Menu.Item onClick={releaseDm}>Release DM</Menu.Item>;
+    case "other":
+      return state.isAway ? (
+        <Menu.Item onClick={() => confirmTakeOver(state.dm)}>
+          Take over DM ({state.dm.name} is away)
+        </Menu.Item>
+      ) : (
+        <Menu.Item disabled>DM: {state.dm.name}</Menu.Item>
+      );
+  }
 }

@@ -48,7 +48,6 @@ import { TokenMenuContext } from "../tokens/tokenMenu";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
-import { DmControl } from "./DmControl";
 import { TokenDrawer } from "../tokens/TokenDrawer";
 import { useNarrowPortrait, useWideLayout } from "../theme";
 import { PlayerNameModal } from "./PlayerNameModal";
@@ -110,12 +109,7 @@ function RoomView({ roomId }: { roomId: string }) {
   const hasDiceBar = useNarrowPortrait();
   // On a narrow screen they move from the header into the side panel, which has the room.
   // Crossing the breakpoint loads the music player anew in its other place.
-  const playerControls = (
-    <>
-      {isSynced && !needsName && <DmControl awareness={awareness} />}
-      <MusicMenu />
-    </>
-  );
+  const playerControls = <MusicMenu />;
   const tokenPanel = (
     <FocusTokenContext value={focusToken}>
       <TokenMenuContext value={openTokenMenu}>
@@ -157,7 +151,12 @@ function RoomView({ roomId }: { roomId: string }) {
                 <AppShell.Header>
                   <Group h="100%" px="md" justify="space-between" wrap="nowrap">
                     <Group gap="sm" wrap="nowrap" flex={1} miw={0}>
-                      <AleaMenu connection={connection} onEditName={editName} />
+                      <AleaMenu
+                        connection={connection}
+                        awareness={awareness}
+                        isSynced={isSynced}
+                        onEditName={editName}
+                      />
                       {/* Before the sync, an export would hold an empty map and an import would mix with the loaded one. */}
                       {isSynced && <SceneTabs onMapImageSet={alignMapImage} />}
                       {connection === "disconnected" && (
