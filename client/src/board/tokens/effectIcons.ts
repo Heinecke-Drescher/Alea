@@ -1,3 +1,4 @@
+import flagSvg from "@tabler/icons/outline/flag.svg?raw";
 import skullSvg from "@tabler/icons/outline/skull.svg?raw";
 import zzzSvg from "@tabler/icons/outline/zzz.svg?raw";
 import type { DefaultMantineColor } from "@mantine/core";
@@ -25,6 +26,13 @@ const EFFECT_SVGS: Record<StatusEffect, string> = {
   unconscious: zzzSvg,
 };
 
+export const MARK_LABEL = "Marked";
+export const MARK_COLOR = "orange" satisfies DefaultMantineColor;
+
 export function effectImageUrl(effect: StatusEffect, color: string) {
   return svgDataUrl(coloredIconSvg(effect, EFFECT_SVGS[effect], color, 96));
+}
+
+export function markImageUrl(color: string) {
+  return svgDataUrl(coloredIconSvg("mark", flagSvg, color, 96));
 }

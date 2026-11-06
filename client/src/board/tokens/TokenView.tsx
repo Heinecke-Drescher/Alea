@@ -5,10 +5,11 @@ import { useEffect, useRef } from "react";
 import { Group, Image } from "react-konva";
 import useImage from "use-image";
 import { tokenEffects } from "../../room/effects";
+import { tokenMark } from "../../room/mark";
 import type { Token } from "../../room/roomStore";
 import { CELL_SIZE } from "../../room/grid";
 import { SelectionRing, SelectionTint } from "./SelectionRing";
-import { TokenEffects } from "./TokenEffects";
+import { TokenBadges } from "./TokenBadges";
 import { TokenNameLabel } from "./TokenNameLabel";
 import { TOKEN_BODY_NAME, TOKEN_NAME } from "./tokenNodes";
 
@@ -79,7 +80,11 @@ export function TokenView({
           filters={isOutOfFight ? [Grayscale] : []}
         />
         {isHighlighted && <SelectionTint size={size} />}
-        <TokenEffects effects={effects} tokenSize={token.size} />
+        <TokenBadges
+          effects={effects}
+          mark={tokenMark(token)}
+          tokenSize={token.size}
+        />
       </Group>
       {isHighlighted && token.name && (
         <TokenNameLabel name={token.name} size={size} />

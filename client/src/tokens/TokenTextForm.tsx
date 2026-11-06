@@ -1,31 +1,39 @@
 import { Button, Group, Stack, TextInput } from "@mantine/core";
 import { useState } from "react";
 
-interface TokenNameFormProps {
-  currentName: string;
-  onSave: (name: string) => void;
+interface TokenTextFormProps {
+  label: string;
+  description?: string;
+  maxLength?: number;
+  currentText: string;
+  onSave: (text: string) => void;
   onCancel: () => void;
 }
 
-export function TokenNameForm({
-  currentName,
+export function TokenTextForm({
+  label,
+  description,
+  maxLength,
+  currentText,
   onSave,
   onCancel,
-}: TokenNameFormProps) {
-  const [name, setName] = useState(currentName);
+}: TokenTextFormProps) {
+  const [text, setText] = useState(currentText);
 
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
-        onSave(name.trim());
+        onSave(text.trim());
       }}
     >
       <Stack>
         <TextInput
-          label="Name"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
+          label={label}
+          description={description}
+          maxLength={maxLength}
+          value={text}
+          onChange={(event) => setText(event.target.value)}
           data-autofocus
         />
         <Group justify="flex-end">

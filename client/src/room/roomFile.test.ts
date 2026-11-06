@@ -5,6 +5,7 @@ import { BACKGROUND_IMAGE_ID } from "./background";
 import { createRoom, type Room } from "./createRoom";
 import { DEFAULT_MAP_BOUNDS } from "./grid";
 import { MAP_IMAGE_KEY } from "./mapImage";
+import { MAX_MARK_LENGTH } from "./mark";
 import {
   checkMapFileSize,
   LOADED_MAP_KEY,
@@ -99,6 +100,26 @@ describe("map files", () => {
     const other = createRoom(new Y.Doc());
     other.importMap(file);
     expect(other.exportMap()).toEqual(file);
+  });
+
+  it("brings a token's mark into another room", () => {
+    fillRoom(room);
+    const [token] = room.tokensMap.values();
+    if (!token) throw new Error("Expected a token");
+    room.setMark(token.id, "Bloodied");
+    const file = parseMapFile(JSON.stringify(room.exportMap()));
+    expect(file.tokens[0]?.mark).toBe("Bloodied");
+    const other = createRoom(new Y.Doc());
+    other.importMap(file);
+    expect(other.exportMap()).toEqual(file);
+  });
+
+  it("exports no mark that another player's data holds wrongly", () => {
+    fillRoom(room);
+    const [token] = room.tokensMap.values();
+    if (!token) throw new Error("Expected a token");
+    room.tokensMap.set(token.id, { ...token, mark: 3 } as never);
+    expect(room.exportMap().tokens[0]).not.toHaveProperty("mark");
   });
 
   it("exports only known stroke data from other players", () => {
@@ -295,6 +316,17 @@ describe("map files", () => {
       (file) => ({
         ...file,
         tokens: [{ ...file.tokens[0], effects: ["flying"] }],
+      }),
+    ],
+    [
+      "a mark that is no text",
+      (file) => ({ ...file, tokens: [{ ...file.tokens[0], mark: 3 }] }),
+    ],
+    [
+      "a mark that is too long",
+      (file) => ({
+        ...file,
+        tokens: [{ ...file.tokens[0], mark: "x".repeat(MAX_MARK_LENGTH + 1) }],
       }),
     ],
     ["fog off the map", (file) => ({ ...file, fog: [{ x: -10, y: 0 }] })],

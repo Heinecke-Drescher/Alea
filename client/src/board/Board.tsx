@@ -42,7 +42,7 @@ import { useItemDrag } from "./selection/useItemDrag";
 import { useSelection } from "./selection/useSelection";
 import { Strokes } from "./Strokes";
 import { ThrownDice } from "./dice/ThrownDice";
-import { EffectTooltip } from "./tokens/EffectTooltip";
+import { BadgeTooltip } from "./tokens/BadgeTooltip";
 import { isOnToken } from "./tokens/tokenNodes";
 import { Tokens } from "./tokens/Tokens";
 import { useTokenMenu } from "./tokens/useTokenMenu";
@@ -240,7 +240,7 @@ export function Board({
   }));
 
   return (
-    <EffectTooltip stageRef={stageRef}>
+    <BadgeTooltip stageRef={stageRef}>
       <Box
         ref={sizeRef}
         pos="relative"
@@ -381,6 +381,6 @@ export function Board({
           onTextSizeChange={setTextSize}
         />
       </Box>
-    </EffectTooltip>
+    </BadgeTooltip>
   );
 }

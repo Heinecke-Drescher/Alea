@@ -5,6 +5,8 @@ import {
   IconClipboardCopy,
   IconCopy,
   IconCursorText,
+  IconFlag,
+  IconFlagOff,
   IconScissors,
   IconTrash,
 } from "@tabler/icons-react";
@@ -20,9 +22,16 @@ import { useFogGuard } from "../../fog/useFogGuard";
 import { showRoomSpaceError } from "../../images/showRoomSpaceError";
 import type { Room } from "../../room/createRoom";
 import { STATUS_EFFECTS, tokenEffects } from "../../room/effects";
+import { tokenMark } from "../../room/mark";
 import type { Token } from "../../room/roomStore";
+import { openMarkDialog } from "../../tokens/openMarkDialog";
 import { openRenameDialog } from "../../tokens/openRenameDialog";
-import { EFFECT_COLORS, EFFECT_ICONS, EFFECT_LABELS } from "./effectIcons";
+import {
+  EFFECT_COLORS,
+  EFFECT_ICONS,
+  EFFECT_LABELS,
+  MARK_COLOR,
+} from "./effectIcons";
 import { NO_ITEMS } from "../../room/areaActions";
 import { itemsSelection } from "../selection/selection";
 import { shortcut } from "../selection/useBoardMenu";
@@ -78,6 +87,7 @@ export function useTokenMenu(
   function content(token: Token): ContextMenuContent {
     const only = onlyToken(token);
     const effects = tokenEffects(token);
+    const mark = tokenMark(token);
     return (close) => (
       <>
         <ContextMenuItem
@@ -131,6 +141,28 @@ export function useTokenMenu(
             />
           );
         })}
+        <ContextMenuItem
+          title={
+            mark === null
+              ? "Mark"
+              : mark === ""
+                ? "Edit mark"
+                : `Edit mark (${mark})`
+          }
+          icon={<IconFlag size={16} color={theme.colors[MARK_COLOR][8]} />}
+          onClick={() => openMarkDialog(room, token.id)}
+          onHide={close}
+          submenuProps={{}}
+        />
+        {mark !== null && (
+          <ContextMenuItem
+            title="Remove mark"
+            icon={<IconFlagOff size={16} />}
+            onClick={() => room.removeMark(token.id)}
+            onHide={close}
+            submenuProps={{}}
+          />
+        )}
         <ContextMenuDivider />
         <ContextMenuItem
           title="Copy"

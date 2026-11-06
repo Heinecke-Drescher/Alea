@@ -5,6 +5,7 @@ import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
 import { hasShapes, isClosed, isOverFog } from "./drawing";
 import { tokenEffects } from "./effects";
+import { MAX_MARK_LENGTH, tokenMark } from "./mark";
 import type { Token } from "./roomStore";
 import { rollColor, rollPath } from "./rolls";
 import type { AreaShape } from "./shapes";
@@ -357,6 +358,75 @@ describe("status effects", () => {
 
   it("ignores effects on tokens that no longer exist", () => {
     room.toggleEffect("gone", "dead");
+    expect(room.tokensMap.size).toBe(0);
+  });
+});
+
+describe("marks", () => {
+  it("sets, changes and removes a mark", () => {
+    room.addToken("Goblin", IMAGE);
+    const { id } = onlyToken();
+    expect(tokenMark(onlyToken())).toBeNull();
+    room.setMark(id, "Bloodied");
+    expect(tokenMark(onlyToken())).toBe("Bloodied");
+    room.setMark(id, "");
+    expect(tokenMark(onlyToken())).toBe("");
+    room.removeMark(id);
+    expect(tokenMark(onlyToken())).toBeNull();
+    expect(onlyToken()).not.toHaveProperty("mark");
+  });
+
+  it("undoes each change in its own step", () => {
+    room.addToken("Goblin", IMAGE);
+    const { id } = onlyToken();
+    room.setMark(id, "Target");
+    room.setMark(id, "Bloodied");
+    room.removeMark(id);
+    room.undoManager.undo();
+    expect(tokenMark(onlyToken())).toBe("Bloodied");
+    room.undoManager.undo();
+    expect(tokenMark(onlyToken())).toBe("Target");
+  });
+
+  it("refuses a mark that is too long", () => {
+    room.addToken("Goblin", IMAGE);
+    const { id } = onlyToken();
+    room.setMark(id, "x".repeat(MAX_MARK_LENGTH));
+    expect(() => room.setMark(id, "x".repeat(MAX_MARK_LENGTH + 1))).toThrow();
+    expect(tokenMark(onlyToken())).toBe("x".repeat(MAX_MARK_LENGTH));
+  });
+
+  it("reads only short texts as marks from other players' data", () => {
+    room.addToken("Goblin", IMAGE);
+    const token = onlyToken();
+    room.tokensMap.set(token.id, { ...token, mark: 3 } as unknown as Token);
+    expect(tokenMark(onlyToken())).toBeNull();
+    room.tokensMap.set(token.id, {
+      ...token,
+      mark: "x".repeat(MAX_MARK_LENGTH + 1),
+    });
+    expect(tokenMark(onlyToken())).toBeNull();
+  });
+
+  it("keeps the mark of a duplicate and a pasted copy", () => {
+    room.addToken("Goblin", IMAGE);
+    const { id } = onlyToken();
+    room.setMark(id, "Target");
+    expect(tokenMark(tokenOf(room.duplicateToken(id)))).toBe("Target");
+    const clip = room.copyItems({ strokes: [], tokens: [id], texts: [] });
+    const [pastedId] = room.paste(clip, 0, 5 * CELL_SIZE).tokens;
+    expect(tokenMark(tokenOf(pastedId))).toBe("Target");
+  });
+
+  it("copies no mark onto an unmarked token", () => {
+    room.addToken("Goblin", IMAGE);
+    const copy = tokenOf(room.duplicateToken(onlyToken().id));
+    expect(copy).not.toHaveProperty("mark");
+  });
+
+  it("ignores marks on tokens that no longer exist", () => {
+    room.setMark("gone", "Target");
+    room.removeMark("gone");
     expect(room.tokensMap.size).toBe(0);
   });
 });

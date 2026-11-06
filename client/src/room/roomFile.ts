@@ -4,6 +4,7 @@ import { MAX_ROOM_BYTES } from "../../../shared/roomLimits";
 import { BACKGROUND_IMAGE_ID } from "./background";
 import { isOverFog, newStroke, shapeStroke, strokeData } from "./drawing";
 import { isStatusEffect, tokenEffects, type StatusEffect } from "./effects";
+import { isValidMark, tokenMark } from "./mark";
 import {
   containsCell,
   containsSquare,
@@ -56,6 +57,7 @@ export interface MapFile {
     y: number;
     size: number;
     effects: StatusEffect[];
+    mark?: string;
     image: string;
   }[];
   background: string | null;
@@ -181,6 +183,9 @@ function parseToken(value: unknown, bounds: MapBounds) {
     y,
     size,
     effects,
+    ...(value.mark !== undefined && {
+      mark: isValidMark(value.mark) ? value.mark : invalid("token mark"),
+    }),
     image: image(value.image, "token image"),
   };
 }
@@ -338,8 +343,17 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
         const tokenImage = embeddedImage(imagesMap.get(token.imageId));
         if (!tokenImage) return [];
         const { name, x, y, size } = token;
+        const mark = tokenMark(token);
         return [
-          { name, x, y, size, effects: tokenEffects(token), image: tokenImage },
+          {
+            name,
+            x,
+            y,
+            size,
+            effects: tokenEffects(token),
+            ...(mark !== null && { mark }),
+            image: tokenImage,
+          },
         ];
       }),
       background: embeddedImage(imagesMap.get(BACKGROUND_IMAGE_ID)),

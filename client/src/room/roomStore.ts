@@ -16,6 +16,7 @@ export interface Token {
   y: number;
   size: number;
   effects?: StatusEffect[];
+  mark?: string;
 }
 
 export interface Cell {

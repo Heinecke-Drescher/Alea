@@ -2,6 +2,7 @@ import { nanoid } from "nanoid";
 import { tokenEffects, type StatusEffect } from "./effects";
 import { MAX_TOKEN_SIZE, overlaps, type Square } from "./grid";
 import { placeToken, type MapActions } from "./map";
+import { isValidMark } from "./mark";
 import type { RoomStore, Token } from "./roomStore";
 
 export function embeddedImage(value: string | undefined) {
@@ -73,6 +74,21 @@ export function createTokens(
     });
   }
 
+  function setMark(id: string, mark: string) {
+    if (!isValidMark(mark)) throw new Error(`Invalid mark "${mark}"`);
+    undoManager.stopCapturing();
+    updateToken(id, (token) => ({ ...token, mark }));
+  }
+
+  function removeMark(id: string) {
+    undoManager.stopCapturing();
+    updateToken(id, (token) => {
+      const unmarked = { ...token };
+      delete unmarked.mark;
+      return unmarked;
+    });
+  }
+
   function resizeToken(id: string, square: Square) {
     const { size } = square;
     if (!Number.isInteger(size) || size < 1 || size > MAX_TOKEN_SIZE) {
@@ -119,6 +135,8 @@ export function createTokens(
     addTokens,
     renameToken,
     toggleEffect,
+    setMark,
+    removeMark,
     resizeToken,
     removeToken,
   };

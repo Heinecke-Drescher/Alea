@@ -1,6 +1,7 @@
 import type { IRect } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import { tokenEffects, type StatusEffect } from "./effects";
+import { tokenMark } from "./mark";
 import { CELL_SIZE, nearestFreeSquare, type Square } from "./grid";
 import {
   isOverFog,
@@ -34,6 +35,7 @@ export interface Clip {
     y: number;
     size: number;
     effects: StatusEffect[];
+    mark?: string;
   }[];
   strokes: StrokeData[];
   texts: MapTextData[];
@@ -190,8 +192,19 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
       tokens: tokens.flatMap((token) => {
         const { name, imageId, x, y, size } = token;
         const image = imagesMap.get(imageId);
+        const mark = tokenMark(token);
         return image
-          ? [{ name, image, x, y, size, effects: tokenEffects(token) }]
+          ? [
+              {
+                name,
+                image,
+                x,
+                y,
+                size,
+                effects: tokenEffects(token),
+                ...(mark !== null && { mark }),
+              },
+            ]
           : [];
       }),
       strokes: strokes.map((stroke) => strokeData(stroke, isOverFog(stroke))),
