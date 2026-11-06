@@ -1,14 +1,17 @@
 import {
   Button,
+  ColorSwatch,
   Menu,
   Text,
   Title,
   useComputedColorScheme,
   useMantineColorScheme,
+  useMantineTheme,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconCheck, IconChevronDown } from "@tabler/icons-react";
 import { Link } from "react-router";
+import { usePlayer } from "../player/PlayerContext";
 import type { ConnectionState } from "../room/connection/connectRoom";
 
 function showCopyError(link: string) {
@@ -34,7 +37,14 @@ function copyRoomLink() {
   );
 }
 
-export function AleaMenu({ connection }: { connection: ConnectionState }) {
+interface AleaMenuProps {
+  connection: ConnectionState;
+  onEditName: () => void;
+}
+
+export function AleaMenu({ connection, onEditName }: AleaMenuProps) {
+  const theme = useMantineTheme();
+  const { name, color } = usePlayer();
   const isDisconnected = connection === "disconnected";
   const { setColorScheme } = useMantineColorScheme();
   const isDark = useComputedColorScheme("light") === "dark";
@@ -58,6 +68,14 @@ export function AleaMenu({ connection }: { connection: ConnectionState }) {
         <Menu.Dropdown>
           <Menu.Item onClick={copyRoomLink}>Copy room link</Menu.Item>
           <Menu.Divider />
+          <Menu.Item
+            leftSection={
+              <ColorSwatch color={theme.colors[color][6]} size={14} />
+            }
+            onClick={onEditName}
+          >
+            Edit name ({name})
+          </Menu.Item>
           <Menu.Item
             rightSection={isDark && <IconCheck size={16} />}
             onClick={() => setColorScheme(isDark ? "light" : "dark")}

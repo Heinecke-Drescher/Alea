@@ -114,9 +114,6 @@ function RoomView({ roomId }: { roomId: string }) {
     <>
       {isSynced && !needsName && <DmControl awareness={awareness} />}
       <MusicMenu />
-      <Button variant="subtle" color={color} onClick={editName}>
-        {name}
-      </Button>
     </>
   );
   const tokenPanel = (
@@ -160,7 +157,7 @@ function RoomView({ roomId }: { roomId: string }) {
                 <AppShell.Header>
                   <Group h="100%" px="md" justify="space-between" wrap="nowrap">
                     <Group gap="sm" wrap="nowrap" flex={1} miw={0}>
-                      <AleaMenu connection={connection} />
+                      <AleaMenu connection={connection} onEditName={editName} />
                       {/* Before the sync, an export would hold an empty map and an import would mix with the loaded one. */}
                       {isSynced && <SceneTabs onMapImageSet={alignMapImage} />}
                       {connection === "disconnected" && (
