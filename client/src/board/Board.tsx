@@ -1,4 +1,4 @@
-import { Box, useMantineTheme } from "@mantine/core";
+import { Box, useComputedColorScheme, useMantineTheme } from "@mantine/core";
 import { useElementSize, useHotkeys } from "@mantine/hooks";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
@@ -31,6 +31,7 @@ import { MapFill } from "./map/MapFill";
 import { MapImage } from "./map/MapImage";
 import { MapImageAligner } from "./map/MapImageAligner";
 import { MapResizer } from "./map/MapResizer";
+import { mapSurroundColor } from "./map/mapColors";
 import { CriticalScenes } from "./critical/CriticalScenes";
 import { paintColorValue, type PaintColor } from "./paintColors";
 import { itemsSelection, reshapableStrokeId } from "./selection/selection";
@@ -97,6 +98,7 @@ export function Board({
   const player = usePlayer();
   const { ref: sizeRef, width, height } = useElementSize();
   const theme = useMantineTheme();
+  const colorScheme = useComputedColorScheme("light");
   const [chosenTool, setTool] = useState<Tool>("select");
   const canAlignMapImage = useCanAlignMapImage();
   // Losing the DM role or the map image while its tool is active falls back to selecting.
@@ -249,6 +251,7 @@ export function Board({
           cursor: cursorArrowCss(theme.colors[player.color][6]),
           // Otherwise the browser pans or zooms the page where no shape listens.
           touchAction: "none",
+          backgroundColor: mapSurroundColor(theme, colorScheme),
           backgroundImage: backgroundImage
             ? `url("${backgroundImage}")`
             : "none",

@@ -6,3 +6,10 @@ export function mapFillColor(
 ) {
   return colorScheme === "dark" ? theme.colors.dark[7] : theme.white;
 }
+
+export function mapSurroundColor(
+  theme: MantineTheme,
+  colorScheme: "light" | "dark",
+) {
+  return colorScheme === "dark" ? theme.colors.dark[9] : theme.colors.gray[2];
+}
