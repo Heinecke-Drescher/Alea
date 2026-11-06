@@ -10,7 +10,7 @@ import {
 
 export const MAX_PLACEHOLDERS = 20;
 
-export interface Placeholders {
+interface Placeholders {
   name: string;
   count: number;
   color: PlayerColor;

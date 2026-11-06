@@ -2,7 +2,7 @@ import type { Awareness } from "./connectRoom";
 import { isPlayerColor, type PlayerColor } from "../playerColors";
 import { useAwareness } from "./useAwareness";
 
-export interface Cursor {
+interface Cursor {
   clientId: number;
   name: string;
   color: PlayerColor;

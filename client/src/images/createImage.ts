@@ -1,6 +1,6 @@
 import Compressor from "compressorjs";
 
-export type ImageSize = Pick<
+type ImageSize = Pick<
   Compressor.Options,
   "width" | "height" | "maxWidth" | "maxHeight" | "resize"
 >;

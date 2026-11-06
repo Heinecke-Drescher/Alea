@@ -10,7 +10,7 @@ import {
   MARK_COLOR,
   MARK_LABEL,
   markImageUrl,
-} from "./effectIcons";
+} from "./badgeIcons";
 import { BADGE_NAME } from "./tokenNodes";
 
 const BADGE_SIZE = 20;

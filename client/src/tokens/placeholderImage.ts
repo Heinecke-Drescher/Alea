@@ -48,7 +48,7 @@ const ICON_SVGS: Record<PlaceholderIcon, string> = {
 };
 
 // Without a label the token is a plain disc in the player color.
-export type PlaceholderContent =
+type PlaceholderContent =
   { label: string | null } | { icon: PlaceholderIcon; number: number | null };
 
 const SIZE = 128;

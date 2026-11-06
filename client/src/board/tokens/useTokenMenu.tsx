@@ -31,7 +31,7 @@ import {
   EFFECT_ICONS,
   EFFECT_LABELS,
   MARK_COLOR,
-} from "./effectIcons";
+} from "./badgeIcons";
 import { NO_ITEMS } from "../../room/areaActions";
 import { itemsSelection } from "../selection/selection";
 import { shortcut } from "../selection/useBoardMenu";

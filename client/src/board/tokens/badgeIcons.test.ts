@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { STATUS_EFFECTS } from "../../room/effects";
-import { effectImageUrl } from "./effectIcons";
+import { effectImageUrl, markImageUrl } from "./badgeIcons";
 
 describe("effectImageUrl", () => {
   it("colors every effect icon and enlarges it", () => {
@@ -13,5 +13,17 @@ describe("effectImageUrl", () => {
       expect(svg).toContain('height="96"');
       expect(svg).not.toContain("currentColor");
     }
+  });
+});
+
+describe("markImageUrl", () => {
+  it("colors the mark icon and enlarges it", () => {
+    const [, data] = markImageUrl("#ffffff").split(",");
+    if (!data) throw new Error("Expected image data for the mark");
+    const svg = decodeURIComponent(data);
+    expect(svg).toContain('stroke="#ffffff"');
+    expect(svg).toContain('width="96"');
+    expect(svg).toContain('height="96"');
+    expect(svg).not.toContain("currentColor");
   });
 });
