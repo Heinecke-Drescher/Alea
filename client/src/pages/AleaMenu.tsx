@@ -1,6 +1,13 @@
-import { Button, Menu, Text, Title } from "@mantine/core";
+import {
+  Button,
+  Menu,
+  Text,
+  Title,
+  useComputedColorScheme,
+  useMantineColorScheme,
+} from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { IconChevronDown } from "@tabler/icons-react";
+import { IconCheck, IconChevronDown } from "@tabler/icons-react";
 import { Link } from "react-router";
 import type { ConnectionState } from "../room/connection/connectRoom";
 
@@ -29,6 +36,8 @@ function copyRoomLink() {
 
 export function AleaMenu({ connection }: { connection: ConnectionState }) {
   const isDisconnected = connection === "disconnected";
+  const { setColorScheme } = useMantineColorScheme();
+  const isDark = useComputedColorScheme("light") === "dark";
 
   return (
     // A heading may hold a button, but not the other way round.
@@ -48,6 +57,13 @@ export function AleaMenu({ connection }: { connection: ConnectionState }) {
         </Menu.Target>
         <Menu.Dropdown>
           <Menu.Item onClick={copyRoomLink}>Copy room link</Menu.Item>
+          <Menu.Divider />
+          <Menu.Item
+            rightSection={isDark && <IconCheck size={16} />}
+            onClick={() => setColorScheme(isDark ? "light" : "dark")}
+          >
+            Dark mode
+          </Menu.Item>
           <Menu.Divider />
           {/* Without a connection, leaving would drop the changes that are not saved yet.
               A link ignores `disabled`, so the click itself is stopped too. */}

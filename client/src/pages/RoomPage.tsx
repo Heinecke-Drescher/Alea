@@ -48,7 +48,6 @@ import { TokenMenuContext } from "../tokens/tokenMenu";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
-import { ColorSchemeToggle } from "./ColorSchemeToggle";
 import { DmControl } from "./DmControl";
 import { TokenDrawer } from "../tokens/TokenDrawer";
 import { useNarrowPortrait, useWideLayout } from "../theme";
@@ -115,7 +114,6 @@ function RoomView({ roomId }: { roomId: string }) {
     <>
       {isSynced && !needsName && <DmControl awareness={awareness} />}
       <MusicMenu />
-      <ColorSchemeToggle />
       <Button variant="subtle" color={color} onClick={editName}>
         {name}
       </Button>
