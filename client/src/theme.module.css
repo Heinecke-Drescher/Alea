@@ -1,0 +1,7 @@
+/* On a phone the on-screen keyboard covers the middle, so dialogs open at the top.
+   The same breakpoint as `useWideLayout`. */
+@media (width < 48em) {
+  .modalRoot[data-centered] .modalInner {
+    --modal-inner-align: flex-start;
+  }
+}

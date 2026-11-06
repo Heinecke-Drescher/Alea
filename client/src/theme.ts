@@ -1,10 +1,14 @@
-import { createTheme, Tooltip, useMantineTheme } from "@mantine/core";
+import { createTheme, Modal, Tooltip, useMantineTheme } from "@mantine/core";
 import { useMediaQuery, useOrientation } from "@mantine/hooks";
+import classes from "./theme.module.css";
 
 export const TOOLTIP_DELAY = 500;
 
 export const theme = createTheme({
   components: {
+    Modal: Modal.extend({
+      classNames: { root: classes.modalRoot, inner: classes.modalInner },
+    }),
     Tooltip: Tooltip.extend({
       defaultProps: { openDelay: TOOLTIP_DELAY, withArrow: true },
     }),
