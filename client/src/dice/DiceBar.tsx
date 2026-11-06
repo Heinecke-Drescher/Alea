@@ -21,7 +21,7 @@ export function DiceBar() {
   return (
     <Paper p="xs" radius={0} withBorder>
       <Stack gap="xs">
-        <DieButtons columns={7} spacing="xs" />
+        <DieButtons columns={4} spacing="xs" />
         <UnstyledButton aria-label="Show all rolls" onClick={history.open}>
           <Group wrap="nowrap" gap="xs">
             <Box flex={1} miw={0}>
