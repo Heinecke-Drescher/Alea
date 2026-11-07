@@ -5,7 +5,7 @@ import { BACKGROUND_IMAGE_ID } from "./background";
 import { createRoom, type Room } from "./createRoom";
 import { DEFAULT_MAP_BOUNDS } from "./grid";
 import { MAP_IMAGE_KEY } from "./mapImage";
-import { MAX_MARK_LENGTH } from "./mark";
+import { MAX_MARK_LENGTH, MAX_MARKS } from "./marks";
 import {
   checkMapFileSize,
   LOADED_MAP_KEY,
@@ -102,24 +102,25 @@ describe("map files", () => {
     expect(other.exportMap()).toEqual(file);
   });
 
-  it("brings a token's mark into another room", () => {
+  it("brings a token's marks into another room", () => {
     fillRoom(room);
     const [token] = room.tokensMap.values();
     if (!token) throw new Error("Expected a token");
-    room.setMark(token.id, "Bloodied");
+    room.addMark(token.id, { text: "Bloodied" });
+    room.addMark(token.id, { text: "" });
     const file = parseMapFile(JSON.stringify(room.exportMap()));
-    expect(file.tokens[0]?.mark).toBe("Bloodied");
+    expect(file.tokens[0]?.marks).toEqual([{ text: "Bloodied" }, { text: "" }]);
     const other = createRoom(new Y.Doc());
     other.importMap(file);
     expect(other.exportMap()).toEqual(file);
   });
 
-  it("exports no mark that another player's data holds wrongly", () => {
+  it("exports no marks that another player's data holds wrongly", () => {
     fillRoom(room);
     const [token] = room.tokensMap.values();
     if (!token) throw new Error("Expected a token");
-    room.tokensMap.set(token.id, { ...token, mark: 3 } as never);
-    expect(room.exportMap().tokens[0]).not.toHaveProperty("mark");
+    room.tokensMap.set(token.id, { ...token, marks: [3] } as never);
+    expect(room.exportMap().tokens[0]).not.toHaveProperty("marks");
   });
 
   it("exports only known stroke data from other players", () => {
@@ -319,14 +320,39 @@ describe("map files", () => {
       }),
     ],
     [
-      "a mark that is no text",
-      (file) => ({ ...file, tokens: [{ ...file.tokens[0], mark: 3 }] }),
+      "marks that are no list",
+      (file) => ({ ...file, tokens: [{ ...file.tokens[0], marks: "Target" }] }),
+    ],
+    [
+      "an empty list of marks",
+      (file) => ({ ...file, tokens: [{ ...file.tokens[0], marks: [] }] }),
+    ],
+    [
+      "a mark without text",
+      (file) => ({ ...file, tokens: [{ ...file.tokens[0], marks: [3] }] }),
     ],
     [
       "a mark that is too long",
       (file) => ({
         ...file,
-        tokens: [{ ...file.tokens[0], mark: "x".repeat(MAX_MARK_LENGTH + 1) }],
+        tokens: [
+          {
+            ...file.tokens[0],
+            marks: [{ text: "x".repeat(MAX_MARK_LENGTH + 1) }],
+          },
+        ],
+      }),
+    ],
+    [
+      "too many marks",
+      (file) => ({
+        ...file,
+        tokens: [
+          {
+            ...file.tokens[0],
+            marks: Array.from({ length: MAX_MARKS + 1 }, () => ({ text: "" })),
+          },
+        ],
       }),
     ],
     ["fog off the map", (file) => ({ ...file, fog: [{ x: -10, y: 0 }] })],

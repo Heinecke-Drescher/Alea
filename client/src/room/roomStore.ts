@@ -5,6 +5,7 @@ import type { TextFontSize } from "./texts";
 import type { StatusEffect } from "./effects";
 import type { MapBounds } from "./grid";
 import type { MapImagePlace } from "./mapImage";
+import type { Mark } from "./marks";
 import type { PlayerColor } from "./playerColors";
 import type { AreaShape } from "./shapes";
 
@@ -16,7 +17,7 @@ export interface Token {
   y: number;
   size: number;
   effects?: StatusEffect[];
-  mark?: string;
+  marks?: Mark[];
 }
 
 export interface Cell {

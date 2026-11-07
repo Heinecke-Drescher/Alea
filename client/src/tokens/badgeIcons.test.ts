@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { STATUS_EFFECTS } from "../room/effects";
-import { badgeImageUrl, tokenBadges } from "./badgeIcons";
+import { badgeImageUrl, fitBadges, tokenBadges } from "./badgeIcons";
 
 describe("badgeImageUrl", () => {
   it("colors every effect icon and enlarges it", () => {
@@ -27,27 +27,53 @@ describe("badgeImageUrl", () => {
 });
 
 describe("tokenBadges", () => {
-  it("lists the effects before the mark", () => {
-    const badges = tokenBadges(["dead", "unconscious"], "Cursed");
-    expect(badges.map((badge) => badge.kind)).toEqual([
+  it("lists the effects before the marks", () => {
+    const badges = tokenBadges(
+      ["dead", "unconscious"],
+      [{ text: "Cursed" }, { text: "Blessed" }],
+    );
+    expect(badges.map((badge) => badge.key)).toEqual([
       "dead",
       "unconscious",
-      "mark",
+      "mark-0",
+      "mark-1",
     ]);
     expect(badges.map((badge) => badge.label)).toEqual([
       "Dead",
       "Unconscious",
       "Cursed",
+      "Blessed",
     ]);
   });
 
   it("names a mark without text", () => {
-    expect(tokenBadges([], "")).toEqual([
-      { kind: "mark", label: "Marked", color: "orange" },
+    expect(tokenBadges([], [{ text: "" }])).toEqual([
+      { key: "mark-0", kind: "mark", label: "Marked", color: "orange" },
     ]);
   });
 
-  it("is empty without effects and mark", () => {
-    expect(tokenBadges([], null)).toEqual([]);
+  it("is empty without effects and marks", () => {
+    expect(tokenBadges([], [])).toEqual([]);
+  });
+});
+
+describe("fitBadges", () => {
+  const badges = tokenBadges(
+    ["dead"],
+    [{ text: "A" }, { text: "B" }, { text: "C" }],
+  );
+
+  it("shows all badges that fit", () => {
+    expect(fitBadges(badges.slice(0, 3), 3)).toEqual({
+      shown: badges.slice(0, 3),
+      hidden: [],
+    });
+  });
+
+  it("keeps the last place for the hidden ones", () => {
+    expect(fitBadges(badges, 3)).toEqual({
+      shown: badges.slice(0, 2),
+      hidden: badges.slice(2),
+    });
   });
 });

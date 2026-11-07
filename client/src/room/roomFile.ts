@@ -4,7 +4,7 @@ import { MAX_ROOM_BYTES } from "../../../shared/roomLimits";
 import { BACKGROUND_IMAGE_ID } from "./background";
 import { isOverFog, newStroke, shapeStroke, strokeData } from "./drawing";
 import { isStatusEffect, tokenEffects, type StatusEffect } from "./effects";
-import { isValidMark, tokenMark } from "./mark";
+import { isValidMark, MAX_MARKS, tokenMarks, type Mark } from "./marks";
 import {
   containsCell,
   containsSquare,
@@ -57,7 +57,7 @@ export interface MapFile {
     y: number;
     size: number;
     effects: StatusEffect[];
-    mark?: string;
+    marks?: Mark[];
     image: string;
   }[];
   background: string | null;
@@ -183,11 +183,17 @@ function parseToken(value: unknown, bounds: MapBounds) {
     y,
     size,
     effects,
-    ...(value.mark !== undefined && {
-      mark: isValidMark(value.mark) ? value.mark : invalid("token mark"),
-    }),
+    ...(value.marks !== undefined && { marks: parseMarks(value.marks) }),
     image: image(value.image, "token image"),
   };
+}
+
+function parseMarks(value: unknown): Mark[] {
+  const marks = list(value, "token marks");
+  if (marks.length === 0 || marks.length > MAX_MARKS) invalid("token marks");
+  return marks.map((mark) =>
+    isValidMark(mark) ? { text: mark.text } : invalid("token mark"),
+  );
 }
 
 // Checked before reading, so a huge file chosen by mistake is never loaded.
@@ -343,7 +349,7 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
         const tokenImage = embeddedImage(imagesMap.get(token.imageId));
         if (!tokenImage) return [];
         const { name, x, y, size } = token;
-        const mark = tokenMark(token);
+        const marks = tokenMarks(token);
         return [
           {
             name,
@@ -351,7 +357,7 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
             y,
             size,
             effects: tokenEffects(token),
-            ...(mark !== null && { mark }),
+            ...(marks.length > 0 && { marks }),
             image: tokenImage,
           },
         ];

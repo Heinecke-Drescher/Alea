@@ -5,7 +5,7 @@ import { useEffect, useRef } from "react";
 import { Group, Image } from "react-konva";
 import useImage from "use-image";
 import { isOutOfFight, tokenEffects } from "../../room/effects";
-import { tokenMark } from "../../room/mark";
+import { tokenMarks } from "../../room/marks";
 import type { Token } from "../../room/roomStore";
 import { CELL_SIZE } from "../../room/grid";
 import { SelectionRing, SelectionTint } from "./SelectionRing";
@@ -82,7 +82,7 @@ export function TokenView({
         {isHighlighted && <SelectionTint size={size} />}
         <TokenBadges
           effects={effects}
-          mark={tokenMark(token)}
+          marks={tokenMarks(token)}
           tokenSize={token.size}
         />
       </Group>

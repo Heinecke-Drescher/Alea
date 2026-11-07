@@ -5,7 +5,7 @@ import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
 import { hasShapes, isClosed, isOverFog } from "./drawing";
 import { tokenEffects } from "./effects";
-import { MAX_MARK_LENGTH, tokenMark } from "./mark";
+import { MAX_MARK_LENGTH, MAX_MARKS, tokenMarks } from "./marks";
 import type { Token } from "./roomStore";
 import { rollColor, rollPath } from "./rolls";
 import type { AreaShape } from "./shapes";
@@ -363,70 +363,100 @@ describe("status effects", () => {
 });
 
 describe("marks", () => {
-  it("sets, changes and removes a mark", () => {
+  const texts = () => tokenMarks(onlyToken()).map((mark) => mark.text);
+
+  it("adds, changes and removes several marks", () => {
     room.addToken("Goblin", IMAGE);
     const { id } = onlyToken();
-    expect(tokenMark(onlyToken())).toBeNull();
-    room.setMark(id, "Bloodied");
-    expect(tokenMark(onlyToken())).toBe("Bloodied");
-    room.setMark(id, "");
-    expect(tokenMark(onlyToken())).toBe("");
-    room.removeMark(id);
-    expect(tokenMark(onlyToken())).toBeNull();
-    expect(onlyToken()).not.toHaveProperty("mark");
+    expect(tokenMarks(onlyToken())).toEqual([]);
+    room.addMark(id, { text: "Bloodied" });
+    room.addMark(id, { text: "" });
+    room.addMark(id, { text: "Target" });
+    expect(texts()).toEqual(["Bloodied", "", "Target"]);
+    room.changeMark(id, 1, { text: "Blessed" });
+    expect(texts()).toEqual(["Bloodied", "Blessed", "Target"]);
+    room.removeMark(id, 0);
+    expect(texts()).toEqual(["Blessed", "Target"]);
+    room.removeMark(id, 1);
+    room.removeMark(id, 0);
+    expect(onlyToken()).not.toHaveProperty("marks");
   });
 
   it("undoes each change in its own step", () => {
     room.addToken("Goblin", IMAGE);
     const { id } = onlyToken();
-    room.setMark(id, "Target");
-    room.setMark(id, "Bloodied");
-    room.removeMark(id);
+    room.addMark(id, { text: "Target" });
+    room.changeMark(id, 0, { text: "Bloodied" });
+    room.removeMark(id, 0);
     room.undoManager.undo();
-    expect(tokenMark(onlyToken())).toBe("Bloodied");
+    expect(texts()).toEqual(["Bloodied"]);
     room.undoManager.undo();
-    expect(tokenMark(onlyToken())).toBe("Target");
+    expect(texts()).toEqual(["Target"]);
   });
 
-  it("refuses a mark that is too long", () => {
+  it("refuses a mark that is too long and more marks than allowed", () => {
     room.addToken("Goblin", IMAGE);
     const { id } = onlyToken();
-    room.setMark(id, "x".repeat(MAX_MARK_LENGTH));
-    expect(() => room.setMark(id, "x".repeat(MAX_MARK_LENGTH + 1))).toThrow();
-    expect(tokenMark(onlyToken())).toBe("x".repeat(MAX_MARK_LENGTH));
+    room.addMark(id, { text: "x".repeat(MAX_MARK_LENGTH) });
+    expect(() =>
+      room.addMark(id, { text: "x".repeat(MAX_MARK_LENGTH + 1) }),
+    ).toThrow();
+    expect(() =>
+      room.changeMark(id, 0, { text: "x".repeat(MAX_MARK_LENGTH + 1) }),
+    ).toThrow();
+    for (let i = 1; i < MAX_MARKS; i++) room.addMark(id, { text: "" });
+    expect(() => room.addMark(id, { text: "" })).toThrow();
+    expect(texts()[0]).toBe("x".repeat(MAX_MARK_LENGTH));
+    expect(texts()).toHaveLength(MAX_MARKS);
   });
 
-  it("reads only short texts as marks from other players' data", () => {
+  it("changes nothing when the mark was removed meanwhile", () => {
+    room.addToken("Goblin", IMAGE);
+    const { id } = onlyToken();
+    room.addMark(id, { text: "Target" });
+    room.changeMark(id, 1, { text: "Bloodied" });
+    room.removeMark(id, 1);
+    expect(texts()).toEqual(["Target"]);
+  });
+
+  it("reads only valid marks and their known fields from other players' data", () => {
     room.addToken("Goblin", IMAGE);
     const token = onlyToken();
-    room.tokensMap.set(token.id, { ...token, mark: 3 } as unknown as Token);
-    expect(tokenMark(onlyToken())).toBeNull();
+    room.tokensMap.set(token.id, { ...token, marks: 3 } as unknown as Token);
+    expect(tokenMarks(onlyToken())).toEqual([]);
     room.tokensMap.set(token.id, {
       ...token,
-      mark: "x".repeat(MAX_MARK_LENGTH + 1),
-    });
-    expect(tokenMark(onlyToken())).toBeNull();
+      marks: [
+        { text: "x".repeat(MAX_MARK_LENGTH + 1) },
+        3,
+        { text: "Target", extra: true },
+      ],
+    } as unknown as Token);
+    expect(tokenMarks(onlyToken())).toEqual([{ text: "Target" }]);
   });
 
-  it("keeps the mark of a duplicate and a pasted copy", () => {
+  it("keeps the marks of a duplicate and a pasted copy", () => {
     room.addToken("Goblin", IMAGE);
     const { id } = onlyToken();
-    room.setMark(id, "Target");
-    expect(tokenMark(tokenOf(room.duplicateToken(id)))).toBe("Target");
+    room.addMark(id, { text: "Target" });
+    room.addMark(id, { text: "Blessed" });
+    const marks = [{ text: "Target" }, { text: "Blessed" }];
+    expect(tokenMarks(tokenOf(room.duplicateToken(id)))).toEqual(marks);
     const clip = room.copyItems({ strokes: [], tokens: [id], texts: [] });
     const [pastedId] = room.paste(clip, 0, 5 * CELL_SIZE).tokens;
-    expect(tokenMark(tokenOf(pastedId))).toBe("Target");
+    expect(tokenMarks(tokenOf(pastedId))).toEqual(marks);
   });
 
-  it("copies no mark onto an unmarked token", () => {
+  it("copies no marks onto an unmarked token", () => {
     room.addToken("Goblin", IMAGE);
     const copy = tokenOf(room.duplicateToken(onlyToken().id));
-    expect(copy).not.toHaveProperty("mark");
+    expect(copy).not.toHaveProperty("marks");
   });
 
   it("ignores marks on tokens that no longer exist", () => {
-    room.setMark("gone", "Target");
-    room.removeMark("gone");
+    room.addMark("gone", { text: "Target" });
+    room.changeMark("gone", 0, { text: "Target" });
+    room.removeMark("gone", 0);
     expect(room.tokensMap.size).toBe(0);
   });
 });

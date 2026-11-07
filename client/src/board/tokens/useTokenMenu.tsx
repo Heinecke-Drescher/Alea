@@ -6,7 +6,7 @@ import {
   IconCopy,
   IconCursorText,
   IconFlag,
-  IconFlagOff,
+  IconFlagPlus,
   IconScissors,
   IconTrash,
 } from "@tabler/icons-react";
@@ -22,7 +22,7 @@ import { useFogGuard } from "../../fog/useFogGuard";
 import { showRoomSpaceError } from "../../images/showRoomSpaceError";
 import type { Room } from "../../room/createRoom";
 import { STATUS_EFFECTS, tokenEffects } from "../../room/effects";
-import { tokenMark } from "../../room/mark";
+import { MAX_MARKS, tokenMarks } from "../../room/marks";
 import type { Token } from "../../room/roomStore";
 import { openMarkDialog } from "../../tokens/openMarkDialog";
 import { openRenameDialog } from "../../tokens/openRenameDialog";
@@ -31,6 +31,7 @@ import {
   EFFECT_ICONS,
   EFFECT_LABELS,
   MARK_COLOR,
+  markLabel,
 } from "../../tokens/badgeIcons";
 import { NO_ITEMS } from "../../room/areaActions";
 import { itemsSelection } from "../selection/selection";
@@ -87,7 +88,7 @@ export function useTokenMenu(
   function content(token: Token): ContextMenuContent {
     const only = onlyToken(token);
     const effects = tokenEffects(token);
-    const mark = tokenMark(token);
+    const marks = tokenMarks(token);
     return (close) => (
       <>
         <ContextMenuItem
@@ -141,24 +142,21 @@ export function useTokenMenu(
             />
           );
         })}
-        <ContextMenuItem
-          title={
-            mark === null
-              ? "Mark"
-              : mark === ""
-                ? "Edit mark"
-                : `Edit mark (${mark})`
-          }
-          icon={<IconFlag size={16} color={theme.colors[MARK_COLOR][8]} />}
-          onClick={() => openMarkDialog(room, token.id)}
-          onHide={close}
-          submenuProps={{}}
-        />
-        {mark !== null && (
+        {marks.map((mark, i) => (
           <ContextMenuItem
-            title="Remove mark"
-            icon={<IconFlagOff size={16} />}
-            onClick={() => room.removeMark(token.id)}
+            key={i}
+            title={markLabel(mark)}
+            icon={<IconFlag size={16} color={theme.colors[MARK_COLOR][8]} />}
+            onClick={() => openMarkDialog(room, token.id, i)}
+            onHide={close}
+            submenuProps={{}}
+          />
+        ))}
+        {marks.length < MAX_MARKS && (
+          <ContextMenuItem
+            title="Add mark"
+            icon={<IconFlagPlus size={16} />}
+            onClick={() => openMarkDialog(room, token.id)}
             onHide={close}
             submenuProps={{}}
           />

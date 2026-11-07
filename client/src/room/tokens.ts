@@ -2,7 +2,7 @@ import { nanoid } from "nanoid";
 import { tokenEffects, type StatusEffect } from "./effects";
 import { MAX_TOKEN_SIZE, overlaps, type Square } from "./grid";
 import { placeToken, type MapActions } from "./map";
-import { isValidMark } from "./mark";
+import { isValidMark, MAX_MARKS, tokenMarks, type Mark } from "./marks";
 import type { RoomStore, Token } from "./roomStore";
 
 export function embeddedImage(value: string | undefined) {
@@ -74,18 +74,37 @@ export function createTokens(
     });
   }
 
-  function setMark(id: string, mark: string) {
-    if (!isValidMark(mark)) throw new Error(`Invalid mark "${mark}"`);
-    undoManager.stopCapturing();
-    updateToken(id, (token) => ({ ...token, mark }));
-  }
-
-  function removeMark(id: string) {
+  function addMark(id: string, mark: Mark) {
+    if (!isValidMark(mark)) throw new Error("Invalid mark");
     undoManager.stopCapturing();
     updateToken(id, (token) => {
+      const marks = tokenMarks(token);
+      if (marks.length >= MAX_MARKS) throw new Error("Too many marks");
+      return { ...token, marks: [...marks, mark] };
+    });
+  }
+
+  // Another player may have removed the mark meanwhile; then nothing changes.
+  function changeMark(id: string, index: number, mark: Mark) {
+    if (!isValidMark(mark)) throw new Error("Invalid mark");
+    undoManager.stopCapturing();
+    updateToken(id, (token) => {
+      const marks = tokenMarks(token);
+      if (index >= marks.length) return token;
+      return {
+        ...token,
+        marks: marks.map((other, i) => (i === index ? mark : other)),
+      };
+    });
+  }
+
+  function removeMark(id: string, index: number) {
+    undoManager.stopCapturing();
+    updateToken(id, (token) => {
+      const marks = tokenMarks(token).filter((_, i) => i !== index);
       const unmarked = { ...token };
-      delete unmarked.mark;
-      return unmarked;
+      delete unmarked.marks;
+      return marks.length > 0 ? { ...unmarked, marks } : unmarked;
     });
   }
 
@@ -135,7 +154,8 @@ export function createTokens(
     addTokens,
     renameToken,
     toggleEffect,
-    setMark,
+    addMark,
+    changeMark,
     removeMark,
     resizeToken,
     removeToken,
