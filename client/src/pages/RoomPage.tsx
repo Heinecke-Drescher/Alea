@@ -10,7 +10,7 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { useDisclosure, useHotkeys } from "@mantine/hooks";
+import { useDisclosure, useElementSize, useHotkeys } from "@mantine/hooks";
 import {
   useCallback,
   useEffect,
@@ -47,7 +47,8 @@ import { TokenPanel } from "../tokens/TokenPanel";
 import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
 import { TokenDrawer } from "../tokens/TokenDrawer";
-import { TokensToggle } from "../tokens/TokensToggle";
+import { TokenSheet } from "../tokens/TokenSheet";
+import { TOKENS_TOGGLE_SPACE, TokensToggle } from "../tokens/TokensToggle";
 import { useNarrowPortrait, useWideLayout } from "../theme";
 import { PlayerNameModal } from "./PlayerNameModal";
 
@@ -80,7 +81,8 @@ function RoomNotFound() {
 function RoomView({ roomId }: { roomId: string }) {
   const { room, awareness, isSynced, connection, isFull } =
     useRoomConnection(roomId);
-  const [asideOpened, { toggle: toggleAside }] = useDisclosure();
+  const [isTokensOpen, { toggle: toggleTokens }] = useDisclosure();
+  const { ref: sheetRef, height: sheetHeight } = useElementSize();
   const [isEditingName, { open: editName, close: stopEditingName }] =
     useDisclosure();
   const localPlayer = useLocalPlayer();
@@ -106,6 +108,7 @@ function RoomView({ roomId }: { roomId: string }) {
     board.current?.throwDie(sides, samples);
   const isWide = useWideLayout();
   const hasDiceBar = useNarrowPortrait();
+  const isSheetOpen = isTokensOpen && hasDiceBar;
   const tokenPanel = (
     <FocusTokenContext value={focusToken}>
       <TokenMenuContext value={openTokenMenu}>
@@ -140,8 +143,11 @@ function RoomView({ roomId }: { roomId: string }) {
                 aside={{
                   width: 320,
                   breakpoint: "sm",
-                  // Wide screens show the tokens in a panel over the map instead.
-                  collapsed: { mobile: !asideOpened, desktop: true },
+                  // Wide screens show the tokens in a panel over the map, phones held upright in a sheet.
+                  collapsed: {
+                    mobile: !isTokensOpen || hasDiceBar,
+                    desktop: true,
+                  },
                 }}
               >
                 <AppShell.Header>
@@ -178,23 +184,31 @@ function RoomView({ roomId }: { roomId: string }) {
                         <Board
                           ref={board}
                           onSelectedTokensChange={setSelectedTokens}
-                          coveredRight={
-                            isWide
+                          covered={{
+                            right: isWide
                               ? PANEL_COLUMN_RIGHT +
                                 PANEL_COLUMN_WIDTH +
                                 PANEL_GAP
-                              : 0
-                          }
+                              : 0,
+                            bottom: isSheetOpen
+                              ? TOKENS_TOGGLE_SPACE + sheetHeight
+                              : 0,
+                          }}
                           awareness={awareness}
                           isSynced={isSynced}
                           critical={criticals.critical}
                           onCriticalDone={criticals.clear}
                         />
                       </ErrorBoundary>
+                      {hasDiceBar && (
+                        <TokenSheet isOpen={isSheetOpen} ref={sheetRef}>
+                          {tokenPanel}
+                        </TokenSheet>
+                      )}
                       {!isWide && (
                         <TokensToggle
-                          isOpen={asideOpened}
-                          onToggle={toggleAside}
+                          isOpen={isTokensOpen}
+                          onToggle={toggleTokens}
                         />
                       )}
                       {isWide && (
@@ -220,10 +234,20 @@ function RoomView({ roomId }: { roomId: string }) {
                   </Stack>
                 </AppShell.Main>
                 <AppShell.Aside>
-                  <AppShell.Section grow component={ScrollArea} p="md">
+                  <AppShell.Section
+                    grow
+                    component={ScrollArea}
+                    p="md"
+                    // Keeps the end of the list clear of the toggle above the panel.
+                    pb={TOKENS_TOGGLE_SPACE}
+                  >
                     <Stack>
-                      {!isWide && tokenPanel}
-                      {!hasDiceBar && !isWide && <DicePanel />}
+                      {!isWide && !hasDiceBar && (
+                        <>
+                          {tokenPanel}
+                          <DicePanel />
+                        </>
+                      )}
                     </Stack>
                   </AppShell.Section>
                 </AppShell.Aside>

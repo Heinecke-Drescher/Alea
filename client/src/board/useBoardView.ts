@@ -86,25 +86,30 @@ function pinchOf(stage: StageNode): Pinch | null {
   };
 }
 
-// `coveredRight` is the width of the panels over the right edge of the stage, which the map keeps clear of.
+// How far panels over the right and the bottom edge of the stage reach in, which the map keeps clear of.
+export interface CoveredEdges {
+  right: number;
+  bottom: number;
+}
+
 export function fittedView(
   map: IRect,
   stage: { width: number; height: number },
-  coveredRight: number,
+  covered: CoveredEdges,
 ): View {
   const left = VIEW_MARGIN;
-  const right = stage.width - Math.max(VIEW_MARGIN, coveredRight);
-  const width = right - left;
-  const height = stage.height - 2 * VIEW_MARGIN;
+  const right = stage.width - Math.max(VIEW_MARGIN, covered.right);
+  const top = VIEW_MARGIN;
+  const bottom = stage.height - Math.max(VIEW_MARGIN, covered.bottom);
   const scale = clamp(
-    Math.min(width / map.width, height / map.height),
+    Math.min((right - left) / map.width, (bottom - top) / map.height),
     MIN_ZOOM,
     MAX_ZOOM,
   );
   return {
     scale,
     x: (left + right) / 2 - (map.x + map.width / 2) * scale,
-    y: stage.height / 2 - (map.y + map.height / 2) * scale,
+    y: (top + bottom) / 2 - (map.y + map.height / 2) * scale,
   };
 }
 
@@ -138,7 +143,7 @@ export function wheelPixels(
 export function useBoardView(
   room: Room,
   stageRef: RefObject<StageNode | null>,
-  coveredRight: number,
+  covered: CoveredEdges,
 ) {
   const lastPinch = useRef<Pinch | null>(null);
 
@@ -215,15 +220,20 @@ export function useBoardView(
     const { scale, x, y } = fittedView(
       mapRect(room.mapBounds()),
       stage.size(),
-      coveredRight,
+      covered,
     );
     stage.scale({ x: scale, y: scale });
     stage.position({ x, y });
   }
 
+  // In the middle of what a panel over the bottom edge leaves free.
   function centerOn(point: Vector2d) {
     const stage = mountedStage();
-    const { x, y } = centeredView(stage.scaleX(), point, stage.size());
+    const visible = {
+      width: stage.width(),
+      height: stage.height() - covered.bottom,
+    };
+    const { x, y } = centeredView(stage.scaleX(), point, visible);
     stage.position({ x, y });
   }
 

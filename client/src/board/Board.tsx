@@ -59,7 +59,7 @@ import { isFogTool, type Tool } from "./tools/tool";
 import { useBoardTools } from "./tools/useBoardTools";
 import { pointerOnMap } from "./pointer";
 import { useBoardInput } from "./useBoardInput";
-import { useBoardView } from "./useBoardView";
+import { useBoardView, type CoveredEdges } from "./useBoardView";
 import { useCursorBroadcast } from "./useCursorBroadcast";
 import { useFitOnNewMap } from "./useFitOnNewMap";
 import { usePingBroadcast } from "./usePingBroadcast";
@@ -80,8 +80,7 @@ interface BoardProps {
   critical: Critical | null;
   onCriticalDone: (id: string) => void;
   onSelectedTokensChange: (ids: readonly string[]) => void;
-  // Width of the panels over the right edge of the board, which a fitted map keeps clear of.
-  coveredRight: number;
+  covered: CoveredEdges;
   ref: Ref<BoardHandle>;
 }
 
@@ -91,7 +90,7 @@ export function Board({
   critical,
   onCriticalDone,
   onSelectedTokensChange,
-  coveredRight,
+  covered,
   ref,
 }: BoardProps) {
   const room = useRoom();
@@ -134,7 +133,7 @@ export function Board({
     centerOn,
     zoomIn,
     zoomOut,
-  } = useBoardView(room, stageRef, coveredRight);
+  } = useBoardView(room, stageRef, covered);
   const cursor = useCursorBroadcast(awareness);
   const isSelecting = activeTool.selectsItems;
   const input = useBoardInput({
