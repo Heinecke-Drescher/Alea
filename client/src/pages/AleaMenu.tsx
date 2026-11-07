@@ -1,5 +1,6 @@
 import {
   Button,
+  Center,
   ColorSwatch,
   Menu,
   Text,
@@ -9,7 +10,15 @@ import {
   useMantineTheme,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { IconCheck, IconChevronDown } from "@tabler/icons-react";
+import {
+  IconCheck,
+  IconChevronDown,
+  IconCrown,
+  IconLink,
+  IconLogout,
+  IconMoon,
+  IconMusic,
+} from "@tabler/icons-react";
 import { useState } from "react";
 import { Link } from "react-router";
 import { MusicPopover } from "../music/MusicPopover";
@@ -82,20 +91,34 @@ export function AleaMenu({
             </Button>
           </Menu.Target>
           <Menu.Dropdown>
-            <Menu.Item onClick={copyRoomLink}>Copy room link</Menu.Item>
-            <Menu.Divider />
-            {/* Before the sync the DM is unknown; without a name nobody could tell who took the role. */}
-            {isSynced && name !== "" && <DmItem dmControl={dmControl} />}
-            <Menu.Item onClick={() => setMusicOpen(true)}>Music</Menu.Item>
+            <Menu.Item
+              leftSection={<IconLink size={16} />}
+              onClick={copyRoomLink}
+            >
+              Copy room link
+            </Menu.Item>
             <Menu.Item
               leftSection={
-                <ColorSwatch color={theme.colors[color][6]} size={14} />
+                // As wide as the icons, so all texts start in one line.
+                <Center w={16}>
+                  <ColorSwatch color={theme.colors[color][6]} size={14} />
+                </Center>
               }
               onClick={onEditName}
             >
               Edit name ({name})
             </Menu.Item>
+            {/* Before the sync the DM is unknown; without a name nobody could tell who took the role. */}
+            {isSynced && name !== "" && <DmItem dmControl={dmControl} />}
+            <Menu.Divider />
             <Menu.Item
+              leftSection={<IconMusic size={16} />}
+              onClick={() => setMusicOpen(true)}
+            >
+              Music
+            </Menu.Item>
+            <Menu.Item
+              leftSection={<IconMoon size={16} />}
               rightSection={isDark && <IconCheck size={16} />}
               onClick={() => setColorScheme(isDark ? "light" : "dark")}
             >
@@ -107,6 +130,7 @@ export function AleaMenu({
             <Menu.Item
               component={Link}
               to="/"
+              leftSection={<IconLogout size={16} />}
               disabled={isDisconnected}
               onClick={(event) => {
                 if (isDisconnected) event.preventDefault();
@@ -123,18 +147,29 @@ export function AleaMenu({
 
 function DmItem({ dmControl }: { dmControl: ReturnType<typeof useDmControl> }) {
   const { state, becomeDm, releaseDm, confirmTakeOver } = dmControl;
+  const icon = <IconCrown size={16} />;
   switch (state.kind) {
     case "none":
-      return <Menu.Item onClick={becomeDm}>Become DM</Menu.Item>;
+      return (
+        <Menu.Item leftSection={icon} onClick={becomeDm}>
+          Become DM
+        </Menu.Item>
+      );
     case "self":
-      return <Menu.Item onClick={releaseDm}>Release DM</Menu.Item>;
+      return (
+        <Menu.Item leftSection={icon} onClick={releaseDm}>
+          Release DM
+        </Menu.Item>
+      );
     case "other":
       return state.isAway ? (
-        <Menu.Item onClick={() => confirmTakeOver(state.dm)}>
+        <Menu.Item leftSection={icon} onClick={() => confirmTakeOver(state.dm)}>
           Take over DM ({state.dm.name} is away)
         </Menu.Item>
       ) : (
-        <Menu.Item disabled>DM: {state.dm.name}</Menu.Item>
+        <Menu.Item leftSection={icon} disabled>
+          DM: {state.dm.name}
+        </Menu.Item>
       );
   }
 }
