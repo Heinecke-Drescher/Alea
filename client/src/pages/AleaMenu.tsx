@@ -6,7 +6,6 @@ import {
   useComputedColorScheme,
   useMantineColorScheme,
 } from "@mantine/core";
-import { notifications } from "@mantine/notifications";
 import {
   IconCheck,
   IconChevronDown,
@@ -15,6 +14,7 @@ import {
   IconLogout,
   IconMoon,
   IconMusic,
+  IconShare,
 } from "@tabler/icons-react";
 import { useState } from "react";
 import { Link } from "react-router";
@@ -24,31 +24,10 @@ import type {
   Awareness,
   ConnectionState,
 } from "../room/connection/connectRoom";
+import { useWideLayout } from "../theme";
 import { RoomPeople } from "./RoomPeople";
+import { canShareRoomLink, copyRoomLink, shareRoomLink } from "./roomLink";
 import { useDmControl } from "./useDmControl";
-
-function showCopyError(link: string) {
-  notifications.show({
-    color: "red",
-    title: "Could not copy the link",
-    message: link,
-    // Long enough to copy the link by hand.
-    autoClose: false,
-  });
-}
-
-// Browsers offer the clipboard only over HTTPS or on localhost, not in a home network over http.
-function copyRoomLink() {
-  const link = window.location.origin + window.location.pathname;
-  if (!("clipboard" in navigator)) {
-    showCopyError(link);
-    return;
-  }
-  navigator.clipboard.writeText(link).then(
-    () => notifications.show({ message: "Room link copied" }),
-    () => showCopyError(link),
-  );
-}
 
 interface AleaMenuProps {
   connection: ConnectionState;
@@ -69,6 +48,8 @@ export function AleaMenu({
   const { setColorScheme } = useMantineColorScheme();
   const isDark = useComputedColorScheme("light") === "dark";
   const [isMusicOpen, setMusicOpen] = useState(false);
+  // On a phone the system's share sheet reaches the group's chat directly.
+  const isSharing = !useWideLayout() && canShareRoomLink();
 
   return (
     <MusicPopover opened={isMusicOpen} onChange={setMusicOpen}>
@@ -95,12 +76,21 @@ export function AleaMenu({
             />
             {/* Before the sync the DM is unknown; without a name nobody could tell who took the role. */}
             {isSynced && name !== "" && <DmItem dmControl={dmControl} />}
-            <Menu.Item
-              leftSection={<IconLink size={16} />}
-              onClick={copyRoomLink}
-            >
-              Copy room link
-            </Menu.Item>
+            {isSharing ? (
+              <Menu.Item
+                leftSection={<IconShare size={16} />}
+                onClick={shareRoomLink}
+              >
+                Share room link
+              </Menu.Item>
+            ) : (
+              <Menu.Item
+                leftSection={<IconLink size={16} />}
+                onClick={copyRoomLink}
+              >
+                Copy room link
+              </Menu.Item>
+            )}
             <Menu.Divider />
             <Menu.Item
               leftSection={<IconMusic size={16} />}
