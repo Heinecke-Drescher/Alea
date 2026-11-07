@@ -34,7 +34,11 @@ import { MapResizer } from "./map/MapResizer";
 import { mapSurroundColor } from "./map/mapColors";
 import { CriticalScenes } from "./critical/CriticalScenes";
 import { paintColorValue, type PaintColor } from "./paintColors";
-import { itemsSelection, reshapableStrokeId } from "./selection/selection";
+import {
+  itemsSelection,
+  reshapableStrokeId,
+  TAP_SCREEN_DISTANCE,
+} from "./selection/selection";
 import { SelectionFrame } from "./selection/SelectionFrame";
 import { ShapeResizer } from "./selection/ShapeResizer";
 import { useBoardMenu } from "./selection/useBoardMenu";
@@ -127,7 +131,7 @@ export function Board({
     panOrZoom,
     pinch,
     endPinch,
-    panOnlyWithMiddleButton,
+    panWhereAllowed,
     viewCenter,
     fitMap,
     centerOn,
@@ -271,7 +275,10 @@ export function Board({
           height={height}
           ref={stageRef}
           draggable
-          onDragStart={panOnlyWithMiddleButton}
+          dragDistance={TAP_SCREEN_DISTANCE}
+          onDragStart={(event) =>
+            panWhereAllowed(event, isSelecting && input.canDragItems)
+          }
           onWheel={(event) => {
             panOrZoom(event);
             // The map moved under a still pointer, so tools and cursors follow as if it had moved.

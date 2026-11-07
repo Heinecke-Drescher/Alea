@@ -175,12 +175,17 @@ export function useBoardView(
     stage.position({ x, y });
   }
 
-  function panOnlyWithMiddleButton(event: KonvaEventObject<DragEvent>) {
+  // The left button and the pen keep the tool's own meaning; a finger pans only where the tool lets it.
+  function panWhereAllowed(
+    event: KonvaEventObject<DragEvent>,
+    fingerPans: boolean,
+  ) {
     const stage = event.target;
     if (stage !== stageRef.current) return;
     // Konva starts a finger's drag from a touch event, which has no button.
     const isFinger = event.evt.type.startsWith("touch");
-    if (isFinger || event.evt.button === PRIMARY_BUTTON) stage.stopDrag();
+    const allowed = isFinger ? fingerPans : event.evt.button !== PRIMARY_BUTTON;
+    if (!allowed) stage.stopDrag();
   }
 
   function pointAtStageCenter(stage: StageNode) {
@@ -249,6 +254,7 @@ export function useBoardView(
       for (const node of stage.find((node: Node) => node.isDragging())) {
         node.stopDrag();
       }
+      if (stage.isDragging()) stage.stopDrag();
     }
     if (lastPinch.current) {
       const view = { scale: stage.scaleX(), x: stage.x(), y: stage.y() };
@@ -267,7 +273,7 @@ export function useBoardView(
     panOrZoom,
     pinch,
     endPinch,
-    panOnlyWithMiddleButton,
+    panWhereAllowed,
     viewCenter,
     fitMap,
     centerOn,

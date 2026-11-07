@@ -68,7 +68,18 @@ export function useSelection(room: Room) {
     const start = areaStart.current;
     areaStart.current = null;
     if (!start || !isClickArea(area, start.clickDistance)) return;
-    const cell = cellAt(start.point);
+    selectCellAt(start.point);
+  }
+
+  // A finger's tap on the empty map, which pans when it moves instead of drawing an area.
+  function tap(point: Vector2d) {
+    areaStart.current = null;
+    clear();
+    selectCellAt(point);
+  }
+
+  function selectCellAt(point: Vector2d) {
+    const cell = cellAt(point);
     if (!room.cellsMap.has(cellKey(cell.x, cell.y))) return;
     if (fogGuard.hidesCell(cell.x, cell.y)) return;
     setSelection(areaSelection(cellRect(cell)));
@@ -108,6 +119,7 @@ export function useSelection(room: Room) {
     extendArea,
     endArea,
     cancelArea,
+    tap,
     moveArea,
     pressItem,
     clickItem,

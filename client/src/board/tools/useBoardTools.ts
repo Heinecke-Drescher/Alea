@@ -7,7 +7,7 @@ import { useMeasureTool } from "./measure";
 import { usePaintTool } from "./paint";
 import { usePenTool } from "./pen";
 import { ownEventsTool } from "./ownEvents";
-import { selectTool } from "./select";
+import { useSelectTool } from "./select";
 import { useShapeTool } from "./shape";
 import { useTextTool } from "./text";
 import type { BoardTool, Tool } from "./tool";
@@ -28,8 +28,9 @@ export function useBoardTools(
   const circle = useShapeTool(room, "circle", color, onShapePlaced);
   const reveal = useFogTool(room, "reveal");
   const hide = useFogTool(room, "hide");
+  const select = useSelectTool(selection);
   const tools: Record<Tool, BoardTool> = {
-    select: selectTool(selection),
+    select,
     paint: usePaintTool(room, color),
     pen,
     eraser: useEraserTool(room),
