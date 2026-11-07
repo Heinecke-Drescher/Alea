@@ -1,13 +1,10 @@
 import {
   Button,
-  Center,
-  ColorSwatch,
   Menu,
   Text,
   Title,
   useComputedColorScheme,
   useMantineColorScheme,
-  useMantineTheme,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import {
@@ -27,6 +24,7 @@ import type {
   Awareness,
   ConnectionState,
 } from "../room/connection/connectRoom";
+import { RoomPeople } from "./RoomPeople";
 import { useDmControl } from "./useDmControl";
 
 function showCopyError(link: string) {
@@ -66,8 +64,7 @@ export function AleaMenu({
   onEditName,
 }: AleaMenuProps) {
   const dmControl = useDmControl(awareness);
-  const theme = useMantineTheme();
-  const { name, color } = usePlayer();
+  const { name } = usePlayer();
   const isDisconnected = connection === "disconnected";
   const { setColorScheme } = useMantineColorScheme();
   const isDark = useComputedColorScheme("light") === "dark";
@@ -91,25 +88,19 @@ export function AleaMenu({
             </Button>
           </Menu.Target>
           <Menu.Dropdown>
+            <RoomPeople
+              awareness={awareness}
+              dmState={dmControl.state}
+              onEditName={onEditName}
+            />
+            {/* Before the sync the DM is unknown; without a name nobody could tell who took the role. */}
+            {isSynced && name !== "" && <DmItem dmControl={dmControl} />}
             <Menu.Item
               leftSection={<IconLink size={16} />}
               onClick={copyRoomLink}
             >
               Copy room link
             </Menu.Item>
-            <Menu.Item
-              leftSection={
-                // As wide as the icons, so all texts start in one line.
-                <Center w={16}>
-                  <ColorSwatch color={theme.colors[color][6]} size={14} />
-                </Center>
-              }
-              onClick={onEditName}
-            >
-              Edit name ({name})
-            </Menu.Item>
-            {/* Before the sync the DM is unknown; without a name nobody could tell who took the role. */}
-            {isSynced && name !== "" && <DmItem dmControl={dmControl} />}
             <Menu.Divider />
             <Menu.Item
               leftSection={<IconMusic size={16} />}
@@ -162,14 +153,11 @@ function DmItem({ dmControl }: { dmControl: ReturnType<typeof useDmControl> }) {
         </Menu.Item>
       );
     case "other":
+      // The people list already shows who the DM is.
       return state.isAway ? (
         <Menu.Item leftSection={icon} onClick={() => confirmTakeOver(state.dm)}>
           Take over DM ({state.dm.name} is away)
         </Menu.Item>
-      ) : (
-        <Menu.Item leftSection={icon} disabled>
-          DM: {state.dm.name}
-        </Menu.Item>
-      );
+      ) : null;
   }
 }

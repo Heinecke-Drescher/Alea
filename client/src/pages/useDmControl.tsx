@@ -11,7 +11,7 @@ import { useAwareness } from "../room/connection/useAwareness";
 import { useDm } from "../room/useDm";
 import { usePlayer } from "../player/PlayerContext";
 
-type DmState =
+export type DmState =
   | { kind: "none" }
   | { kind: "self" }
   | { kind: "other"; dm: DungeonMaster; isAway: boolean };
