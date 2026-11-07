@@ -84,12 +84,15 @@ export function useItemDrag(room: Room, selected: Items) {
     }
   }
 
+  // A drag handed over to the map before it started has nothing to move.
   function move(event: KonvaEventObject<DragEvent>) {
+    if (!drag.current) return;
     const { dx, dy } = offset(event);
     placeAll(event, dx, dy);
   }
 
   function end(event: KonvaEventObject<DragEvent>) {
+    if (!drag.current) return;
     const { items } = current();
     const { dx, dy } = offset(event);
     // React draws the moved items from the room data, so the nodes go back first.

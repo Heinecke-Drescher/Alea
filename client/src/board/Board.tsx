@@ -1,6 +1,7 @@
 import { Box, useComputedColorScheme, useMantineTheme } from "@mantine/core";
 import { useElementSize, useHotkeys } from "@mantine/hooks";
 import type { Stage as StageNode } from "konva/lib/Stage";
+import type { KonvaEventObject } from "konva/lib/Node";
 import type { Vector2d } from "konva/lib/types";
 import {
   useEffect,
@@ -156,6 +157,11 @@ export function Board({
     pinch,
     endPinch,
   });
+  function startItemDrag(event: KonvaEventObject<DragEvent>) {
+    const isStroke = room.strokesMap.has(event.target.id());
+    if (input.pansInsteadOfDragging(event, isStroke)) return;
+    itemDrag.start(event);
+  }
   const clipboard = useClipboard({
     room,
     selection,
@@ -313,7 +319,7 @@ export function Board({
             <GridLines />
           </Layer>
           <Layer
-            onDragStart={itemDrag.start}
+            onDragStart={startItemDrag}
             onDragMove={itemDrag.move}
             onDragEnd={itemDrag.end}
           >
@@ -335,7 +341,7 @@ export function Board({
           </Layer>
           {/* Its own layer, so the fog is not redrawn with every cursor move. Players' strokes stay visible on top. */}
           <Layer
-            onDragStart={itemDrag.start}
+            onDragStart={startItemDrag}
             onDragMove={itemDrag.move}
             onDragEnd={itemDrag.end}
           >

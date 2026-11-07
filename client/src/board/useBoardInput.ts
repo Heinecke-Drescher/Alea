@@ -4,7 +4,7 @@ import type { Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
 import type { ItemType } from "../room/areaActions";
 import { pointerOnMap, PRIMARY_BUTTON, PRIMARY_BUTTON_FLAG } from "./pointer";
-import type { Selection } from "./selection/selection";
+import { selectedItems, type Selection } from "./selection/selection";
 import type { SelectionControls } from "./selection/useSelection";
 import type { BoardTool } from "./tools/tool";
 import type { useCursorBroadcast } from "./useCursorBroadcast";
@@ -186,6 +186,25 @@ export function useBoardInput({
     selection.set(before);
   }
 
+  // Strokes often cover much of the map, so a finger on one it had not selected pans instead.
+  function pansInsteadOfDragging(
+    event: KonvaEventObject<DragEvent>,
+    isStroke: boolean,
+  ) {
+    const before = selectionBeforePress.current;
+    if (!isStroke || toolPointer.current?.type !== "touch" || !before) {
+      return false;
+    }
+    const node = event.target;
+    if (selectedItems(before).strokes.includes(node.id())) return false;
+    const stage = node.getStage();
+    if (!stage) throw new Error("Dragged stroke is not on a stage");
+    node.stopDrag();
+    selection.set(before);
+    stage.startDrag(event);
+    return true;
+  }
+
   // Goes through the right click's handlers, so the press keeps the item it selected for the menu.
   // A dragged item keeps moving instead, as Konva sends no pointer moves to cancel the press then.
   function openPressMenu(event: KonvaEventObject<PointerEvent>) {
@@ -215,5 +234,6 @@ export function useBoardInput({
     isLockedFinger,
     pressItem,
     clickItem,
+    pansInsteadOfDragging,
   };
 }
