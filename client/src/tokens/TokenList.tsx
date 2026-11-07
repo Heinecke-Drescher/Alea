@@ -10,11 +10,13 @@ import {
 import { IconDots } from "@tabler/icons-react";
 import { useState } from "react";
 import { useFogGuard } from "../fog/useFogGuard";
+import { isOutOfFight } from "../room/effects";
 import { embeddedImage } from "../room/tokens";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import { useFocusToken } from "./focusToken";
 import { useSelectedTokens } from "./selectedTokens";
+import { TokenListBadges } from "./TokenListBadges";
 import { useOpenTokenMenu } from "./tokenMenu";
 import { startTokenDrag } from "./tokenDrag";
 
@@ -72,7 +74,13 @@ export function TokenList() {
                 if (!isEditing) openTokenMenu(token.id, event);
               }}
             >
-              <Avatar src={embeddedImage(images[token.imageId])} size="sm" />
+              <Avatar
+                src={embeddedImage(images[token.imageId])}
+                size="sm"
+                style={{
+                  filter: isOutOfFight(token) ? "grayscale(1)" : undefined,
+                }}
+              />
               {isEditing ? (
                 <TextInput
                   value={token.name}
@@ -102,6 +110,7 @@ export function TokenList() {
                   {token.name === "" ? "Unnamed" : token.name}
                 </Text>
               )}
+              <TokenListBadges token={token} />
               <ActionIcon
                 variant="subtle"
                 color="gray"

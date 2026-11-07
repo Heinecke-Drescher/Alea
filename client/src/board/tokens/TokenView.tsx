@@ -4,7 +4,7 @@ import type { Image as ImageNode } from "konva/lib/shapes/Image";
 import { useEffect, useRef } from "react";
 import { Group, Image } from "react-konva";
 import useImage from "use-image";
-import { tokenEffects } from "../../room/effects";
+import { isOutOfFight, tokenEffects } from "../../room/effects";
 import { tokenMark } from "../../room/mark";
 import type { Token } from "../../room/roomStore";
 import { CELL_SIZE } from "../../room/grid";
@@ -36,7 +36,7 @@ export function TokenView({
   const imageRef = useRef<ImageNode>(null);
   const size = token.size * CELL_SIZE;
   const effects = tokenEffects(token);
-  const isOutOfFight = effects.length > 0;
+  const isGray = isOutOfFight(token);
 
   useEffect(() => {
     const node = imageRef.current;
@@ -44,9 +44,9 @@ export function TokenView({
     if (!image) return;
     // Konva filters only work on cached nodes. Caching at the image's own
     // resolution keeps a zoomed-in token as sharp as without the filter.
-    if (isOutOfFight) node.cache({ pixelRatio: image.width / size });
+    if (isGray) node.cache({ pixelRatio: image.width / size });
     else node.clearCache();
-  }, [image, size, isOutOfFight]);
+  }, [image, size, isGray]);
 
   if (status === "failed") {
     throw new Error(`Image of token "${token.name}" could not be loaded`);
@@ -77,7 +77,7 @@ export function TokenView({
           width={size}
           height={size}
           cornerRadius={size / 2}
-          filters={isOutOfFight ? [Grayscale] : []}
+          filters={isGray ? [Grayscale] : []}
         />
         {isHighlighted && <SelectionTint size={size} />}
         <TokenBadges

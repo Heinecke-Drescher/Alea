@@ -4,13 +4,10 @@ import useImage from "use-image";
 import type { StatusEffect } from "../../room/effects";
 import { CELL_SIZE } from "../../room/grid";
 import {
-  EFFECT_COLORS,
-  EFFECT_LABELS,
-  effectImageUrl,
-  MARK_COLOR,
-  MARK_LABEL,
-  markImageUrl,
-} from "./badgeIcons";
+  badgeImageUrl,
+  tokenBadges,
+  type Badge,
+} from "../../tokens/badgeIcons";
 import { BADGE_NAME } from "./tokenNodes";
 
 const BADGE_SIZE = 20;
@@ -24,34 +21,12 @@ interface TokenBadgesProps {
   tokenSize: number;
 }
 
-interface Badge {
-  key: string;
-  label: string;
-  color: (typeof EFFECT_COLORS)[StatusEffect] | typeof MARK_COLOR;
-  imageUrl: (color: string) => string;
-}
-
 export function TokenBadges({ effects, mark, tokenSize }: TokenBadgesProps) {
-  const badges: Badge[] = effects.map((effect) => ({
-    key: effect,
-    label: EFFECT_LABELS[effect],
-    color: EFFECT_COLORS[effect],
-    imageUrl: (color) => effectImageUrl(effect, color),
-  }));
-  if (mark !== null) {
-    badges.push({
-      key: "mark",
-      label: mark === "" ? MARK_LABEL : mark,
-      color: MARK_COLOR,
-      imageUrl: markImageUrl,
-    });
-  }
-
   return (
     <Group scaleX={tokenSize} scaleY={tokenSize}>
-      {badges.map((badge, i) => (
+      {tokenBadges(effects, mark).map((badge, i) => (
         <TokenBadge
-          key={badge.key}
+          key={badge.kind}
           badge={badge}
           x={CELL_SIZE - BADGE_SIZE / 2 - i * (BADGE_SIZE + BADGE_GAP)}
           y={BADGE_SIZE / 2}
@@ -69,9 +44,9 @@ interface TokenBadgeProps {
 
 function TokenBadge({ badge, x, y }: TokenBadgeProps) {
   const theme = useMantineTheme();
-  const [image, status] = useImage(badge.imageUrl(theme.white));
+  const [image, status] = useImage(badgeImageUrl(badge.kind, theme.white));
   if (status === "failed") {
-    throw new Error(`Icon of badge "${badge.key}" could not be loaded`);
+    throw new Error(`Icon of badge "${badge.kind}" could not be loaded`);
   }
 
   return (

@@ -13,3 +13,8 @@ export function tokenEffects(token: Token): StatusEffect[] {
   if (!Array.isArray(effects)) return [];
   return STATUS_EFFECTS.filter((effect) => effects.includes(effect));
 }
+
+// Dead or unconscious tokens are out of the fight and shown in gray.
+export function isOutOfFight(token: Token): boolean {
+  return tokenEffects(token).length > 0;
+}
