@@ -1,6 +1,7 @@
 import { ActionIcon, Divider, Group, Tooltip } from "@mantine/core";
 import { IconZoomIn, IconZoomOut, IconZoomScan } from "@tabler/icons-react";
 import { FloatingPanel } from "../FloatingPanel";
+import { useWideLayout } from "../theme";
 import { UndoButtons } from "./UndoButtons";
 
 interface ViewControlsProps {
@@ -14,8 +15,10 @@ export function ViewControls({
   onZoomOut,
   onFitMap,
 }: ViewControlsProps) {
+  // Narrow layouts keep the lower right corner for the tokens.
+  const side = useWideLayout() ? { right: 12 } : { left: 12 };
   return (
-    <FloatingPanel pos="absolute" bottom={12} right={12} p={4}>
+    <FloatingPanel pos="absolute" bottom={12} {...side} p={4}>
       <Group gap={4} wrap="nowrap">
         <UndoButtons />
         <Divider orientation="vertical" />

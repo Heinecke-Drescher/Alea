@@ -47,6 +47,7 @@ import { TokenPanel } from "../tokens/TokenPanel";
 import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
 import { TokenDrawer } from "../tokens/TokenDrawer";
+import { TokensToggle } from "../tokens/TokensToggle";
 import { useNarrowPortrait, useWideLayout } from "../theme";
 import { PlayerNameModal } from "./PlayerNameModal";
 
@@ -144,41 +145,27 @@ function RoomView({ roomId }: { roomId: string }) {
                 }}
               >
                 <AppShell.Header>
-                  <Group h="100%" px="md" justify="space-between" wrap="nowrap">
-                    <Group gap="sm" wrap="nowrap" flex={1} miw={0}>
-                      <AleaMenu
-                        connection={connection}
-                        awareness={awareness}
-                        isSynced={isSynced}
-                        onEditName={editName}
-                      />
-                      {/* Before the sync, an export would hold an empty map and an import would mix with the loaded one. */}
-                      {isSynced && <SceneTabs onMapImageSet={alignMapImage} />}
-                      {connection === "disconnected" && (
-                        // Keeps its width, so the scene tabs give way and the warning stays readable.
-                        <Badge
-                          color="red"
-                          variant="light"
-                          style={{ flexShrink: 0 }}
-                        >
-                          {isWide
-                            ? "Not connected. Changes are not saved yet."
-                            : "Not connected"}
-                        </Badge>
-                      )}
-                    </Group>
-                    <Group gap="xs" wrap="nowrap" style={{ flexShrink: 0 }}>
-                      <Button
-                        variant={asideOpened ? "light" : "subtle"}
-                        color="gray"
-                        px="xs"
-                        hiddenFrom="sm"
-                        aria-expanded={asideOpened}
-                        onClick={toggleAside}
+                  <Group h="100%" px="md" gap="sm" wrap="nowrap">
+                    <AleaMenu
+                      connection={connection}
+                      awareness={awareness}
+                      isSynced={isSynced}
+                      onEditName={editName}
+                    />
+                    {/* Before the sync, an export would hold an empty map and an import would mix with the loaded one. */}
+                    {isSynced && <SceneTabs onMapImageSet={alignMapImage} />}
+                    {connection === "disconnected" && (
+                      // Keeps its width, so the scene tabs give way and the warning stays readable.
+                      <Badge
+                        color="red"
+                        variant="light"
+                        style={{ flexShrink: 0 }}
                       >
-                        Tokens
-                      </Button>
-                    </Group>
+                        {isWide
+                          ? "Not connected. Changes are not saved yet."
+                          : "Not connected"}
+                      </Badge>
+                    )}
                   </Group>
                 </AppShell.Header>
                 <AppShell.Main>
@@ -204,6 +191,12 @@ function RoomView({ roomId }: { roomId: string }) {
                           onCriticalDone={criticals.clear}
                         />
                       </ErrorBoundary>
+                      {!isWide && (
+                        <TokensToggle
+                          isOpen={asideOpened}
+                          onToggle={toggleAside}
+                        />
+                      )}
                       {isWide && (
                         // Between the toolbar and the zoom buttons, so no panel covers another.
                         <Stack
