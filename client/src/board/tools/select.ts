@@ -2,12 +2,10 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
 import { useContextMenu } from "mantine-contextmenu";
-import { useRef, useState } from "react";
+import { useRef } from "react";
 import { CLICK_DISTANCE, TAP_SCREEN_DISTANCE } from "../selection/selection";
 import type { SelectionControls } from "../selection/useSelection";
 import type { BoardTool } from "./tool";
-
-const HELD_VIBRATION_MS = 10;
 
 interface FingerPress {
   point: Vector2d;
@@ -25,21 +23,15 @@ function hasPanned({ stage, view }: FingerPress) {
 
 // A finger on the empty map pans it, so only a tap deselects or picks a painted cell. Konva sends
 // no pointer moves while the map is dragged, so a moved map tells that the finger panned.
-export function useSelectTool(selection: SelectionControls) {
+export function useSelectTool(selection: SelectionControls): BoardTool {
   const finger = useRef<FingerPress | null>(null);
-  const [heldAt, setHeldAt] = useState<Vector2d | null>(null);
   const { hideContextMenu } = useContextMenu();
 
-  function release() {
-    finger.current = null;
-    setHeldAt(null);
-  }
-
-  const tool: BoardTool = {
+  return {
     selectsItems: true,
     listensToDrawings: true,
     onDown({ point, event }) {
-      release();
+      finger.current = null;
       const stage = event.target.getStage();
       if (event.target !== stage) return;
       if (event.evt.ctrlKey || event.evt.metaKey) return;
@@ -57,11 +49,6 @@ export function useSelectTool(selection: SelectionControls) {
       }
       press.stage.stopDrag();
       press.held = event;
-      setHeldAt(press.point);
-      // Firefox has dropped it; the marker alone tells the finger then.
-      if (typeof navigator.vibrate === "function") {
-        navigator.vibrate(HELD_VIBRATION_MS);
-      }
       return true;
     },
     onMove({ point, event }) {
@@ -78,7 +65,6 @@ export function useSelectTool(selection: SelectionControls) {
         );
         if (moved <= TAP_SCREEN_DISTANCE) return;
         press.isDrawing = true;
-        setHeldAt(null);
         hideContextMenu();
         selection.beginArea(
           press.point,
@@ -89,7 +75,7 @@ export function useSelectTool(selection: SelectionControls) {
     },
     onUp() {
       const press = finger.current;
-      release();
+      finger.current = null;
       if (!press) {
         selection.endArea();
         return;
@@ -105,10 +91,8 @@ export function useSelectTool(selection: SelectionControls) {
       if (!hasPanned(press)) selection.tap(press.point);
     },
     onCancel() {
-      release();
+      finger.current = null;
       selection.cancelArea();
     },
   };
-
-  return { tool, heldAt };
 }
