@@ -310,7 +310,11 @@ export function Board({
             if (isOnToken(event.target)) return;
             sendPing(pointerOnMap(event));
           }}
-          onContextMenu={(event) => boardMenu.open(event, pointerOnMap(event))}
+          onContextMenu={(event) => {
+            if (input.acceptsMenu(event)) {
+              boardMenu.open(event, pointerOnMap(event));
+            }
+          }}
         >
           <Layer listening={false}>
             <MapFill />
@@ -336,7 +340,9 @@ export function Board({
               draggable={input.canDragItems}
               onTokenPress={input.pressItem("tokens")}
               onTokenClick={input.clickItem("tokens")}
-              onTokenContextMenu={tokenMenu.open}
+              onTokenContextMenu={(token, event) => {
+                if (input.acceptsMenu(event)) tokenMenu.open(token, event);
+              }}
             />
           </Layer>
           {/* Its own layer, so the fog is not redrawn with every cursor move. Players' strokes stay visible on top. */}

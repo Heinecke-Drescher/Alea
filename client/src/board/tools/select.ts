@@ -1,6 +1,7 @@
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Stage } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
+import { useContextMenu } from "mantine-contextmenu";
 import { useRef, useState } from "react";
 import { CLICK_DISTANCE, TAP_SCREEN_DISTANCE } from "../selection/selection";
 import type { SelectionControls } from "../selection/useSelection";
@@ -27,6 +28,7 @@ function hasPanned({ stage, view }: FingerPress) {
 export function useSelectTool(selection: SelectionControls) {
   const finger = useRef<FingerPress | null>(null);
   const [heldAt, setHeldAt] = useState<Vector2d | null>(null);
+  const { hideContextMenu } = useContextMenu();
 
   function release() {
     finger.current = null;
@@ -77,6 +79,7 @@ export function useSelectTool(selection: SelectionControls) {
         if (moved <= TAP_SCREEN_DISTANCE) return;
         press.isDrawing = true;
         setHeldAt(null);
+        hideContextMenu();
         selection.beginArea(
           press.point,
           TAP_SCREEN_DISTANCE / press.stage.scaleX(),

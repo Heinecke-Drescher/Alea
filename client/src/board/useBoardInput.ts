@@ -186,6 +186,21 @@ export function useBoardInput({
     selection.set(before);
   }
 
+  // Chrome sends its own context menu on a long press, while for a finger only the own long press
+  // counts, as it may draw an area instead. A menu also ends a press still in progress, so it never
+  // opens over a half-drawn area.
+  function acceptsMenu(event: KonvaEventObject<MouseEvent>) {
+    const isFinger =
+      ("pointerType" in event.evt && event.evt.pointerType === "touch") ||
+      toolPointer.current?.type === "touch";
+    if (event.evt.type === "contextmenu" && isFinger) {
+      event.evt.preventDefault();
+      return false;
+    }
+    if (toolPointer.current !== null) dropTool();
+    return true;
+  }
+
   // Strokes often cover much of the map, so a finger on one it had not selected pans instead.
   function pansInsteadOfDragging(
     event: KonvaEventObject<DragEvent>,
@@ -235,5 +250,6 @@ export function useBoardInput({
     pressItem,
     clickItem,
     pansInsteadOfDragging,
+    acceptsMenu,
   };
 }
