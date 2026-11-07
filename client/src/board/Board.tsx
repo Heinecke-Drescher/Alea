@@ -34,6 +34,7 @@ import { MapResizer } from "./map/MapResizer";
 import { mapSurroundColor } from "./map/mapColors";
 import { CriticalScenes } from "./critical/CriticalScenes";
 import { paintColorValue, type PaintColor } from "./paintColors";
+import { HeldMarker } from "./selection/HeldMarker";
 import {
   itemsSelection,
   reshapableStrokeId,
@@ -114,15 +115,22 @@ export function Board({
   const [landings] = useState(() => new Map<string, Vector2d>());
   const selection = useSelection(room);
   const colorValue = paintColorValue(theme, color);
-  const { activeTool, draftPoints, measurement, shapeDraft, fogFrame, texts } =
-    useBoardTools(
-      tool,
-      selection,
-      room,
-      colorValue,
-      textSize,
-      selectPlacedShape,
-    );
+  const {
+    activeTool,
+    draftPoints,
+    measurement,
+    shapeDraft,
+    fogFrame,
+    texts,
+    heldAt,
+  } = useBoardTools(
+    tool,
+    selection,
+    room,
+    colorValue,
+    textSize,
+    selectPlacedShape,
+  );
   const { area, items } = selection;
   const reshapableId = reshapableStrokeId(items);
   const itemDrag = useItemDrag(room, items);
@@ -349,6 +357,7 @@ export function Board({
                 draggable={input.canDragItems}
               />
             )}
+            {heldAt && <HeldMarker point={heldAt} />}
             <SelectionFrame
               area={area}
               draggable={input.canDragItems}

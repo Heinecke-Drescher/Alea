@@ -37,4 +37,6 @@ export interface BoardTool {
   onMove: (pointer: ToolPointer) => void;
   onUp: () => void;
   onCancel: () => void;
+  // Whether the tool takes over a finger held still, instead of the menu opening at once.
+  onLongPress?: (press: KonvaEventObject<PointerEvent>) => boolean;
 }

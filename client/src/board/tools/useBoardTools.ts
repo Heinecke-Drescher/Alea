@@ -30,7 +30,7 @@ export function useBoardTools(
   const hide = useFogTool(room, "hide");
   const select = useSelectTool(selection);
   const tools: Record<Tool, BoardTool> = {
-    select,
+    select: select.tool,
     paint: usePaintTool(room, color),
     pen,
     eraser: useEraserTool(room),
@@ -51,5 +51,6 @@ export function useBoardTools(
     shapeDraft: cone.draft ?? square.draft ?? circle.draft,
     fogFrame: reveal.frame ?? hide.frame,
     texts,
+    heldAt: select.heldAt,
   };
 }

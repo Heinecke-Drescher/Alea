@@ -190,6 +190,7 @@ export function useBoardInput({
   // A dragged item keeps moving instead, as Konva sends no pointer moves to cancel the press then.
   function openPressMenu(event: KonvaEventObject<PointerEvent>) {
     if (Konva.isDragging()) return;
+    if (activeTool.onLongPress?.(event)) return;
     dropTool();
     event.target.fire("contextmenu", { evt: event.evt }, true);
   }
