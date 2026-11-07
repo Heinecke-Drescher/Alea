@@ -5,7 +5,6 @@ import {
   IconClipboardCopy,
   IconCopy,
   IconCursorText,
-  IconFlag,
   IconFlagPlus,
   IconScissors,
   IconTrash,
@@ -28,9 +27,8 @@ import { openMarkDialog } from "../../tokens/openMarkDialog";
 import { openRenameDialog } from "../../tokens/openRenameDialog";
 import {
   EFFECT_COLORS,
-  EFFECT_ICONS,
   EFFECT_LABELS,
-  MARK_COLOR,
+  badgeIcon,
   markLabel,
 } from "../../tokens/badgeIcons";
 import { NO_ITEMS } from "../../room/areaActions";
@@ -124,7 +122,7 @@ export function useTokenMenu(
         />
         <ContextMenuDivider />
         {STATUS_EFFECTS.map((effect) => {
-          const EffectIcon = EFFECT_ICONS[effect];
+          const EffectIcon = badgeIcon(effect);
           return (
             <ContextMenuItem
               key={effect}
@@ -142,16 +140,19 @@ export function useTokenMenu(
             />
           );
         })}
-        {marks.map((mark, i) => (
-          <ContextMenuItem
-            key={i}
-            title={markLabel(mark)}
-            icon={<IconFlag size={16} color={theme.colors[MARK_COLOR][8]} />}
-            onClick={() => openMarkDialog(room, token.id, i)}
-            onHide={close}
-            submenuProps={{}}
-          />
-        ))}
+        {marks.map((mark, i) => {
+          const MarkIcon = badgeIcon(mark.icon);
+          return (
+            <ContextMenuItem
+              key={i}
+              title={markLabel(mark)}
+              icon={<MarkIcon size={16} color={theme.colors[mark.color][8]} />}
+              onClick={() => openMarkDialog(room, token.id, i)}
+              onHide={close}
+              submenuProps={{}}
+            />
+          );
+        })}
         {marks.length < MAX_MARKS && (
           <ContextMenuItem
             title="Add mark"

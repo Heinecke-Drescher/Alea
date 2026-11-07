@@ -5,7 +5,7 @@ import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
 import { hasShapes, isClosed, isOverFog } from "./drawing";
 import { tokenEffects } from "./effects";
-import { MAX_MARK_LENGTH, MAX_MARKS, tokenMarks } from "./marks";
+import { MAX_MARK_LENGTH, MAX_MARKS, NEW_MARK, tokenMarks } from "./marks";
 import type { Token } from "./roomStore";
 import { rollColor, rollPath } from "./rolls";
 import type { AreaShape } from "./shapes";
@@ -369,11 +369,11 @@ describe("marks", () => {
     room.addToken("Goblin", IMAGE);
     const { id } = onlyToken();
     expect(tokenMarks(onlyToken())).toEqual([]);
-    room.addMark(id, { text: "Bloodied" });
-    room.addMark(id, { text: "" });
-    room.addMark(id, { text: "Target" });
+    room.addMark(id, { ...NEW_MARK, text: "Bloodied" });
+    room.addMark(id, { ...NEW_MARK, text: "" });
+    room.addMark(id, { ...NEW_MARK, text: "Target" });
     expect(texts()).toEqual(["Bloodied", "", "Target"]);
-    room.changeMark(id, 1, { text: "Blessed" });
+    room.changeMark(id, 1, { ...NEW_MARK, text: "Blessed" });
     expect(texts()).toEqual(["Bloodied", "Blessed", "Target"]);
     room.removeMark(id, 0);
     expect(texts()).toEqual(["Blessed", "Target"]);
@@ -385,8 +385,8 @@ describe("marks", () => {
   it("undoes each change in its own step", () => {
     room.addToken("Goblin", IMAGE);
     const { id } = onlyToken();
-    room.addMark(id, { text: "Target" });
-    room.changeMark(id, 0, { text: "Bloodied" });
+    room.addMark(id, { ...NEW_MARK, text: "Target" });
+    room.changeMark(id, 0, { ...NEW_MARK, text: "Bloodied" });
     room.removeMark(id, 0);
     room.undoManager.undo();
     expect(texts()).toEqual(["Bloodied"]);
@@ -397,15 +397,19 @@ describe("marks", () => {
   it("refuses a mark that is too long and more marks than allowed", () => {
     room.addToken("Goblin", IMAGE);
     const { id } = onlyToken();
-    room.addMark(id, { text: "x".repeat(MAX_MARK_LENGTH) });
+    room.addMark(id, { ...NEW_MARK, text: "x".repeat(MAX_MARK_LENGTH) });
     expect(() =>
-      room.addMark(id, { text: "x".repeat(MAX_MARK_LENGTH + 1) }),
+      room.addMark(id, { ...NEW_MARK, text: "x".repeat(MAX_MARK_LENGTH + 1) }),
     ).toThrow();
     expect(() =>
-      room.changeMark(id, 0, { text: "x".repeat(MAX_MARK_LENGTH + 1) }),
+      room.changeMark(id, 0, {
+        ...NEW_MARK,
+        text: "x".repeat(MAX_MARK_LENGTH + 1),
+      }),
     ).toThrow();
-    for (let i = 1; i < MAX_MARKS; i++) room.addMark(id, { text: "" });
-    expect(() => room.addMark(id, { text: "" })).toThrow();
+    for (let i = 1; i < MAX_MARKS; i++)
+      room.addMark(id, { ...NEW_MARK, text: "" });
+    expect(() => room.addMark(id, { ...NEW_MARK, text: "" })).toThrow();
     expect(texts()[0]).toBe("x".repeat(MAX_MARK_LENGTH));
     expect(texts()).toHaveLength(MAX_MARKS);
   });
@@ -413,8 +417,8 @@ describe("marks", () => {
   it("changes nothing when the mark was removed meanwhile", () => {
     room.addToken("Goblin", IMAGE);
     const { id } = onlyToken();
-    room.addMark(id, { text: "Target" });
-    room.changeMark(id, 1, { text: "Bloodied" });
+    room.addMark(id, { ...NEW_MARK, text: "Target" });
+    room.changeMark(id, 1, { ...NEW_MARK, text: "Bloodied" });
     room.removeMark(id, 1);
     expect(texts()).toEqual(["Target"]);
   });
@@ -427,20 +431,25 @@ describe("marks", () => {
     room.tokensMap.set(token.id, {
       ...token,
       marks: [
-        { text: "x".repeat(MAX_MARK_LENGTH + 1) },
+        { ...NEW_MARK, text: "x".repeat(MAX_MARK_LENGTH + 1) },
+        { ...NEW_MARK, icon: "dragon" },
+        { ...NEW_MARK, color: "red" },
         3,
-        { text: "Target", extra: true },
+        { ...NEW_MARK, text: "Target", extra: true },
       ],
     } as unknown as Token);
-    expect(tokenMarks(onlyToken())).toEqual([{ text: "Target" }]);
+    expect(tokenMarks(onlyToken())).toEqual([{ ...NEW_MARK, text: "Target" }]);
   });
 
   it("keeps the marks of a duplicate and a pasted copy", () => {
     room.addToken("Goblin", IMAGE);
     const { id } = onlyToken();
-    room.addMark(id, { text: "Target" });
-    room.addMark(id, { text: "Blessed" });
-    const marks = [{ text: "Target" }, { text: "Blessed" }];
+    room.addMark(id, { ...NEW_MARK, text: "Target" });
+    room.addMark(id, { ...NEW_MARK, text: "Blessed" });
+    const marks = [
+      { ...NEW_MARK, text: "Target" },
+      { ...NEW_MARK, text: "Blessed" },
+    ];
     expect(tokenMarks(tokenOf(room.duplicateToken(id)))).toEqual(marks);
     const clip = room.copyItems({ strokes: [], tokens: [id], texts: [] });
     const [pastedId] = room.paste(clip, 0, 5 * CELL_SIZE).tokens;
@@ -454,8 +463,8 @@ describe("marks", () => {
   });
 
   it("ignores marks on tokens that no longer exist", () => {
-    room.addMark("gone", { text: "Target" });
-    room.changeMark("gone", 0, { text: "Target" });
+    room.addMark("gone", { ...NEW_MARK, text: "Target" });
+    room.changeMark("gone", 0, { ...NEW_MARK, text: "Target" });
     room.removeMark("gone", 0);
     expect(room.tokensMap.size).toBe(0);
   });

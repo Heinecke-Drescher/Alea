@@ -93,9 +93,9 @@ interface TokenBadgeProps {
 
 function TokenBadge({ badge, x, y }: TokenBadgeProps) {
   const theme = useMantineTheme();
-  const [image, status] = useImage(badgeImageUrl(badge.kind, theme.white));
+  const [image, status] = useImage(badgeImageUrl(badge.icon, theme.white));
   if (status === "failed") {
-    throw new Error(`Icon of badge "${badge.kind}" could not be loaded`);
+    throw new Error(`Icon "${badge.icon}" could not be loaded`);
   }
 
   return (

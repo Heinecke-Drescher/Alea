@@ -18,7 +18,7 @@ export function TokenListBadges({ token }: { token: Token }) {
   return (
     <Group gap={2} wrap="nowrap">
       {shown.map((badge) => {
-        const BadgeIcon = badgeIcon(badge.kind);
+        const BadgeIcon = badgeIcon(badge.icon);
         return (
           <Tooltip key={badge.key} label={badge.label}>
             <ThemeIcon

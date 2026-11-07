@@ -5,7 +5,7 @@ import { BACKGROUND_IMAGE_ID } from "./background";
 import { createRoom, type Room } from "./createRoom";
 import { DEFAULT_MAP_BOUNDS } from "./grid";
 import { MAP_IMAGE_KEY } from "./mapImage";
-import { MAX_MARK_LENGTH, MAX_MARKS } from "./marks";
+import { MAX_MARK_LENGTH, MAX_MARKS, NEW_MARK } from "./marks";
 import {
   checkMapFileSize,
   LOADED_MAP_KEY,
@@ -106,10 +106,13 @@ describe("map files", () => {
     fillRoom(room);
     const [token] = room.tokensMap.values();
     if (!token) throw new Error("Expected a token");
-    room.addMark(token.id, { text: "Bloodied" });
-    room.addMark(token.id, { text: "" });
+    room.addMark(token.id, { ...NEW_MARK, text: "Bloodied" });
+    room.addMark(token.id, { ...NEW_MARK, text: "" });
     const file = parseMapFile(JSON.stringify(room.exportMap()));
-    expect(file.tokens[0]?.marks).toEqual([{ text: "Bloodied" }, { text: "" }]);
+    expect(file.tokens[0]?.marks).toEqual([
+      { ...NEW_MARK, text: "Bloodied" },
+      { ...NEW_MARK, text: "" },
+    ]);
     const other = createRoom(new Y.Doc());
     other.importMap(file);
     expect(other.exportMap()).toEqual(file);
@@ -338,9 +341,25 @@ describe("map files", () => {
         tokens: [
           {
             ...file.tokens[0],
-            marks: [{ text: "x".repeat(MAX_MARK_LENGTH + 1) }],
+            marks: [{ ...NEW_MARK, text: "x".repeat(MAX_MARK_LENGTH + 1) }],
           },
         ],
+      }),
+    ],
+    [
+      "a mark with an unknown icon",
+      (file) => ({
+        ...file,
+        tokens: [
+          { ...file.tokens[0], marks: [{ ...NEW_MARK, icon: "dragon" }] },
+        ],
+      }),
+    ],
+    [
+      "a mark with an unknown color",
+      (file) => ({
+        ...file,
+        tokens: [{ ...file.tokens[0], marks: [{ ...NEW_MARK, color: "red" }] }],
       }),
     ],
     [
@@ -350,7 +369,10 @@ describe("map files", () => {
         tokens: [
           {
             ...file.tokens[0],
-            marks: Array.from({ length: MAX_MARKS + 1 }, () => ({ text: "" })),
+            marks: Array.from({ length: MAX_MARKS + 1 }, () => ({
+              ...NEW_MARK,
+              text: "",
+            })),
           },
         ],
       }),

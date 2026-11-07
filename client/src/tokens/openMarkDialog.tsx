@@ -1,7 +1,7 @@
 import { modals } from "@mantine/modals";
 import type { Room } from "../room/createRoom";
-import { MAX_MARK_LENGTH, tokenMarks } from "../room/marks";
-import { TokenTextForm } from "./TokenTextForm";
+import { NEW_MARK, tokenMarks } from "../room/marks";
+import { MarkForm } from "./MarkForm";
 
 // Without an index the dialog adds a new mark.
 export function openMarkDialog(room: Room, tokenId: string, index?: number) {
@@ -13,14 +13,11 @@ export function openMarkDialog(room: Room, tokenId: string, index?: number) {
     title: current ? "Edit mark" : "Add mark",
     centered: true,
     children: (
-      <TokenTextForm
-        label="Mark"
-        description="Optional, e.g. Bloodied or Target"
-        maxLength={MAX_MARK_LENGTH}
-        currentText={current?.text ?? ""}
-        onSave={(text) => {
-          if (index === undefined) room.addMark(tokenId, { text });
-          else room.changeMark(tokenId, index, { text });
+      <MarkForm
+        current={current ?? NEW_MARK}
+        onSave={(mark) => {
+          if (index === undefined) room.addMark(tokenId, mark);
+          else room.changeMark(tokenId, index, mark);
           modals.close(modalId);
         }}
         onCancel={() => modals.close(modalId)}

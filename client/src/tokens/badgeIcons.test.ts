@@ -1,12 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { STATUS_EFFECTS } from "../room/effects";
+import { MARK_ICONS, NEW_MARK } from "../room/marks";
 import { badgeImageUrl, fitBadges, tokenBadges } from "./badgeIcons";
 
 describe("badgeImageUrl", () => {
-  it("colors every effect icon and enlarges it", () => {
-    for (const effect of STATUS_EFFECTS) {
-      const [, data] = badgeImageUrl(effect, "#ffffff").split(",");
-      if (!data) throw new Error(`Expected image data for ${effect}`);
+  it("colors every effect and mark icon and enlarges it", () => {
+    for (const icon of [...STATUS_EFFECTS, ...MARK_ICONS]) {
+      const [, data] = badgeImageUrl(icon, "#ffffff").split(",");
+      if (!data) throw new Error(`Expected image data for ${icon}`);
       const svg = decodeURIComponent(data);
       expect(svg).toContain('stroke="#ffffff"');
       expect(svg).toContain('width="96"');
@@ -14,23 +15,16 @@ describe("badgeImageUrl", () => {
       expect(svg).not.toContain("currentColor");
     }
   });
-
-  it("colors the mark icon and enlarges it", () => {
-    const [, data] = badgeImageUrl("mark", "#ffffff").split(",");
-    if (!data) throw new Error("Expected image data for the mark");
-    const svg = decodeURIComponent(data);
-    expect(svg).toContain('stroke="#ffffff"');
-    expect(svg).toContain('width="96"');
-    expect(svg).toContain('height="96"');
-    expect(svg).not.toContain("currentColor");
-  });
 });
 
 describe("tokenBadges", () => {
   it("lists the effects before the marks", () => {
     const badges = tokenBadges(
       ["dead", "unconscious"],
-      [{ text: "Cursed" }, { text: "Blessed" }],
+      [
+        { ...NEW_MARK, text: "Cursed" },
+        { ...NEW_MARK, text: "Blessed" },
+      ],
     );
     expect(badges.map((badge) => badge.key)).toEqual([
       "dead",
@@ -46,9 +40,17 @@ describe("tokenBadges", () => {
     ]);
   });
 
+  it("shows a mark with its own icon and color", () => {
+    expect(
+      tokenBadges([], [{ text: "Blessed", icon: "star", color: "yellow" }]),
+    ).toEqual([
+      { key: "mark-0", icon: "star", label: "Blessed", color: "yellow" },
+    ]);
+  });
+
   it("names a mark without text", () => {
-    expect(tokenBadges([], [{ text: "" }])).toEqual([
-      { key: "mark-0", kind: "mark", label: "Marked", color: "orange" },
+    expect(tokenBadges([], [{ ...NEW_MARK, text: "" }])).toEqual([
+      { key: "mark-0", icon: "flag", label: "Marked", color: "orange" },
     ]);
   });
 
@@ -60,7 +62,11 @@ describe("tokenBadges", () => {
 describe("fitBadges", () => {
   const badges = tokenBadges(
     ["dead"],
-    [{ text: "A" }, { text: "B" }, { text: "C" }],
+    [
+      { ...NEW_MARK, text: "A" },
+      { ...NEW_MARK, text: "B" },
+      { ...NEW_MARK, text: "C" },
+    ],
   );
 
   it("shows all badges that fit", () => {

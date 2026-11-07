@@ -8,7 +8,6 @@ interface TokenTextFormProps {
   currentText: string;
   onSave: (text: string) => void;
   onCancel: () => void;
-  onDelete?: () => void;
 }
 
 export function TokenTextForm({
@@ -18,7 +17,6 @@ export function TokenTextForm({
   currentText,
   onSave,
   onCancel,
-  onDelete,
 }: TokenTextFormProps) {
   const [text, setText] = useState(currentText);
 
@@ -38,13 +36,8 @@ export function TokenTextForm({
           onChange={(event) => setText(event.target.value)}
           data-autofocus
         />
-        <Group>
-          {onDelete && (
-            <Button variant="subtle" color="red" onClick={onDelete}>
-              Delete
-            </Button>
-          )}
-          <Button variant="default" onClick={onCancel} ml="auto">
+        <Group justify="flex-end">
+          <Button variant="default" onClick={onCancel}>
             Cancel
           </Button>
           <Button type="submit">Save</Button>

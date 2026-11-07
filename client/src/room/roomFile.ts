@@ -192,7 +192,9 @@ function parseMarks(value: unknown): Mark[] {
   const marks = list(value, "token marks");
   if (marks.length === 0 || marks.length > MAX_MARKS) invalid("token marks");
   return marks.map((mark) =>
-    isValidMark(mark) ? { text: mark.text } : invalid("token mark"),
+    isValidMark(mark)
+      ? { text: mark.text, icon: mark.icon, color: mark.color }
+      : invalid("token mark"),
   );
 }
 
