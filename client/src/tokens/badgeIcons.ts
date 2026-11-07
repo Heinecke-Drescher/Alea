@@ -72,13 +72,29 @@ const SVGS: Record<BadgeIconName, string> = {
   target: targetSvg,
 };
 
-const MARK_LABEL = "Marked";
+export const MARK_ICON_LABELS: Record<MarkIcon, string> = {
+  flag: "Flag",
+  star: "Star",
+  heart: "Heart",
+  shield: "Shield",
+  sword: "Sword",
+  eye: "Eye",
+  flame: "Flame",
+  droplet: "Droplet",
+  bolt: "Bolt",
+  target: "Target",
+};
 
 export interface Badge {
   key: string;
   icon: BadgeIconName;
   label: string;
   color: (typeof EFFECT_COLORS)[StatusEffect] | MarkColor;
+}
+
+// A mark without text is told apart from the others by its icon.
+export function markLabel({ text, icon }: Mark) {
+  return text === "" ? MARK_ICON_LABELS[icon] : text;
 }
 
 // The badges of a token in the order the map and the token list show them.
@@ -97,10 +113,6 @@ export function tokenBadges(effects: StatusEffect[], marks: Mark[]): Badge[] {
       color: mark.color,
     })),
   ];
-}
-
-export function markLabel({ text }: Mark) {
-  return text === "" ? MARK_LABEL : text;
 }
 
 // When more badges than places are there, the last place counts the hidden ones.

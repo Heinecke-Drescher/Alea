@@ -48,9 +48,18 @@ describe("tokenBadges", () => {
     ]);
   });
 
-  it("names a mark without text", () => {
-    expect(tokenBadges([], [{ ...NEW_MARK, text: "" }])).toEqual([
-      { key: "mark-0", icon: "flag", label: "Marked", color: "orange" },
+  it("names a mark without text after its icon", () => {
+    expect(
+      tokenBadges(
+        [],
+        [
+          { ...NEW_MARK, text: "" },
+          { ...NEW_MARK, icon: "star" },
+        ],
+      ),
+    ).toEqual([
+      { key: "mark-0", icon: "flag", label: "Flag", color: "orange" },
+      { key: "mark-1", icon: "star", label: "Star", color: "orange" },
     ]);
   });
 

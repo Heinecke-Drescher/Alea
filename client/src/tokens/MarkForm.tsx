@@ -15,18 +15,26 @@ import {
   MARK_ICONS,
   MAX_MARK_LENGTH,
   type Mark,
+  type MarkColor,
 } from "../room/marks";
-import { badgeIcon } from "./badgeIcons";
+import { badgeIcon, MARK_ICON_LABELS } from "./badgeIcons";
+
+const MARK_COLOR_LABELS: Record<MarkColor, string> = {
+  orange: "Orange",
+  yellow: "Yellow",
+  lime: "Lime",
+  green: "Green",
+  teal: "Teal",
+  cyan: "Cyan",
+  blue: "Blue",
+  pink: "Pink",
+};
 
 interface MarkFormProps {
   current: Mark;
   onSave: (mark: Mark) => void;
   onCancel: () => void;
   onDelete?: () => void;
-}
-
-function capitalized(name: string) {
-  return name.charAt(0).toUpperCase() + name.slice(1);
 }
 
 export function MarkForm({
@@ -67,7 +75,7 @@ export function MarkForm({
                   size="lg"
                   variant={isChosen ? "filled" : "default"}
                   color={`${color}.8`}
-                  aria-label={capitalized(name)}
+                  aria-label={MARK_ICON_LABELS[name]}
                   aria-pressed={isChosen}
                   onClick={() => setIcon(name)}
                 >
@@ -88,7 +96,7 @@ export function MarkForm({
                 component="button"
                 type="button"
                 color={theme.colors[name][8]}
-                aria-label={capitalized(name)}
+                aria-label={MARK_COLOR_LABELS[name]}
                 aria-pressed={name === color}
                 onClick={() => setColor(name)}
                 style={{ color: theme.white, cursor: "pointer" }}

@@ -3,7 +3,6 @@ import type { Room } from "../room/createRoom";
 import { NEW_MARK, tokenMarks } from "../room/marks";
 import { MarkForm } from "./MarkForm";
 
-// Without an index the dialog adds a new mark.
 export function openMarkDialog(room: Room, tokenId: string, index?: number) {
   const token = room.tokensMap.get(tokenId);
   if (!token) return;
