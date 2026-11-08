@@ -30,6 +30,10 @@
     stroke 120ms;
 }
 
+[data-mantine-color-scheme="dark"] .shape {
+  stroke: white;
+}
+
 .label {
   fill: var(--die-text);
   font-weight: 700;
