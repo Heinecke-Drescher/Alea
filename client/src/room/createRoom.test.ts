@@ -235,6 +235,24 @@ describe("addTokens", () => {
 });
 
 describe("changing tokens", () => {
+  it("replaces a token's image and removes the old one in a single undo step", () => {
+    const NEW_IMAGE = "data:image/webp;base64,BBBB";
+    room.addToken("Goblin", IMAGE);
+    room.toggleEffect(onlyToken().id, "dead");
+    const before = room.doc.toJSON();
+    room.setTokenImage(onlyToken().id, NEW_IMAGE);
+    expect(onlyToken()).toMatchObject({ name: "Goblin", effects: ["dead"] });
+    expect(room.imagesMap.get(onlyToken().imageId)).toBe(NEW_IMAGE);
+    expect(Array.from(room.imagesMap.values())).toEqual([NEW_IMAGE]);
+    room.undoManager.undo();
+    expect(room.doc.toJSON()).toEqual(before);
+  });
+
+  it("changes no image when the token is gone", () => {
+    room.setTokenImage("missing", IMAGE);
+    expect(room.imagesMap.size).toBe(0);
+  });
+
   it("resizes a token to a new place and size in a single undo step", () => {
     room.addToken("Dragon", IMAGE);
     moveOnlyTokenTo(5, 5);

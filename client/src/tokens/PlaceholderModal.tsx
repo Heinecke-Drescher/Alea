@@ -30,8 +30,13 @@ import { useFogGuard } from "../fog/useFogGuard";
 import { notifyError } from "../images/imageFiles";
 import { PlayerColorPicker } from "../player/PlayerColorPicker";
 import { usePlayer } from "../player/PlayerContext";
+import type { PlayerColor } from "../room/playerColors";
 import { useRoom } from "../room/RoomContext";
-import { addPlaceholders, MAX_PLACEHOLDERS } from "./addPlaceholders";
+import {
+  addPlaceholders,
+  MAX_PLACEHOLDERS,
+  type Placeholders,
+} from "./addPlaceholders";
 import { PLACEHOLDER_ICONS, type PlaceholderIcon } from "./placeholderImage";
 
 const ICONS: Record<PlaceholderIcon, { label: string; Icon: Icon }> = {
@@ -55,66 +60,86 @@ interface PlaceholderModalProps {
 }
 
 export function PlaceholderModal({ opened, onClose }: PlaceholderModalProps) {
-  return (
-    <Modal opened={opened} onClose={onClose} title="Add placeholders" centered>
-      <PlaceholderForm onDone={onClose} />
-    </Modal>
-  );
-}
-
-function PlaceholderForm({ onDone }: { onDone: () => void }) {
   const room = useRoom();
   const theme = useMantineTheme();
   const player = usePlayer();
   const fogGuard = useFogGuard();
+  return (
+    <Modal opened={opened} onClose={onClose} title="Add placeholders" centered>
+      <PlaceholderForm
+        initialColor={player.color}
+        forOneToken={false}
+        errorTitle="Could not add placeholders"
+        onSubmit={(placeholders) =>
+          addPlaceholders(room, theme, placeholders, fogGuard.blockedSquares())
+        }
+        onDone={onClose}
+      />
+    </Modal>
+  );
+}
+
+interface PlaceholderFormProps {
+  initialColor: PlayerColor;
+  // For a new image of one token, which keeps its name.
+  forOneToken: boolean;
+  errorTitle: string;
+  onSubmit: (placeholders: Placeholders) => Promise<void>;
+  onDone: () => void;
+}
+
+export function PlaceholderForm({
+  initialColor,
+  forOneToken,
+  errorTitle,
+  onSubmit,
+  onDone,
+}: PlaceholderFormProps) {
   const [name, setName] = useState("");
   const [count, setCount] = useState<string | number>(1);
-  const [color, setColor] = useState(player.color);
+  const [color, setColor] = useState(initialColor);
   const [content, setContent] = useState<"letter" | "icon">("letter");
   const [icon, setIcon] = useState<PlaceholderIcon>("chest");
-  const [isAdding, setIsAdding] = useState(false);
-  const canAdd = typeof count === "number" && !isAdding;
+  const [isSaving, setIsSaving] = useState(false);
+  const canSave = typeof count === "number" && !isSaving;
 
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault();
         if (typeof count !== "number") return;
-        setIsAdding(true);
-        addPlaceholders(
-          room,
-          theme,
-          {
-            name,
-            count,
-            color,
-            icon: content === "icon" ? icon : null,
-          },
-          fogGuard.blockedSquares(),
-        )
-          .then(onDone, (error: unknown) =>
-            notifyError("Could not add placeholders", error),
-          )
-          .finally(() => setIsAdding(false));
+        setIsSaving(true);
+        onSubmit({
+          name,
+          count,
+          color,
+          icon: content === "icon" ? icon : null,
+        })
+          .then(onDone, (error: unknown) => notifyError(errorTitle, error))
+          .finally(() => setIsSaving(false));
       }}
     >
       <Stack>
-        <TextInput
-          label="Name"
-          placeholder="Goblin"
-          value={name}
-          onChange={(event) => setName(event.target.value)}
-          data-autofocus
-        />
-        <NumberInput
-          label="Count"
-          value={count}
-          onChange={setCount}
-          min={1}
-          max={MAX_PLACEHOLDERS}
-          allowDecimal={false}
-          clampBehavior="strict"
-        />
+        {!forOneToken && (
+          <>
+            <TextInput
+              label="Name"
+              placeholder="Goblin"
+              value={name}
+              onChange={(event) => setName(event.target.value)}
+              data-autofocus
+            />
+            <NumberInput
+              label="Count"
+              value={count}
+              onChange={setCount}
+              min={1}
+              max={MAX_PLACEHOLDERS}
+              allowDecimal={false}
+              clampBehavior="strict"
+            />
+          </>
+        )}
         <PlayerColorPicker value={color} onChange={setColor} />
         <SegmentedControl
           value={content}
@@ -148,8 +173,8 @@ function PlaceholderForm({ onDone }: { onDone: () => void }) {
           <Button variant="default" onClick={onDone}>
             Cancel
           </Button>
-          <Button type="submit" color={color} disabled={!canAdd}>
-            Add
+          <Button type="submit" color={color} disabled={!canSave}>
+            {forOneToken ? "Save" : "Add"}
           </Button>
         </Group>
       </Stack>

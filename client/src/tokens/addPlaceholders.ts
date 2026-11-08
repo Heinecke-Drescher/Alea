@@ -10,7 +10,7 @@ import {
 
 export const MAX_PLACEHOLDERS = 20;
 
-interface Placeholders {
+export interface Placeholders {
   name: string;
   count: number;
   color: PlayerColor;
@@ -34,6 +34,17 @@ export function placeholderNames(name: string, count: number) {
     label: `${initial}${index + 1}`,
     number: index + 1,
   }));
+}
+
+// For a new image of an existing token: the number its name ends with stays on the label.
+export function placeholderOf(name: string) {
+  const match = /^(.*?)\s*(\d+)$/.exec(name.trim());
+  const count = match ? Number(match[2]) : 0;
+  const hasNumber = count >= 1 && count <= MAX_PLACEHOLDERS;
+  const base = match && hasNumber ? (match[1] ?? "") : name.trim();
+  const number = hasNumber ? count : null;
+  const label = `${base === "" ? "" : initialOf(base)}${number ?? ""}`;
+  return { label: label === "" ? null : label, number };
 }
 
 export async function addPlaceholders(

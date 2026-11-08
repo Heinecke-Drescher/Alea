@@ -6,6 +6,7 @@ import {
   IconCopy,
   IconCursorText,
   IconFlagPlus,
+  IconPhoto,
   IconScissors,
   IconTrash,
 } from "@tabler/icons-react";
@@ -16,14 +17,19 @@ import {
   useContextMenu,
   type ContextMenuContent,
 } from "mantine-contextmenu";
-import type { MouseEvent as ReactMouseEvent } from "react";
+import { useRef, type MouseEvent as ReactMouseEvent } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
+import { createImage, TOKEN_IMAGE_SIZE } from "../../images/createImage";
+import { useImageFileDialog } from "../../images/useImageFileDialog";
+import { usePlayer } from "../../player/PlayerContext";
 import { showRoomSpaceError } from "../../images/showRoomSpaceError";
 import type { Room } from "../../room/createRoom";
 import { STATUS_EFFECTS, tokenEffects } from "../../room/effects";
 import { MAX_MARKS, tokenMarks } from "../../room/marks";
 import type { Token } from "../../room/roomStore";
+import { TOKEN_FILE_MEGABYTES } from "../../tokens/addTokenFromFile";
 import { openMarkDialog } from "../../tokens/openMarkDialog";
+import { openPlaceholderImageDialog } from "../../tokens/openPlaceholderImageDialog";
 import { openRenameDialog } from "../../tokens/openRenameDialog";
 import {
   EFFECT_COLORS,
@@ -52,6 +58,21 @@ export function useTokenMenu(
   const { showContextMenu } = useContextMenu();
   const theme = useMantineTheme();
   const fogGuard = useFogGuard();
+  const player = usePlayer();
+  const imageTokenId = useRef<string | null>(null);
+  const chooseImage = useImageFileDialog({
+    maxMegabytes: TOKEN_FILE_MEGABYTES,
+    multiple: false,
+    onFile: async (file) => {
+      const id = imageTokenId.current;
+      // Someone may have removed it while the file dialog was open.
+      const token = id === null ? undefined : room.tokensMap.get(id);
+      if (!token) return;
+      const image = await createImage(file, TOKEN_IMAGE_SIZE);
+      room.assertSpaceForImage(image, token.imageId);
+      room.setTokenImage(token.id, image);
+    },
+  });
 
   function duplicate(token: Token) {
     let copyId: string | undefined;
@@ -93,6 +114,28 @@ export function useTokenMenu(
           title="Rename"
           icon={<IconCursorText size={16} />}
           onClick={() => openRenameDialog(room, token.id)}
+          onHide={close}
+          submenuProps={{}}
+        />
+        <ContextMenuItem
+          title="Change image"
+          icon={<IconPhoto size={16} />}
+          items={[
+            {
+              key: "upload",
+              title: "Upload image",
+              onClick: () => {
+                imageTokenId.current = token.id;
+                chooseImage();
+              },
+            },
+            {
+              key: "placeholder",
+              title: "Placeholder",
+              onClick: () =>
+                openPlaceholderImageDialog(room, token.id, player.color, theme),
+            },
+          ]}
           onHide={close}
           submenuProps={{}}
         />

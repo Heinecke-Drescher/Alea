@@ -57,6 +57,18 @@ export function createTokens(
     tokensMap.set(id, { id, name, imageId, x, y, size: 1 });
   }
 
+  function setTokenImage(id: string, imageDataUrl: string) {
+    const token = tokensMap.get(id);
+    if (!token) return;
+    const imageId = nanoid();
+    undoManager.stopCapturing();
+    doc.transact(() => {
+      imagesMap.set(imageId, imageDataUrl);
+      tokensMap.set(id, { ...token, imageId });
+      imagesMap.delete(token.imageId);
+    });
+  }
+
   function renameToken(id: string, name: string) {
     updateToken(id, (token) => ({ ...token, name }));
   }
@@ -152,6 +164,7 @@ export function createTokens(
   return {
     addToken,
     addTokens,
+    setTokenImage,
     renameToken,
     toggleEffect,
     addMark,

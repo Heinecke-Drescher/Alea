@@ -1,6 +1,10 @@
 import { DEFAULT_THEME } from "@mantine/core";
 import { describe, expect, it } from "vitest";
-import { MAX_PLACEHOLDERS, placeholderNames } from "./addPlaceholders";
+import {
+  MAX_PLACEHOLDERS,
+  placeholderNames,
+  placeholderOf,
+} from "./addPlaceholders";
 import { placeholderSvg } from "./placeholderImage";
 
 describe("placeholderNames", () => {
@@ -64,5 +68,24 @@ describe("placeholderNames", () => {
         "Invalid placeholder count",
       );
     }
+  });
+});
+
+describe("placeholderOf", () => {
+  it("labels a token with its initial and the number its name ends with", () => {
+    expect(placeholderOf("goblin 2")).toEqual({ label: "G2", number: 2 });
+    expect(placeholderOf("Ogre")).toEqual({ label: "O", number: null });
+  });
+
+  it("labels a token named by a number with that number", () => {
+    expect(placeholderOf("3")).toEqual({ label: "3", number: 3 });
+  });
+
+  it("leaves a token without a name blank", () => {
+    expect(placeholderOf(" ")).toEqual({ label: null, number: null });
+  });
+
+  it("keeps numbers too large for the label in the name only", () => {
+    expect(placeholderOf("Room 101")).toEqual({ label: "R", number: null });
   });
 });
