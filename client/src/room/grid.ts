@@ -21,8 +21,8 @@ export interface Square {
 export const DEFAULT_MAP_BOUNDS: MapBounds = {
   x: 0,
   y: 0,
-  columns: 30,
-  rows: 20,
+  columns: 20,
+  rows: 15,
 };
 export const MIN_MAP_CELLS = 10;
 export const MAX_TOKEN_SIZE = 10;

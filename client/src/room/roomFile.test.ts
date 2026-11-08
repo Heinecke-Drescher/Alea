@@ -202,7 +202,7 @@ describe("map files", () => {
     const file = parseMapFile(JSON.stringify(room.exportMap()));
     expect(file.mapImage).toEqual({
       image: IMAGE,
-      place: { x: 0, y: 0, width: 1500, height: 750, rotation: 0 },
+      place: { x: 0, y: 0, width: 1000, height: 500, rotation: 0 },
     });
     const other = createRoom(new Y.Doc());
     other.importMap(file);
