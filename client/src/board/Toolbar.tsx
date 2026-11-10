@@ -36,6 +36,15 @@ import { TextToolButton } from "./texts/TextToolButton";
 import type { Tool } from "./tools/tool";
 import { useWideLayout } from "../theme";
 
+const EDGE_GAP = 12;
+// Mantine's ActionIcon of size "lg".
+const BUTTON_HEIGHT = 34;
+const PADDING = 4;
+const BORDER = 1;
+// What the toolbar takes from the upper edge of the map, with the same gap below it as above.
+export const TOOLBAR_SPACE =
+  EDGE_GAP + BUTTON_HEIGHT + 2 * (PADDING + BORDER) + EDGE_GAP;
+
 interface ToolButton {
   tool: Tool;
   label: string;
@@ -151,10 +160,10 @@ export function Toolbar({
   return (
     <FloatingPanel
       pos="absolute"
-      top={12}
+      top={EDGE_GAP}
       left="50%"
       style={{ transform: "translateX(-50%)" }}
-      p={4}
+      p={PADDING}
     >
       <Tooltip.Group>
         <Group gap={4} wrap="nowrap">

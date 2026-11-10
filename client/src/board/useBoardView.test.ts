@@ -197,10 +197,17 @@ describe("fittedView", () => {
 
 describe("centeredView", () => {
   it("puts the point in the middle of the stage and keeps the zoom", () => {
-    const stage = { width: 1000, height: 600 };
+    const stage = { x: 0, y: 0, width: 1000, height: 600 };
     const view = centeredView(1.5, { x: -200, y: 300 }, stage);
     expect(view.scale).toBe(1.5);
     expect(view.x + -200 * view.scale).toBe(500);
     expect(view.y + 300 * view.scale).toBe(300);
+  });
+
+  it("puts the point in the middle of an area that does not start at the corner", () => {
+    const area = { x: 0, y: 68, width: 400, height: 200 };
+    const view = centeredView(1, { x: 10, y: 20 }, area);
+    expect(view.x + 10).toBe(200);
+    expect(view.y + 20).toBe(168);
   });
 });

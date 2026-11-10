@@ -7,6 +7,7 @@ import { useRef, type RefObject } from "react";
 import type { Room } from "../room/createRoom";
 import { clampToMap, mapRect } from "../room/grid";
 import { PRIMARY_BUTTON } from "./pointer";
+import { TOOLBAR_SPACE } from "./Toolbar";
 
 // Keeps the fitted map clear of the toolbar and the fit button; the same on every side, so the map stays centered.
 export const VIEW_MARGIN = 72;
@@ -116,12 +117,12 @@ export function fittedView(
 export function centeredView(
   scale: number,
   point: Vector2d,
-  stage: { width: number; height: number },
+  area: IRect,
 ): View {
   return {
     scale,
-    x: stage.width / 2 - point.x * scale,
-    y: stage.height / 2 - point.y * scale,
+    x: area.x + area.width / 2 - point.x * scale,
+    y: area.y + area.height / 2 - point.y * scale,
   };
 }
 
@@ -203,11 +204,11 @@ export function useBoardView(
   function zoomAroundCenter(factor: number) {
     const stage = mountedStage();
     const scale = clamp(stage.scaleX() * factor, MIN_ZOOM, MAX_ZOOM);
-    const { x, y } = centeredView(
-      scale,
-      pointAtStageCenter(stage),
-      stage.size(),
-    );
+    const { x, y } = centeredView(scale, pointAtStageCenter(stage), {
+      x: 0,
+      y: 0,
+      ...stage.size(),
+    });
     stage.scale({ x: scale, y: scale });
     stage.position({ x, y });
   }
@@ -231,12 +232,14 @@ export function useBoardView(
     stage.position({ x, y });
   }
 
-  // In the middle of what a panel over the bottom edge leaves free.
+  // In the middle of what the toolbar and a panel over the bottom edge leave free.
   function centerOn(point: Vector2d) {
     const stage = mountedStage();
     const visible = {
+      x: 0,
+      y: TOOLBAR_SPACE,
       width: stage.width(),
-      height: stage.height() - covered.bottom,
+      height: stage.height() - TOOLBAR_SPACE - covered.bottom,
     };
     const { x, y } = centeredView(stage.scaleX(), point, visible);
     stage.position({ x, y });

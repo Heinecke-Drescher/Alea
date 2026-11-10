@@ -24,6 +24,7 @@ import { Link, useParams } from "react-router";
 import { isValidRoomId } from "../../../shared/roomId";
 import { Board, type BoardHandle } from "../board/Board";
 import { MapError } from "../board/MapError";
+import { TOOLBAR_SPACE } from "../board/Toolbar";
 import { DiceBar } from "../dice/DiceBar";
 import { DicePanel } from "../dice/DicePanel";
 import { DiceTray } from "../dice/DiceTray";
@@ -243,7 +244,7 @@ function RoomView({ roomId }: { roomId: string }) {
                         // Between the toolbar and the zoom buttons, so no panel covers another.
                         <Stack
                           pos="absolute"
-                          top={68}
+                          top={TOOLBAR_SPACE}
                           bottom={68}
                           right={PANEL_COLUMN_RIGHT}
                           w={PANEL_COLUMN_WIDTH}
