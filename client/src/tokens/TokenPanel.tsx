@@ -28,8 +28,9 @@ export function TokenPanel() {
   });
 
   return (
-    // Fills a panel of limited height and scrolls the list below the title.
-    <Stack gap="xs" mih={0} flex={1}>
+    // Fills a panel of limited size and scrolls the list below the title. Without a minimum width
+    // of 0 a long name would widen the panel instead of being cut off.
+    <Stack gap="xs" mih={0} miw={0} flex={1}>
       <Group justify="space-between" wrap="nowrap">
         <Title order={4}>Tokens</Title>
         <Menu position="bottom-end" shadow="md">
