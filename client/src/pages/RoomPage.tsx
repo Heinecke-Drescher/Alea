@@ -51,6 +51,8 @@ import { TokenDetailContext } from "../tokens/tokenDetailControl";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
+import { HideHeaderButton, ShowHeaderButton } from "./HeaderToggle";
+import { useHeaderCollapsed } from "./useHeaderCollapsed";
 import { TokenDrawer } from "../tokens/TokenDrawer";
 import { TokenSheet } from "../tokens/TokenSheet";
 import { TOKENS_TOGGLE_SPACE, TokensToggle } from "../tokens/TokensToggle";
@@ -119,6 +121,7 @@ function RoomView({ roomId }: { roomId: string }) {
   const isWide = useWideLayout();
   const hasDiceBar = useNarrowPortrait();
   const isSheetOpen = isTokensOpen && hasDiceBar;
+  const header = useHeaderCollapsed();
   const [detailTokenId, setDetailTokenId] = useState<string | null>(null);
   const tokenDetail = useMemo(
     () => ({
@@ -162,7 +165,7 @@ function RoomView({ roomId }: { roomId: string }) {
           <DiceProvider>
             <ThrowDieContext value={throwDie}>
               <AppShell
-                header={{ height: 60 }}
+                header={{ height: 60, collapsed: header.isCollapsed }}
                 aside={{
                   width: 320,
                   breakpoint: "sm",
@@ -195,12 +198,18 @@ function RoomView({ roomId }: { roomId: string }) {
                           : "Not connected"}
                       </Badge>
                     )}
+                    {header.canCollapse && (
+                      <HideHeaderButton
+                        onHide={() => header.setCollapsed(true)}
+                      />
+                    )}
                   </Group>
                 </AppShell.Header>
                 <AppShell.Main>
                   <Stack
                     gap={0}
-                    h="calc(100dvh - var(--app-shell-header-height))"
+                    // The offset, unlike the header's height, drops to 0 while the header is hidden.
+                    h="calc(100dvh - var(--app-shell-header-offset, 0px))"
                   >
                     <Box flex={1} mih={0} pos="relative">
                       <ErrorBoundary FallbackComponent={MapError}>
@@ -230,6 +239,12 @@ function RoomView({ roomId }: { roomId: string }) {
                       )}
                       {isSheetOpen && detailTokenId && (
                         <TokenDetail tokenId={detailTokenId} />
+                      )}
+                      {header.isCollapsed && (
+                        <ShowHeaderButton
+                          isDisconnected={connection === "disconnected"}
+                          onShow={() => header.setCollapsed(false)}
+                        />
                       )}
                       {!isWide && (
                         <TokensToggle
