@@ -4,8 +4,12 @@ import { tokenMarks } from "../room/marks";
 import type { Token } from "../room/roomStore";
 import { badgeIcon, fitBadges, tokenBadges } from "./badgeIcons";
 
-// More badges would squeeze the name out of a narrow list.
-const BADGE_PLACES = 4;
+// Like on the map, the badges sit in the upper right corner of the image, where there is room
+// for two.
+const BADGE_PLACES = 2;
+const BADGE_SIZE = 16;
+// Sets each badge off the image under it.
+const BADGE_BORDER = "1.5px solid var(--mantine-color-body)";
 
 export function TokenListBadges({ token }: { token: Token }) {
   const { shown, hidden } = fitBadges(
@@ -16,19 +20,20 @@ export function TokenListBadges({ token }: { token: Token }) {
   const hiddenLabels = hidden.map((badge) => badge.label).join(", ");
 
   return (
-    <Group gap={2} wrap="nowrap">
+    <Group gap={2} wrap="nowrap" pos="absolute" top={0} right={0}>
       {shown.map((badge) => {
         const BadgeIcon = badgeIcon(badge.icon);
         return (
           <Tooltip key={badge.key} label={badge.label}>
             <ThemeIcon
-              size={18}
+              size={BADGE_SIZE}
+              style={{ border: BADGE_BORDER }}
               radius="xl"
               color={`${badge.color}.8`}
               role="img"
               aria-label={badge.label}
             >
-              <BadgeIcon size={12} />
+              <BadgeIcon size={10} />
             </ThemeIcon>
           </Tooltip>
         );
@@ -36,13 +41,14 @@ export function TokenListBadges({ token }: { token: Token }) {
       {hidden.length > 0 && (
         <Tooltip label={hiddenLabels}>
           <ThemeIcon
-            size={18}
+            size={BADGE_SIZE}
+            style={{ border: BADGE_BORDER }}
             radius="xl"
             color="gray.8"
             role="img"
             aria-label={hiddenLabels}
           >
-            <Text size="10px" fw={700} lh={1}>
+            <Text size={hidden.length < 10 ? "10px" : "8px"} fw={700} lh={1}>
               +{hidden.length}
             </Text>
           </ThemeIcon>

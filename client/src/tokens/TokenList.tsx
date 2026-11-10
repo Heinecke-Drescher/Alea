@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Avatar,
+  Box,
   Group,
   Stack,
   Text,
@@ -125,7 +126,10 @@ function TokenRow({
             if (!isEditing) openTokenMenu(token.id, event);
           }}
         >
-          <Avatar src={image} size="sm" style={{ filter: avatarFilter }} />
+          <Box pos="relative" style={{ flexShrink: 0 }}>
+            <Avatar src={image} size="md" style={{ filter: avatarFilter }} />
+            <TokenListBadges token={token} />
+          </Box>
           {isEditing ? (
             <TextInput
               value={token.name}
@@ -155,7 +159,6 @@ function TokenRow({
               {token.name === "" ? "Unnamed" : token.name}
             </Text>
           )}
-          <TokenListBadges token={token} />
           <ActionIcon
             variant="subtle"
             color="gray"
