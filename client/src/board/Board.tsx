@@ -56,6 +56,7 @@ import { Strokes } from "./Strokes";
 import { ThrownDice } from "./dice/ThrownDice";
 import { BadgeTooltip } from "./tokens/BadgeTooltip";
 import { heldTokensClip } from "./tokens/heldTokens";
+import { HeldTokensHint } from "./tokens/HeldTokensHint";
 import { HeldTokensPreview } from "./tokens/HeldTokensPreview";
 import { isOnToken } from "./tokens/tokenNodes";
 import { Tokens } from "./tokens/Tokens";
@@ -446,6 +447,9 @@ export function Board({
           </Layer>
         </Stage>
         <ViewControls onZoomIn={zoomIn} onZoomOut={zoomOut} onFitMap={fitMap} />
+        {held && (
+          <HeldTokensHint count={held.length} onCancel={() => setHeld(null)} />
+        )}
         <Toolbar
           activeTool={tool}
           onToolChange={changeTool}

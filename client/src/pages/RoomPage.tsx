@@ -89,7 +89,8 @@ function RoomNotFound() {
 function RoomView({ roomId }: { roomId: string }) {
   const { room, awareness, isSynced, connection, isFull } =
     useRoomConnection(roomId);
-  const [isTokensOpen, { toggle: toggleTokens }] = useDisclosure();
+  const [isTokensOpen, { toggle: toggleTokens, close: closeTokens }] =
+    useDisclosure();
   const { ref: sheetRef, height: sheetHeight } = useElementSize();
   const [isEditingName, { open: editName, close: stopEditingName }] =
     useDisclosure();
@@ -115,10 +116,6 @@ function RoomView({ roomId }: { roomId: string }) {
       board.current?.dropToken(tokenId, point),
     [],
   );
-  const holdTokens = useCallback(
-    (tokens: HeldToken[]) => board.current?.holdTokens(tokens),
-    [],
-  );
   const alignMapImage = () => board.current?.alignMapImage();
   // Without a board, e.g. while the map shows an error, there is no map to throw onto.
   const throwDie = (sides: DieSides, samples: ScreenSample[]) =>
@@ -136,6 +133,14 @@ function RoomView({ roomId }: { roomId: string }) {
     }),
     [],
   );
+  // On phones the token list lies over the map, where the held tokens are to be put down.
+  const holdTokens = (tokens: HeldToken[]) => {
+    if (!isWide) {
+      tokenDetail.hide();
+      closeTokens();
+    }
+    board.current?.holdTokens(tokens);
+  };
   const tokenPanel = (
     <FocusTokenContext value={focusToken}>
       <TokenMenuContext value={openTokenMenu}>
