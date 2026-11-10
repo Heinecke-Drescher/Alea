@@ -87,7 +87,7 @@ describe("room space", () => {
 
 describe("room space when copying tokens", () => {
   beforeEach(() => {
-    room.addToken("Ogre", THREE_MB);
+    room.addToken("Ogre", THREE_MB, { x: 0, y: 0 });
   });
 
   it("refuses to paste tokens without space and leaves the room as it was", () => {

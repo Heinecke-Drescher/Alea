@@ -138,7 +138,7 @@ describe("drawing", () => {
   it("clears drawings but keeps tokens", () => {
     room.paintCell(1, 1, "#ff0000");
     room.addStroke("#000000", [0, 0, 10, 10]);
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     room.clearDrawings();
     expect(room.cellsMap.size).toBe(0);
     expect(room.strokesMap.size).toBe(0);
@@ -148,22 +148,10 @@ describe("drawing", () => {
 
 describe("addToken", () => {
   it("stores the token together with its image", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const token = onlyToken();
     expect(token).toMatchObject({ name: "Goblin", x: 0, y: 0, size: 1 });
     expect(room.imagesMap.get(token.imageId)).toBe(IMAGE);
-  });
-
-  it("places new tokens on the next free cell", () => {
-    room.addToken("A", IMAGE);
-    room.addToken("B", IMAGE);
-    const positions = Array.from(room.tokensMap.values(), (t) => [t.x, t.y]);
-    expect(positions).toEqual(
-      expect.arrayContaining([
-        [0, 0],
-        [1, 0],
-      ]),
-    );
   });
 
   it("places a new token on the given cell and keeps it on the map", () => {
@@ -173,71 +161,12 @@ describe("addToken", () => {
     room.addToken("Goblin", IMAGE, { x: columns + 3, y: -2 });
     expect(onlyToken()).toMatchObject({ x: columns - 1, y: 0 });
   });
-
-  it("does not place new tokens on cells covered by a large token", () => {
-    room.addToken("Dragon", IMAGE);
-    room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
-    room.addToken("Goblin", IMAGE);
-    const goblin = Array.from(room.tokensMap.values()).find(
-      (token) => token.name === "Goblin",
-    );
-    expect(goblin).toMatchObject({ x: 3, y: 0 });
-  });
-
-  it("skips blocked cells when looking for a free one", () => {
-    room.addToken("Goblin", IMAGE, undefined, [
-      { x: 0, y: 0, size: 2 },
-      { x: 2, y: 0, size: 1 },
-    ]);
-    expect(onlyToken()).toMatchObject({ x: 3, y: 0 });
-  });
-
-  it("fails when no cell is free", () => {
-    for (let i = 0; i < columns * rows; i++) room.addToken("Crowd", IMAGE);
-    expect(() => room.addToken("One too many", IMAGE)).toThrow();
-  });
-});
-
-describe("addTokens", () => {
-  const GOBLINS = ["Goblin 1", "Goblin 2", "Goblin 3"].map((name) => ({
-    name,
-    imageDataUrl: IMAGE,
-  }));
-
-  it("places every token on its own free cell, skipping blocked ones", () => {
-    room.addToken("Dragon", IMAGE);
-    room.addTokens(GOBLINS, [{ x: 1, y: 0, size: 1 }]);
-    const positions = Array.from(room.tokensMap.values(), (t) => [t.x, t.y]);
-    expect(positions).toEqual(
-      expect.arrayContaining([
-        [0, 0],
-        [2, 0],
-        [3, 0],
-        [4, 0],
-      ]),
-    );
-    expect(room.imagesMap.size).toBe(4);
-  });
-
-  it("adds all tokens in one undo step", () => {
-    room.addTokens(GOBLINS);
-    expect(room.tokensMap.size).toBe(3);
-    room.undoManager.undo();
-    expect(room.tokensMap.size).toBe(0);
-    expect(room.imagesMap.size).toBe(0);
-  });
-
-  it("adds none when the map has no room for all", () => {
-    for (let i = 0; i < columns * rows - 2; i++) room.addToken("Crowd", IMAGE);
-    expect(() => room.addTokens(GOBLINS)).toThrow();
-    expect(room.tokensMap.size).toBe(columns * rows - 2);
-  });
 });
 
 describe("changing tokens", () => {
   it("replaces a token's image and removes the old one in a single undo step", () => {
     const NEW_IMAGE = "data:image/webp;base64,BBBB";
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     room.toggleEffect(onlyToken().id, "dead");
     const before = room.doc.toJSON();
     room.setTokenImage(onlyToken().id, NEW_IMAGE);
@@ -254,7 +183,7 @@ describe("changing tokens", () => {
   });
 
   it("resizes a token to a new place and size in a single undo step", () => {
-    room.addToken("Dragon", IMAGE);
+    room.addToken("Dragon", IMAGE, { x: 0, y: 0 });
     moveOnlyTokenTo(5, 5);
     const before = room.doc.toJSON();
     room.resizeToken(onlyToken().id, { x: 3, y: 4, size: 3 });
@@ -264,7 +193,7 @@ describe("changing tokens", () => {
   });
 
   it("keeps a resized token inside the map", () => {
-    room.addToken("Dragon", IMAGE);
+    room.addToken("Dragon", IMAGE, { x: 0, y: 0 });
     moveOnlyTokenTo(columns - 1, rows - 1);
     room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
     expect(onlyToken()).toMatchObject({
@@ -275,7 +204,7 @@ describe("changing tokens", () => {
   });
 
   it("refuses token sizes it does not support", () => {
-    room.addToken("Dragon", IMAGE);
+    room.addToken("Dragon", IMAGE, { x: 0, y: 0 });
     const { id } = onlyToken();
     expect(() => room.resizeToken(id, { x: 0, y: 0, size: 0 })).toThrow();
     expect(() => room.resizeToken(id, { x: 0, y: 0, size: 11 })).toThrow();
@@ -283,7 +212,7 @@ describe("changing tokens", () => {
   });
 
   it("removes a token and its image", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     room.removeToken(onlyToken().id);
     expect(room.tokensMap.size).toBe(0);
     expect(room.imagesMap.size).toBe(0);
@@ -296,7 +225,7 @@ describe("changing tokens", () => {
   });
 
   it("duplicates a token next to it with its own image", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const original = onlyToken();
     const copy = tokenOf(room.duplicateToken(original.id));
     expect(copy).toMatchObject({
@@ -310,7 +239,7 @@ describe("changing tokens", () => {
   });
 
   it("undoes a duplicate in one step", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const before = room.doc.toJSON();
     room.duplicateToken(onlyToken().id);
     room.undoManager.undo();
@@ -319,7 +248,7 @@ describe("changing tokens", () => {
 
   it("does not duplicate when the map has no free space", () => {
     room.resize({ x: 0, y: 0, columns: 10, rows: 10 });
-    room.addToken("Tarrasque", IMAGE);
+    room.addToken("Tarrasque", IMAGE, { x: 0, y: 0 });
     room.resizeToken(onlyToken().id, { x: 0, y: 0, size: 10 });
     expect(room.duplicateToken(onlyToken().id)).toBeUndefined();
     expect(room.tokensMap.size).toBe(1);
@@ -335,7 +264,7 @@ describe("changing tokens", () => {
 
 describe("status effects", () => {
   it("toggles effects on and off", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const { id } = onlyToken();
     room.toggleEffect(id, "unconscious");
     room.toggleEffect(id, "dead");
@@ -345,7 +274,7 @@ describe("status effects", () => {
   });
 
   it("undoes each toggle in its own step", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const { id } = onlyToken();
     room.toggleEffect(id, "unconscious");
     room.toggleEffect(id, "dead");
@@ -354,7 +283,7 @@ describe("status effects", () => {
   });
 
   it("reads only known effects from other players' data", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const token = onlyToken();
     const foreign = { ...token, effects: ["dead", "flying", 3, "dead"] };
     room.tokensMap.set(token.id, foreign as unknown as Token);
@@ -367,7 +296,7 @@ describe("status effects", () => {
   });
 
   it("keeps the effects of a duplicate", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const { id } = onlyToken();
     room.toggleEffect(id, "unconscious");
     const copy = tokenOf(room.duplicateToken(id));
@@ -384,7 +313,7 @@ describe("marks", () => {
   const texts = () => tokenMarks(onlyToken()).map((mark) => mark.text);
 
   it("adds, changes and removes several marks", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const { id } = onlyToken();
     expect(tokenMarks(onlyToken())).toEqual([]);
     room.addMark(id, { ...NEW_MARK, text: "Bloodied" });
@@ -401,7 +330,7 @@ describe("marks", () => {
   });
 
   it("undoes each change in its own step", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const { id } = onlyToken();
     room.addMark(id, { ...NEW_MARK, text: "Target" });
     room.changeMark(id, 0, { ...NEW_MARK, text: "Bloodied" });
@@ -413,7 +342,7 @@ describe("marks", () => {
   });
 
   it("refuses a mark that is too long and more marks than allowed", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const { id } = onlyToken();
     room.addMark(id, { ...NEW_MARK, text: "x".repeat(MAX_MARK_LENGTH) });
     expect(() =>
@@ -433,7 +362,7 @@ describe("marks", () => {
   });
 
   it("changes nothing when the mark was removed meanwhile", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const { id } = onlyToken();
     room.addMark(id, { ...NEW_MARK, text: "Target" });
     room.changeMark(id, 1, { ...NEW_MARK, text: "Bloodied" });
@@ -442,7 +371,7 @@ describe("marks", () => {
   });
 
   it("reads only valid marks and their known fields from other players' data", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const token = onlyToken();
     room.tokensMap.set(token.id, { ...token, marks: 3 } as unknown as Token);
     expect(tokenMarks(onlyToken())).toEqual([]);
@@ -460,7 +389,7 @@ describe("marks", () => {
   });
 
   it("keeps the marks of a duplicate and a pasted copy", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const { id } = onlyToken();
     room.addMark(id, { ...NEW_MARK, text: "Target" });
     room.addMark(id, { ...NEW_MARK, text: "Blessed" });
@@ -475,7 +404,7 @@ describe("marks", () => {
   });
 
   it("copies no marks onto an unmarked token", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const copy = tokenOf(room.duplicateToken(onlyToken().id));
     expect(copy).not.toHaveProperty("marks");
   });
@@ -620,7 +549,7 @@ describe("moveArea", () => {
   });
 
   it("moves tokens the area reaches into and keeps them on the map", () => {
-    room.addToken("Dragon", IMAGE);
+    room.addToken("Dragon", IMAGE, { x: 0, y: 0 });
     room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
     room.moveArea(cellArea(1, 1, 1, 1), columns, 2);
     expect(onlyToken()).toMatchObject({ x: columns - 3, y: 2 });
@@ -641,7 +570,7 @@ describe("moveArea", () => {
   it("is undone in a single step", () => {
     room.paintCell(1, 1, "#ff0000");
     room.addStroke("#000000", [0, 75, 150, 75]);
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     moveOnlyTokenTo(1, 1);
     const before = room.doc.toJSON();
     room.moveArea(cellArea(1, 1, 1, 1), 2, 2);
@@ -665,7 +594,7 @@ describe("moveItems", () => {
 
   it("moves strokes and tokens together in a single undo step", () => {
     room.addStroke("#000000", [10, 10, 20, 20]);
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const [strokeId] = room.strokesMap.keys();
     if (!strokeId) throw new Error("Expected a stroke");
     const before = room.doc.toJSON();
@@ -682,7 +611,7 @@ describe("moveItems", () => {
   });
 
   it("refuses to move tokens off the grid", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const tokens = { strokes: [], tokens: [onlyToken().id], texts: [] };
     expect(() => room.moveItems(tokens, 7, 0)).toThrow();
   });
@@ -715,7 +644,7 @@ describe("copy, paste and delete", () => {
 
   function fillFirstCell() {
     room.paintCell(0, 0, "#ff0000");
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     room.addStroke("#000000", [10, 10, 20, 20]);
   }
 
@@ -895,7 +824,7 @@ describe("map bounds", () => {
     expect(room.resize(bounds(11, 0, 20, 20))).toBe(false);
     room.eraseCell(10, 0);
 
-    room.addToken("Ogre", IMAGE);
+    room.addToken("Ogre", IMAGE, { x: 0, y: 0 });
     moveOnlyTokenTo(0, 8);
     room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
     expect(room.resize(bounds(0, 0, 30, 10))).toBe(false);
@@ -918,7 +847,7 @@ describe("map bounds", () => {
 
   it("keeps tokens inside the stored bounds", () => {
     room.resize(bounds(-10, 0, 40, 20));
-    room.addToken("Ogre", IMAGE);
+    room.addToken("Ogre", IMAGE, { x: -10, y: 0 });
     expect(onlyToken()).toMatchObject({ x: -10, y: 0 });
     moveOnlyTokenTo(29, 0);
     room.resizeToken(onlyToken().id, { ...onlyToken(), size: 2 });
@@ -944,7 +873,7 @@ describe("undo and redo", () => {
   });
 
   it("brings back a removed token together with its image", () => {
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const token = onlyToken();
     room.removeToken(token.id);
     room.undoManager.undo();
@@ -973,7 +902,7 @@ describe("undo and redo", () => {
     const other = createRoom(new Y.Doc());
     const sync = (from: Room, to: Room) =>
       Y.applyUpdate(to.doc, Y.encodeStateAsUpdate(from.doc), "remote");
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     moveOnlyTokenTo(5, 5);
     sync(room, other);
     other.removeToken(onlyToken().id);
@@ -1011,7 +940,7 @@ describe("embeddedImage", () => {
 describe("rooms", () => {
   it("keeps the documents of different rooms separate", () => {
     const other = createRoom(new Y.Doc());
-    room.addToken("Goblin", IMAGE);
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     expect(other.tokensMap.size).toBe(0);
   });
 });

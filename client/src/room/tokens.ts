@@ -1,6 +1,6 @@
 import { nanoid } from "nanoid";
 import { tokenEffects, type StatusEffect } from "./effects";
-import { MAX_TOKEN_SIZE, overlaps, type Square } from "./grid";
+import { MAX_TOKEN_SIZE, type Square } from "./grid";
 import { placeToken, type MapActions } from "./map";
 import { isValidMark, MAX_MARKS, tokenMarks, type Mark } from "./marks";
 import type { RoomStore, Token } from "./roomStore";
@@ -13,48 +13,19 @@ export function createTokens(
   { doc, tokensMap, imagesMap, undoManager }: RoomStore,
   { mapBounds }: MapActions,
 ) {
-  // Without a cell the token goes to the first free one, skipping the blocked squares.
   function addToken(
     name: string,
     imageDataUrl: string,
-    cell?: { x: number; y: number },
-    blocked: Square[] = [],
+    cell: { x: number; y: number },
   ) {
-    const at = cell
-      ? placeToken(mapBounds(), { ...cell, size: 1 }, 0, 0)
-      : findFreeCell(blocked);
-    undoManager.stopCapturing();
-    doc.transact(() => putToken(name, imageDataUrl, at));
-  }
-
-  // Cells are found before anything is added, so a full map adds none of them.
-  function addTokens(
-    tokens: { name: string; imageDataUrl: string }[],
-    blocked: Square[] = [],
-  ) {
-    const taken = [...blocked];
-    const placed = tokens.map((token) => {
-      const cell = findFreeCell(taken);
-      taken.push({ ...cell, size: 1 });
-      return { ...token, cell };
-    });
-    undoManager.stopCapturing();
-    doc.transact(() => {
-      for (const { name, imageDataUrl, cell } of placed) {
-        putToken(name, imageDataUrl, cell);
-      }
-    });
-  }
-
-  function putToken(
-    name: string,
-    imageDataUrl: string,
-    { x, y }: { x: number; y: number },
-  ) {
+    const { x, y } = placeToken(mapBounds(), { ...cell, size: 1 }, 0, 0);
     const id = nanoid();
     const imageId = nanoid();
-    imagesMap.set(imageId, imageDataUrl);
-    tokensMap.set(id, { id, name, imageId, x, y, size: 1 });
+    undoManager.stopCapturing();
+    doc.transact(() => {
+      imagesMap.set(imageId, imageDataUrl);
+      tokensMap.set(id, { id, name, imageId, x, y, size: 1 });
+    });
   }
 
   function setTokenImage(id: string, imageDataUrl: string) {
@@ -149,21 +120,8 @@ export function createTokens(
     tokensMap.set(id, change(token));
   }
 
-  function findFreeCell(blocked: Square[]) {
-    const occupied = [...tokensMap.values(), ...blocked];
-    const { x: left, y: top, columns, rows } = mapBounds();
-    for (let y = top; y < top + rows; y++) {
-      for (let x = left; x < left + columns; x++) {
-        const cell = { x, y, size: 1 };
-        if (!occupied.some((other) => overlaps(cell, other))) return { x, y };
-      }
-    }
-    throw new Error("No free cell left on the map");
-  }
-
   return {
     addToken,
-    addTokens,
     setTokenImage,
     renameToken,
     toggleEffect,

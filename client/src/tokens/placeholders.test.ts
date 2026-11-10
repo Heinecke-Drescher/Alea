@@ -4,7 +4,7 @@ import {
   MAX_PLACEHOLDERS,
   placeholderNames,
   placeholderOf,
-} from "./addPlaceholders";
+} from "./placeholders";
 import { placeholderSvg } from "./placeholderImage";
 
 describe("placeholderNames", () => {

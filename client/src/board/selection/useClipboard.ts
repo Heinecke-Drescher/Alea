@@ -10,6 +10,7 @@ import { hasShapes } from "../../room/drawing";
 import { CELL_SIZE, mapRect, type MapBounds } from "../../room/grid";
 import {
   cellOffset,
+  centeredOn,
   clipBounds,
   itemsSelection,
   pixelOffset,
@@ -104,10 +105,18 @@ export function useClipboard({
 
   function pasteAt(at: Vector2d | null) {
     if (!clipboard.current) return;
-    const { clip, bounds, isArea } = clipboard.current;
-    const snapsToCells = isArea || hasGridContent(clip);
     // Before the mouse has been over the map, paste where the copy came from.
-    const target = at ?? bounds;
+    pasteFrom(clipboard.current, at ?? clipboard.current.bounds);
+  }
+
+  // New tokens land with their middle under the pointer, as when dragged from the token list.
+  function placeAt(clip: Clip, at: Vector2d) {
+    const bounds = clipBounds(clip);
+    pasteFrom({ clip, bounds, isArea: false }, centeredOn(bounds, at));
+  }
+
+  function pasteFrom({ clip, bounds, isArea }: Clipboard, target: Vector2d) {
+    const snapsToCells = isArea || hasGridContent(clip);
     const map = mapRect(room.mapBounds());
     if (
       snapsToCells &&
@@ -146,6 +155,7 @@ export function useClipboard({
     cut,
     paste: () => pasteAt(pointer.current),
     pasteAt,
+    placeAt,
     remove,
     copyItems,
     cutItems,

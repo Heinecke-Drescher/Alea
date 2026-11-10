@@ -1,20 +1,23 @@
 import { createImage, TOKEN_IMAGE_SIZE } from "../images/createImage";
 import type { Room } from "../room/createRoom";
-import type { Square } from "../room/grid";
+import type { HeldToken } from "./holdTokens";
 
 export const TOKEN_FILE_MEGABYTES = 5;
 
-interface Placement {
-  cell?: { x: number; y: number };
-  blocked?: Square[];
+export async function tokenFromFile(
+  room: Room,
+  file: File,
+): Promise<HeldToken> {
+  const imageDataUrl = await createImage(file, TOKEN_IMAGE_SIZE);
+  room.assertSpaceForImage(imageDataUrl);
+  return { name: file.name.replace(/\.[^.]+$/, ""), imageDataUrl };
 }
 
 export async function addTokenFromFile(
   room: Room,
   file: File,
-  { cell, blocked }: Placement = {},
+  cell: { x: number; y: number },
 ) {
-  const imageDataUrl = await createImage(file, TOKEN_IMAGE_SIZE);
-  room.assertSpaceForImage(imageDataUrl);
-  room.addToken(file.name.replace(/\.[^.]+$/, ""), imageDataUrl, cell, blocked);
+  const { name, imageDataUrl } = await tokenFromFile(room, file);
+  room.addToken(name, imageDataUrl, cell);
 }

@@ -36,7 +36,7 @@ export function useImageDrop(stageRef: RefObject<StageNode | null>) {
     images.forEach((file, i) => {
       const cell = cells[i];
       if (!cell) throw new Error(`No cell for dropped image ${i}`);
-      void handleImageFile(file, () => addTokenFromFile(room, file, { cell }));
+      void handleImageFile(file, () => addTokenFromFile(room, file, cell));
     });
   }
 

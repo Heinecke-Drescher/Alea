@@ -1,7 +1,7 @@
 import type { MantineTheme } from "@mantine/core";
 import type { Room } from "../room/createRoom";
-import type { Square } from "../room/grid";
 import type { PlayerColor } from "../room/playerColors";
+import type { HeldToken } from "./holdTokens";
 import {
   createPlaceholderImage,
   visibleCharacters,
@@ -47,12 +47,11 @@ export function placeholderOf(name: string) {
   return { label: label === "" ? null : label, number };
 }
 
-export async function addPlaceholders(
+export async function createPlaceholders(
   room: Room,
   theme: MantineTheme,
   { name, count, color, icon }: Placeholders,
-  blocked: Square[],
-) {
+): Promise<HeldToken[]> {
   const tokens = await Promise.all(
     placeholderNames(name, count).map(async (token) => ({
       name: token.name,
@@ -64,7 +63,7 @@ export async function addPlaceholders(
     })),
   );
   room.assertSpaceForImages(tokens.map((token) => token.imageDataUrl));
-  room.addTokens(tokens, blocked);
+  return tokens;
 }
 
 // Some letters grow when upper-cased (ß becomes SS) and would not fit.

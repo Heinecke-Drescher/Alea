@@ -2,7 +2,7 @@ import type { MantineTheme } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import type { Room } from "../room/createRoom";
 import type { PlayerColor } from "../room/playerColors";
-import { placeholderOf } from "./addPlaceholders";
+import { placeholderOf } from "./placeholders";
 import { createPlaceholderImage } from "./placeholderImage";
 import { PlaceholderForm } from "./PlaceholderModal";
 

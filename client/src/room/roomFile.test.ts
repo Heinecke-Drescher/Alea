@@ -153,7 +153,7 @@ describe("map files", () => {
     const file = validFile();
     const other = createRoom(new Y.Doc());
     other.paintCell(5, 5, "#0000ff");
-    other.addToken("Orc", "data:image/webp;base64,BBBB");
+    other.addToken("Orc", "data:image/webp;base64,BBBB", { x: 0, y: 0 });
     other.importMap(file);
     expect(other.cellsMap.has("5,5")).toBe(false);
     expect(Array.from(other.tokensMap.values(), (t) => t.name)).toEqual([

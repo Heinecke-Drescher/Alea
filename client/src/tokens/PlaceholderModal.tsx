@@ -26,17 +26,17 @@ import {
   type Icon,
 } from "@tabler/icons-react";
 import { useState } from "react";
-import { useFogGuard } from "../fog/useFogGuard";
 import { notifyError } from "../images/imageFiles";
 import { PlayerColorPicker } from "../player/PlayerColorPicker";
 import { usePlayer } from "../player/PlayerContext";
 import type { PlayerColor } from "../room/playerColors";
 import { useRoom } from "../room/RoomContext";
 import {
-  addPlaceholders,
+  createPlaceholders,
   MAX_PLACEHOLDERS,
   type Placeholders,
-} from "./addPlaceholders";
+} from "./placeholders";
+import { useHoldTokens } from "./holdTokens";
 import { PLACEHOLDER_ICONS, type PlaceholderIcon } from "./placeholderImage";
 
 const ICONS: Record<PlaceholderIcon, { label: string; Icon: Icon }> = {
@@ -63,15 +63,15 @@ export function PlaceholderModal({ opened, onClose }: PlaceholderModalProps) {
   const room = useRoom();
   const theme = useMantineTheme();
   const player = usePlayer();
-  const fogGuard = useFogGuard();
+  const holdTokens = useHoldTokens();
   return (
     <Modal opened={opened} onClose={onClose} title="Add placeholders" centered>
       <PlaceholderForm
         initialColor={player.color}
         forOneToken={false}
         errorTitle="Could not add placeholders"
-        onSubmit={(placeholders) =>
-          addPlaceholders(room, theme, placeholders, fogGuard.blockedSquares())
+        onSubmit={async (placeholders) =>
+          holdTokens(await createPlaceholders(room, theme, placeholders))
         }
         onDone={onClose}
       />

@@ -7,6 +7,7 @@ import {
   boxBetween,
   cellOffset,
   cellRect,
+  centeredOn,
   clipBounds,
   clipToMap,
   isClickArea,
@@ -278,6 +279,25 @@ describe("roundToCells", () => {
     expect(roundToCells({ dx: 0.6 * CELL_SIZE, dy: -1.4 * CELL_SIZE })).toEqual(
       { dx: CELL_SIZE, dy: -CELL_SIZE },
     );
+  });
+});
+
+describe("centeredOn", () => {
+  it("lands a single token on the cell under the pointer", () => {
+    const token = { x: 0, y: 0, width: CELL_SIZE, height: CELL_SIZE };
+    for (const pointerX of [50, 74, 99]) {
+      const target = centeredOn(token, { x: pointerX, y: 120 });
+      expect(cellOffset(token, target, defaultMap)).toEqual({ dx: 1, dy: 2 });
+    }
+  });
+
+  it("puts the middle of a block under the pointer", () => {
+    const block = { x: 0, y: 0, width: 3 * CELL_SIZE, height: 2 * CELL_SIZE };
+    const target = centeredOn(block, {
+      x: 5 * CELL_SIZE + 10,
+      y: 5 * CELL_SIZE + 10,
+    });
+    expect(cellOffset(block, target, defaultMap)).toEqual({ dx: 4, dy: 4 });
   });
 });
 

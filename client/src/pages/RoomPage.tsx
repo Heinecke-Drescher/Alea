@@ -44,6 +44,7 @@ import { useRoomConnection } from "../room/connection/useRoomConnection";
 import { SceneTabs } from "../scenes/SceneTabs";
 import { DropTokenContext } from "../tokens/dropToken";
 import { FocusTokenContext } from "../tokens/focusToken";
+import { HoldTokensContext, type HeldToken } from "../tokens/holdTokens";
 import { SelectedTokensContext } from "../tokens/selectedTokens";
 import { TokenMenuContext } from "../tokens/tokenMenu";
 import { TokenDetail } from "../tokens/TokenDetail";
@@ -114,6 +115,10 @@ function RoomView({ roomId }: { roomId: string }) {
       board.current?.dropToken(tokenId, point),
     [],
   );
+  const holdTokens = useCallback(
+    (tokens: HeldToken[]) => board.current?.holdTokens(tokens),
+    [],
+  );
   const alignMapImage = () => board.current?.alignMapImage();
   // Without a board, e.g. while the map shows an error, there is no map to throw onto.
   const throwDie = (sides: DieSides, samples: ScreenSample[]) =>
@@ -137,7 +142,9 @@ function RoomView({ roomId }: { roomId: string }) {
         <SelectedTokensContext value={selectedTokens}>
           <DropTokenContext value={dropToken}>
             <TokenDetailContext value={hasDiceBar ? tokenDetail : null}>
-              <TokenPanel />
+              <HoldTokensContext value={holdTokens}>
+                <TokenPanel />
+              </HoldTokensContext>
             </TokenDetailContext>
           </DropTokenContext>
         </SelectedTokensContext>

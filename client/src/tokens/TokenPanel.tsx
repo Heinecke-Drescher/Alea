@@ -9,22 +9,22 @@ import {
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconPlus } from "@tabler/icons-react";
-import { useFogGuard } from "../fog/useFogGuard";
 import { useImageFileDialog } from "../images/useImageFileDialog";
 import { useRoom } from "../room/RoomContext";
-import { addTokenFromFile, TOKEN_FILE_MEGABYTES } from "./addTokenFromFile";
+import { TOKEN_FILE_MEGABYTES, tokenFromFile } from "./addTokenFromFile";
+import { useHoldTokens } from "./holdTokens";
 import { PlaceholderModal } from "./PlaceholderModal";
 import { TokenList } from "./TokenList";
 
 export function TokenPanel() {
   const room = useRoom();
-  const fogGuard = useFogGuard();
+  const holdTokens = useHoldTokens();
   const [isPlaceholderOpen, placeholderModal] = useDisclosure(false);
   const chooseTokens = useImageFileDialog({
     maxMegabytes: TOKEN_FILE_MEGABYTES,
     multiple: true,
-    onFile: (file) =>
-      addTokenFromFile(room, file, { blocked: fogGuard.blockedSquares() }),
+    // Images that arrive while others are held join them.
+    onFile: async (file) => holdTokens([await tokenFromFile(room, file)]),
   });
 
   return (

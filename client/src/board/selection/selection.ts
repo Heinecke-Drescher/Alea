@@ -182,6 +182,14 @@ export function roundToCells({ dx, dy }: { dx: number; dy: number }) {
   return { dx: toCells(dx) * CELL_SIZE, dy: toCells(dy) * CELL_SIZE };
 }
 
+// Where to aim a paste so that its middle lands under the pointer.
+export function centeredOn(bounds: IRect, pointer: Vector2d) {
+  return {
+    x: pointer.x - bounds.width / 2,
+    y: pointer.y - bounds.height / 2,
+  };
+}
+
 export function cellOffset(area: IRect, position: Vector2d, map: MapBounds) {
   const rect = mapRect(map);
   const offset = (

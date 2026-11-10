@@ -1,5 +1,6 @@
 import { Box, useComputedColorScheme, useMantineTheme } from "@mantine/core";
 import { useElementSize, useHotkeys } from "@mantine/hooks";
+import type { Group as GroupNode } from "konva/lib/Group";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Vector2d } from "konva/lib/types";
@@ -7,6 +8,7 @@ import {
   useEffect,
   useEffectEvent,
   useImperativeHandle,
+  useMemo,
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
@@ -20,7 +22,8 @@ import { useCanAlignMapImage } from "../mapImage/useCanSetMapImage";
 import { usePlayer } from "../player/PlayerContext";
 import type { Awareness } from "../room/connection/connectRoom";
 import { useRoom } from "../room/RoomContext";
-import { squareCenter } from "../room/grid";
+import { CELL_SIZE, squareCenter } from "../room/grid";
+import type { HeldToken } from "../tokens/holdTokens";
 import { useBackgroundImage } from "../room/useBackgroundImage";
 import { cursorArrowCss } from "./cursorArrow";
 import { Cursors } from "./Cursors";
@@ -36,6 +39,9 @@ import { mapSurroundColor } from "./map/mapColors";
 import { CriticalScenes } from "./critical/CriticalScenes";
 import { paintColorValue, type PaintColor } from "./paintColors";
 import {
+  cellOffset,
+  centeredOn,
+  clipBounds,
   itemsSelection,
   reshapableStrokeId,
   TAP_SCREEN_DISTANCE,
@@ -49,12 +55,15 @@ import { useSelection } from "./selection/useSelection";
 import { Strokes } from "./Strokes";
 import { ThrownDice } from "./dice/ThrownDice";
 import { BadgeTooltip } from "./tokens/BadgeTooltip";
+import { heldTokensClip } from "./tokens/heldTokens";
+import { HeldTokensPreview } from "./tokens/HeldTokensPreview";
 import { isOnToken } from "./tokens/tokenNodes";
 import { Tokens } from "./tokens/Tokens";
 import { useTokenMenu } from "./tokens/useTokenMenu";
 import { Toolbar } from "./Toolbar";
 import { DistanceMeasure } from "./tools/DistanceMeasure";
 import { FogFrame } from "./tools/FogFrame";
+import { usePlaceTool } from "./tools/place";
 import { ShapePreview } from "./tools/ShapePreview";
 import { TextEditor } from "./texts/TextEditor";
 import { TEXT_FONT_SIZES, type TextFontSize } from "../room/texts";
@@ -77,6 +86,7 @@ export interface BoardHandle {
   openTokenMenu: (id: string, event: ReactMouseEvent) => void;
   alignMapImage: () => void;
   throwDie: (sides: DieSides, samples: ScreenSample[]) => void;
+  holdTokens: (tokens: HeldToken[]) => void;
   dropToken: (id: string, point: Vector2d) => void;
 }
 
@@ -116,15 +126,21 @@ export function Board({
   const [landings] = useState(() => new Map<string, Vector2d>());
   const selection = useSelection(room);
   const colorValue = paintColorValue(theme, color);
-  const { activeTool, draftPoints, measurement, shapeDraft, fogFrame, texts } =
-    useBoardTools(
-      tool,
-      selection,
-      room,
-      colorValue,
-      textSize,
-      selectPlacedShape,
-    );
+  const [held, setHeld] = useState<HeldToken[] | null>(null);
+  const heldClip = useMemo(() => held && heldTokensClip(held), [held]);
+  const heldPreview = useRef<GroupNode>(null);
+  const placeTool = usePlaceTool(placeHeldTokens, aimHeldTokens);
+  const tools = useBoardTools(
+    tool,
+    selection,
+    room,
+    colorValue,
+    textSize,
+    selectPlacedShape,
+  );
+  // Held tokens take over from the chosen tool until they are put down.
+  const activeTool = heldClip ? placeTool : tools.activeTool;
+  const { draftPoints, measurement, shapeDraft, fogFrame, texts } = tools;
   const { area, items } = selection;
   const reshapableId = reshapableStrokeId(items);
   const itemDrag = useItemDrag(room, items);
@@ -184,6 +200,7 @@ export function Board({
       () => {
         input.dropTool();
         selection.clear();
+        setHeld(null);
       },
     ],
     ["mod+C", clipboard.copy, keepDefault],
@@ -218,6 +235,34 @@ export function Board({
     input.endTool();
     setTool(nextTool);
     selection.clear();
+    setHeld(null);
+  }
+
+  // Tokens that arrive while others are held join them, e.g. images uploaded together.
+  function holdTokens(tokens: HeldToken[]) {
+    input.endTool();
+    setTool("select");
+    selection.clear();
+    setHeld((current) => [...(current ?? []), ...tokens]);
+  }
+
+  // Putting them down switches to the select tool, which empties the hand. Where the fog keeps a
+  // player from putting them down, they stay held.
+  function placeHeldTokens(point: Vector2d) {
+    if (heldClip) clipboard.placeAt(heldClip, point);
+  }
+
+  function aimHeldTokens(point: Vector2d) {
+    const preview = heldPreview.current;
+    if (!heldClip || !preview) return;
+    const bounds = clipBounds(heldClip);
+    const { dx, dy } = cellOffset(
+      bounds,
+      centeredOn(bounds, point),
+      room.mapBounds(),
+    );
+    preview.position({ x: dx * CELL_SIZE, y: dy * CELL_SIZE });
+    preview.visible(true);
   }
 
   function selectPlacedShape(id: string) {
@@ -249,6 +294,7 @@ export function Board({
     openTokenMenu,
     alignMapImage: () => setTool("alignImage"),
     throwDie: dieDrop.rollFromScreen,
+    holdTokens,
     dropToken: drops.copyTokenFromScreen,
   }));
 
@@ -285,7 +331,10 @@ export function Board({
           draggable
           dragDistance={TAP_SCREEN_DISTANCE}
           onDragStart={(event) =>
-            panWhereAllowed(event, isSelecting && input.canDragItems)
+            panWhereAllowed(
+              event,
+              (isSelecting || heldClip !== null) && input.canDragItems,
+            )
           }
           onWheel={(event) => {
             panOrZoom(event);
@@ -389,6 +438,9 @@ export function Board({
               measurement={measurement}
               color={theme.colors[player.color][6]}
             />
+            {heldClip && (
+              <HeldTokensPreview clip={heldClip} ref={heldPreview} />
+            )}
             <Pings awareness={awareness} />
             <Cursors awareness={awareness} />
           </Layer>
