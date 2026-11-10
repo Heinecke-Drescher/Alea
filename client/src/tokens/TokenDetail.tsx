@@ -1,4 +1,12 @@
-import { Avatar, Group, Stack, Text, ThemeIcon } from "@mantine/core";
+import {
+  Avatar,
+  Group,
+  Stack,
+  Text,
+  ThemeIcon,
+  type PaperProps,
+} from "@mantine/core";
+import { useClickOutside, useHotkeys } from "@mantine/hooks";
 import { FloatingPanel } from "../FloatingPanel";
 import { useFogGuard } from "../fog/useFogGuard";
 import { isOutOfFight, tokenEffects } from "../room/effects";
@@ -7,31 +15,61 @@ import { embeddedImage } from "../room/tokens";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import { badgeIcon, tokenBadges } from "./badgeIcons";
-import { SHEET_WIDTH } from "./TokenSheet";
-import { TOKENS_TOGGLE_SPACE } from "./TokensToggle";
 
 const IMAGE_SIZE = 96;
 
-// Beside the token sheet, where the map stays visible above, it shows one token with every status
-// and the full text of every mark, which the badges have no room for.
-export function TokenDetail({ tokenId }: { tokenId: string }) {
+interface TokenDetailProps extends Pick<
+  PaperProps,
+  "top" | "right" | "bottom" | "left" | "w" | "mah"
+> {
+  tokenId: string;
+  // Clicks there keep the detail, so the images in the list can switch it.
+  listArea: HTMLElement | null;
+  onClose: () => void;
+}
+
+// Beside the token list it shows one token with every status and the full text of every mark,
+// which the badges have no room for. The caller places it.
+export function TokenDetail({
+  tokenId,
+  listArea,
+  onClose,
+  ...placement
+}: TokenDetailProps) {
   const room = useRoom();
   const fogGuard = useFogGuard();
   const token = useY(room.tokensMap)[tokenId];
   const images = useY(room.imagesMap);
+  const panelRef = useClickOutside<HTMLDivElement>(
+    (event) => {
+      const path = event.composedPath();
+      // Menus and dialogs lie outside the app root, so marking the token keeps its detail open.
+      const appRoot = document.getElementById("root");
+      if (!appRoot) throw new Error("Root element #root not found");
+      if (path.includes(appRoot) && !(listArea && path.includes(listArea))) {
+        onClose();
+      }
+    },
+    // One event for mouse, pen and finger alike.
+    ["pointerdown"],
+  );
+  useHotkeys([["Escape", onClose]]);
   // Someone may have removed it or hidden it under the fog meanwhile.
   if (!token || fogGuard.hidesSquare(token)) return null;
   const badges = tokenBadges(tokenEffects(token), tokenMarks(token));
 
   return (
     <FloatingPanel
+      ref={panelRef}
       pos="absolute"
-      left={12}
-      right={`calc(${SHEET_WIDTH} + 24px)`}
-      bottom={TOKENS_TOGGLE_SPACE}
-      mah="50%"
       p="sm"
-      style={{ overflowY: "auto", scrollbarWidth: "thin" }}
+      // Also on wide screens, where the panel column around it lets clicks through to the map.
+      style={{
+        overflowY: "auto",
+        scrollbarWidth: "thin",
+        pointerEvents: "auto",
+      }}
+      {...placement}
     >
       <Stack gap="xs" align="center">
         <Avatar

@@ -10,7 +10,12 @@ import {
   Text,
   Title,
 } from "@mantine/core";
-import { useDisclosure, useElementSize, useHotkeys } from "@mantine/hooks";
+import {
+  useDisclosure,
+  useElementSize,
+  useHotkeys,
+  useMergedRef,
+} from "@mantine/hooks";
 import {
   useCallback,
   useEffect,
@@ -54,8 +59,8 @@ import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
 import { HideHeaderButton, ShowHeaderButton } from "./HeaderToggle";
 import { useHeaderCollapsed } from "./useHeaderCollapsed";
-import { TokenDrawer } from "../tokens/TokenDrawer";
-import { TokenSheet } from "../tokens/TokenSheet";
+import { TAB_WIDTH, TokenDrawer } from "../tokens/TokenDrawer";
+import { SHEET_WIDTH, TokenSheet } from "../tokens/TokenSheet";
 import { TOKENS_TOGGLE_SPACE, TokensToggle } from "../tokens/TokensToggle";
 import { useNarrowPortrait, useWideLayout } from "../theme";
 import { PlayerNameModal } from "./PlayerNameModal";
@@ -64,6 +69,7 @@ import { PlayerNameModal } from "./PlayerNameModal";
 const PANEL_COLUMN_WIDTH = 240;
 const PANEL_COLUMN_RIGHT = 12;
 const PANEL_GAP = 12;
+const DETAIL_WIDTH = 200;
 
 export function RoomPage() {
   const { roomId } = useParams();
@@ -91,7 +97,10 @@ function RoomView({ roomId }: { roomId: string }) {
     useRoomConnection(roomId);
   const [isTokensOpen, { toggle: toggleTokens, close: closeTokens }] =
     useDisclosure();
-  const { ref: sheetRef, height: sheetHeight } = useElementSize();
+  const { ref: sheetSizeRef, height: sheetHeight } = useElementSize();
+  // The sheet on phones or the drawer on wide screens.
+  const [tokenListArea, setTokenListArea] = useState<HTMLElement | null>(null);
+  const sheetRef = useMergedRef(sheetSizeRef, setTokenListArea);
   const [isEditingName, { open: editName, close: stopEditingName }] =
     useDisclosure();
   const localPlayer = useLocalPlayer();
@@ -133,12 +142,11 @@ function RoomView({ roomId }: { roomId: string }) {
     }),
     [],
   );
-  // On phones the token list lies over the map, where the held tokens are to be put down.
+  // The detail, and on phones the token list, lie over the map, where the held tokens are to be
+  // put down.
   const holdTokens = (tokens: HeldToken[]) => {
-    if (!isWide) {
-      tokenDetail.hide();
-      closeTokens();
-    }
+    tokenDetail.hide();
+    if (!isWide) closeTokens();
     board.current?.holdTokens(tokens);
   };
   const tokenPanel = (
@@ -146,7 +154,9 @@ function RoomView({ roomId }: { roomId: string }) {
       <TokenMenuContext value={openTokenMenu}>
         <SelectedTokensContext value={selectedTokens}>
           <DropTokenContext value={dropToken}>
-            <TokenDetailContext value={hasDiceBar ? tokenDetail : null}>
+            <TokenDetailContext
+              value={hasDiceBar || isWide ? tokenDetail : null}
+            >
               <HoldTokensContext value={holdTokens}>
                 <TokenPanel />
               </HoldTokensContext>
@@ -250,7 +260,15 @@ function RoomView({ roomId }: { roomId: string }) {
                         </TokenSheet>
                       )}
                       {isSheetOpen && detailTokenId && (
-                        <TokenDetail tokenId={detailTokenId} />
+                        <TokenDetail
+                          tokenId={detailTokenId}
+                          listArea={tokenListArea}
+                          onClose={tokenDetail.hide}
+                          left={12}
+                          right={`calc(${SHEET_WIDTH} + 24px)`}
+                          bottom={TOKENS_TOGGLE_SPACE}
+                          mah="50%"
+                        />
                       )}
                       {header.isCollapsed && (
                         <ShowHeaderButton
@@ -278,7 +296,24 @@ function RoomView({ roomId }: { roomId: string }) {
                           gap={PANEL_GAP}
                           style={{ pointerEvents: "none", zIndex: 10 }}
                         >
-                          <TokenDrawer>{tokenPanel}</TokenDrawer>
+                          <TokenDrawer
+                            onClose={tokenDetail.hide}
+                            ref={setTokenListArea}
+                          >
+                            {tokenPanel}
+                          </TokenDrawer>
+                          {detailTokenId && (
+                            // Left of the drawer's tab, which it must not cover.
+                            <TokenDetail
+                              tokenId={detailTokenId}
+                              listArea={tokenListArea}
+                              onClose={tokenDetail.hide}
+                              top={0}
+                              right={`calc(100% + ${TAB_WIDTH + PANEL_GAP}px)`}
+                              w={DETAIL_WIDTH}
+                              mah="100%"
+                            />
+                          )}
                           <DiceTray
                             mt="auto"
                             style={{ pointerEvents: "auto", flexShrink: 0 }}

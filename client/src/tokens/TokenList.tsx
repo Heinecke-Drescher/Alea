@@ -112,7 +112,10 @@ function TokenRow({
           }}
           // While editing, dragging selects text in the name instead.
           draggable={!isEditing}
-          onDragStart={(event) => startTokenDrag(event.dataTransfer, token.id)}
+          onDragStart={(event) => {
+            detail?.hide();
+            startTokenDrag(event.dataTransfer, token.id);
+          }}
           // The mouse keeps the browser's drag and drop, which also shows where it may drop.
           onPointerDown={(event) => {
             if (!isEditing && event.pointerType !== "mouse") {

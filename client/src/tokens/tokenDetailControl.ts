@@ -5,7 +5,8 @@ interface TokenDetailControl {
   hide: () => void;
 }
 
-// Only phones held upright have room for the detail beside the token sheet; elsewhere it is null.
+// Only phones held upright and wide screens have room for the detail beside the token list;
+// elsewhere it is null.
 export const TokenDetailContext = createContext<TokenDetailControl | null>(
   null,
 );

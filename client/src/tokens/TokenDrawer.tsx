@@ -1,16 +1,22 @@
 import { Box, Stack, Text, Tooltip, UnstyledButton } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
-import type { ReactNode } from "react";
+import type { ReactNode, Ref } from "react";
 import { FloatingPanel } from "../FloatingPanel";
 
-const TAB_WIDTH = 30;
+export const TAB_WIDTH = 30;
 const TAB_HEIGHT = 160;
 // The drawer's column keeps this distance to the edge of the map view.
 const VIEW_GAP = 12;
 
 // Like a box of tokens next to the table: pulled out by its tab when needed, remembered per browser.
-export function TokenDrawer({ children }: { children: ReactNode }) {
+interface TokenDrawerProps {
+  onClose: () => void;
+  ref: Ref<HTMLDivElement>;
+  children: ReactNode;
+}
+
+export function TokenDrawer({ onClose, ref, children }: TokenDrawerProps) {
   const [isOpen, setOpen] = useLocalStorage({
     key: "alea-tokens-opened",
     defaultValue: true,
@@ -38,7 +44,10 @@ export function TokenDrawer({ children }: { children: ReactNode }) {
           c="dimmed"
           aria-label={label}
           aria-expanded={isOpen}
-          onClick={() => setOpen(!isOpen)}
+          onClick={() => {
+            if (isOpen) onClose();
+            setOpen(!isOpen);
+          }}
         >
           <Stack gap="xs" align="center" justify="center" h="100%">
             {isOpen ? (
@@ -58,6 +67,7 @@ export function TokenDrawer({ children }: { children: ReactNode }) {
   if (!isOpen) return <Box pos="relative">{tab}</Box>;
   return (
     <FloatingPanel
+      ref={ref}
       pos="relative"
       p="sm"
       // Shrinks in a low window, but keeps its title and its tab.
