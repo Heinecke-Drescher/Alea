@@ -1,8 +1,8 @@
 import { Circle, Group } from "react-konva";
 import { useStageZoom } from "../useStageZoom";
 
-// In screen pixels: the smallest touch target Material Design asks for, and the margin around the
-// image that a finger may miss it by.
+// In screen pixels: the smallest touch target Android's accessibility guidelines recommend, and the
+// margin around the image that a finger may miss it by.
 const MIN_GRIP_SIZE = 48;
 const GRIP_MARGIN = 12;
 
