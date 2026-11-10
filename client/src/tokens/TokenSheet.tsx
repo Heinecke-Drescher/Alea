@@ -3,6 +3,9 @@ import type { ReactNode, Ref } from "react";
 import { FloatingPanel } from "../FloatingPanel";
 import { TOKENS_TOGGLE_SPACE } from "./TokensToggle";
 
+// Keeps names readable on narrow phones, where half the map would leave too little.
+const MIN_SHEET_WIDTH = 200;
+
 interface TokenSheetProps {
   isOpen: boolean;
   ref: Ref<HTMLDivElement>;
@@ -24,8 +27,10 @@ export function TokenSheet({ isOpen, ref, children }: TokenSheetProps) {
         <FloatingPanel
           ref={ref}
           pos="absolute"
-          left={12}
           right={12}
+          // Leaves the left of the map free, so a token can be dragged sideways onto it.
+          w={`max(50%, ${MIN_SHEET_WIDTH}px)`}
+          maw="calc(100% - 24px)"
           bottom={TOKENS_TOGGLE_SPACE}
           mah="50%"
           p="sm"

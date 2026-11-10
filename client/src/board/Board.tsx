@@ -14,7 +14,7 @@ import {
 } from "react";
 import { Layer, Stage } from "react-konva";
 import type { Critical } from "../dice/criticalRoll";
-import type { ScreenSample } from "../dice/throwDie";
+import type { ScreenSample } from "../useScreenDrag";
 import type { DieSides } from "../room/dice";
 import { useCanAlignMapImage } from "../mapImage/useCanSetMapImage";
 import { usePlayer } from "../player/PlayerContext";
@@ -77,6 +77,7 @@ export interface BoardHandle {
   openTokenMenu: (id: string, event: ReactMouseEvent) => void;
   alignMapImage: () => void;
   throwDie: (sides: DieSides, samples: ScreenSample[]) => void;
+  dropToken: (id: string, point: Vector2d) => void;
 }
 
 interface BoardProps {
@@ -248,6 +249,7 @@ export function Board({
     openTokenMenu,
     alignMapImage: () => setTool("alignImage"),
     throwDie: dieDrop.rollFromScreen,
+    dropToken: drops.copyTokenFromScreen,
   }));
 
   return (

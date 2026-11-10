@@ -1,12 +1,12 @@
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { RefObject } from "react";
-import type { ScreenSample } from "../dice/throwDie";
 import { dragVelocity, throwPath, type DragSample } from "./dice/throwPath";
 import { usePlayer } from "../player/PlayerContext";
 import { rollDie, type DieSides } from "../room/dice";
 import { cellAt, containsCell } from "../room/grid";
 import { useRoom } from "../room/RoomContext";
-import { screenPointOnMap } from "./dropPoint";
+import type { ScreenSample } from "../useScreenDrag";
+import { isOverMap, screenPointOnMap } from "./dropPoint";
 
 interface DieDropOptions {
   stageRef: RefObject<StageNode | null>;
@@ -42,9 +42,7 @@ export function useDieDrop({ stageRef }: DieDropOptions) {
     if (!stage) throw new Error("Stage is not mounted");
     const release = samples.at(-1);
     if (!release) throw new Error("Thrown die without a point");
-    // Letting go over the toolbar or a button above the map throws nothing.
-    const target = document.elementFromPoint(release.x, release.y);
-    if (!target || !stage.container().contains(target)) return;
+    if (!isOverMap(stage, release)) return;
     rollAlong(
       sides,
       samples.map(({ x, y, time }) => ({

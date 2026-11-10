@@ -8,7 +8,8 @@ export function useBoardDrops(
   stageRef: RefObject<StageNode | null>,
   onTokenCopied: (tokenId: string) => void,
 ) {
-  const drops = [useImageDrop(stageRef), useTokenDrop(stageRef, onTokenCopied)];
+  const tokenDrop = useTokenDrop(stageRef, onTokenCopied);
+  const drops = [useImageDrop(stageRef), tokenDrop];
 
   return {
     onDragOver: (event: DragEvent<HTMLElement>) => {
@@ -17,5 +18,6 @@ export function useBoardDrops(
     onDrop: (event: DragEvent<HTMLElement>) => {
       for (const drop of drops) drop.onDrop(event);
     },
+    copyTokenFromScreen: tokenDrop.copyTokenFromScreen,
   };
 }

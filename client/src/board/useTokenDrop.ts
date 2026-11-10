@@ -1,4 +1,5 @@
 import type { Stage as StageNode } from "konva/lib/Stage";
+import type { Vector2d } from "konva/lib/types";
 import type { DragEvent, RefObject } from "react";
 import { useFogGuard } from "../fog/useFogGuard";
 import { showRoomSpaceError } from "../images/showRoomSpaceError";
@@ -6,7 +7,7 @@ import { usePlayer } from "../player/PlayerContext";
 import { CELL_SIZE, cellAt, containsCell } from "../room/grid";
 import { useRoom } from "../room/RoomContext";
 import { droppedTokenId, isTokenDrag } from "../tokens/tokenDrag";
-import { dropPointOnMap } from "./dropPoint";
+import { dropPointOnMap, isOverMap, screenPointOnMap } from "./dropPoint";
 
 export function useTokenDrop(
   stageRef: RefObject<StageNode | null>,
@@ -24,10 +25,22 @@ export function useTokenDrop(
     const id = droppedTokenId(event.dataTransfer);
     if (!id) return;
     event.preventDefault();
+    copyTokenAt(id, dropPointOnMap(stageRef.current, event));
+  }
+
+  // A finger drags a token from outside the map, so it lets go at a point in screen pixels.
+  function copyTokenFromScreen(id: string, point: Vector2d) {
+    const stage = stageRef.current;
+    if (!stage) throw new Error("Stage is not mounted");
+    if (!isOverMap(stage, point)) return;
+    copyTokenAt(id, screenPointOnMap(stage, point));
+  }
+
+  function copyTokenAt(id: string, point: Vector2d) {
     // Someone may have removed it while it was being dragged.
     const token = room.tokensMap.get(id);
     if (!token) return;
-    const cell = cellAt(dropPointOnMap(stageRef.current, event));
+    const cell = cellAt(point);
     if (!containsCell(room.mapBounds(), cell.x, cell.y)) return;
     // A large token lands with its middle under the pointer.
     const corner = Math.floor((token.size - 1) / 2);
@@ -54,5 +67,9 @@ export function useTokenDrop(
     }
   }
 
-  return { onDragOver: allowTokenDrop, onDrop: copyDroppedToken };
+  return {
+    onDragOver: allowTokenDrop,
+    onDrop: copyDroppedToken,
+    copyTokenFromScreen,
+  };
 }

@@ -1,12 +1,6 @@
 import { createContext, useContext } from "react";
 import type { DieSides } from "../room/dice";
-
-// Where the pointer was, in pixels of the browser window.
-export interface ScreenSample {
-  x: number;
-  y: number;
-  time: number;
-}
+import type { ScreenSample } from "../useScreenDrag";
 
 export const ThrowDieContext = createContext<
   ((sides: DieSides, samples: ScreenSample[]) => void) | null

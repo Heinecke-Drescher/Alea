@@ -28,7 +28,8 @@ import { DiceBar } from "../dice/DiceBar";
 import { DicePanel } from "../dice/DicePanel";
 import { DiceTray } from "../dice/DiceTray";
 import { DiceProvider } from "../dice/DiceProvider";
-import { ThrowDieContext, type ScreenSample } from "../dice/throwDie";
+import { ThrowDieContext } from "../dice/throwDie";
+import type { ScreenSample } from "../useScreenDrag";
 import type { DieSides } from "../room/dice";
 import {
   ShowCriticalContext,
@@ -40,6 +41,7 @@ import { recordVisit } from "../recentRooms/useRecentRooms";
 import { useLocalPlayer } from "../player/useLocalPlayer";
 import { useRoomConnection } from "../room/connection/useRoomConnection";
 import { SceneTabs } from "../scenes/SceneTabs";
+import { DropTokenContext } from "../tokens/dropToken";
 import { FocusTokenContext } from "../tokens/focusToken";
 import { SelectedTokensContext } from "../tokens/selectedTokens";
 import { TokenMenuContext } from "../tokens/tokenMenu";
@@ -102,6 +104,11 @@ function RoomView({ roomId }: { roomId: string }) {
       board.current?.openTokenMenu(tokenId, event),
     [],
   );
+  const dropToken = useCallback(
+    (tokenId: string, point: { x: number; y: number }) =>
+      board.current?.dropToken(tokenId, point),
+    [],
+  );
   const alignMapImage = () => board.current?.alignMapImage();
   // Without a board, e.g. while the map shows an error, there is no map to throw onto.
   const throwDie = (sides: DieSides, samples: ScreenSample[]) =>
@@ -113,7 +120,9 @@ function RoomView({ roomId }: { roomId: string }) {
     <FocusTokenContext value={focusToken}>
       <TokenMenuContext value={openTokenMenu}>
         <SelectedTokensContext value={selectedTokens}>
-          <TokenPanel />
+          <DropTokenContext value={dropToken}>
+            <TokenPanel />
+          </DropTokenContext>
         </SelectedTokensContext>
       </TokenMenuContext>
     </FocusTokenContext>

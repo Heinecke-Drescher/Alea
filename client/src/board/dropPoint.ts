@@ -12,6 +12,12 @@ export function screenPointOnMap(stage: StageNode, { x, y }: Vector2d) {
     .point({ x: x - box.left, y: y - box.top });
 }
 
+// Letting go over the toolbar or a button above the map is not on the map.
+export function isOverMap(stage: StageNode, { x, y }: Vector2d) {
+  const target = document.elementFromPoint(x, y);
+  return target !== null && stage.container().contains(target);
+}
+
 export function dropPointOnMap(
   stage: StageNode | null,
   event: DragEvent<HTMLElement>,
