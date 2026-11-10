@@ -45,6 +45,8 @@ import { DropTokenContext } from "../tokens/dropToken";
 import { FocusTokenContext } from "../tokens/focusToken";
 import { SelectedTokensContext } from "../tokens/selectedTokens";
 import { TokenMenuContext } from "../tokens/tokenMenu";
+import { TokenDetail } from "../tokens/TokenDetail";
+import { TokenDetailContext } from "../tokens/tokenDetailControl";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
@@ -116,12 +118,23 @@ function RoomView({ roomId }: { roomId: string }) {
   const isWide = useWideLayout();
   const hasDiceBar = useNarrowPortrait();
   const isSheetOpen = isTokensOpen && hasDiceBar;
+  const [detailTokenId, setDetailTokenId] = useState<string | null>(null);
+  const tokenDetail = useMemo(
+    () => ({
+      toggle: (tokenId: string) =>
+        setDetailTokenId((shown) => (shown === tokenId ? null : tokenId)),
+      hide: () => setDetailTokenId(null),
+    }),
+    [],
+  );
   const tokenPanel = (
     <FocusTokenContext value={focusToken}>
       <TokenMenuContext value={openTokenMenu}>
         <SelectedTokensContext value={selectedTokens}>
           <DropTokenContext value={dropToken}>
-            <TokenPanel />
+            <TokenDetailContext value={hasDiceBar ? tokenDetail : null}>
+              <TokenPanel />
+            </TokenDetailContext>
           </DropTokenContext>
         </SelectedTokensContext>
       </TokenMenuContext>
@@ -214,10 +227,16 @@ function RoomView({ roomId }: { roomId: string }) {
                           {tokenPanel}
                         </TokenSheet>
                       )}
+                      {isSheetOpen && detailTokenId && (
+                        <TokenDetail tokenId={detailTokenId} />
+                      )}
                       {!isWide && (
                         <TokensToggle
                           isOpen={isTokensOpen}
-                          onToggle={toggleTokens}
+                          onToggle={() => {
+                            tokenDetail.hide();
+                            toggleTokens();
+                          }}
                         />
                       )}
                       {isWide && (

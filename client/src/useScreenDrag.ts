@@ -35,7 +35,10 @@ export function ghostPixels({ x, y }: ScreenSample) {
 
 // Fingers and pens cannot use the browser's drag and drop in every browser, so what is dragged
 // follows every pointer itself, shown as a ghost.
-export function useScreenDrag(onDrop: (samples: ScreenSample[]) => void) {
+export function useScreenDrag(
+  onDrop: (samples: ScreenSample[]) => void,
+  onStart?: () => void,
+) {
   const press = useRef<Press | null>(null);
   const [ghostStart, setGhostStart] = useState<ScreenSample | null>(null);
   // Moved without rendering, as a drag sends a move with every frame.
@@ -80,6 +83,7 @@ export function useScreenDrag(onDrop: (samples: ScreenSample[]) => void) {
         current.isDragging = true;
         event.currentTarget.setPointerCapture(event.pointerId);
         setGhostStart(sample);
+        onStart?.();
       }
       if (ghost.current)
         Object.assign(ghost.current.style, ghostPixels(sample));

@@ -19,6 +19,7 @@ import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import { GHOST_SIZE, useScreenDrag } from "../useScreenDrag";
 import { useDropToken } from "./dropToken";
+import { useTokenDetail } from "./tokenDetailControl";
 import { useFocusToken } from "./focusToken";
 import { useSelectedTokens } from "./selectedTokens";
 import { TokenListBadges } from "./TokenListBadges";
@@ -78,12 +79,15 @@ function TokenRow({
   const focusToken = useFocusToken();
   const openTokenMenu = useOpenTokenMenu();
   const dropToken = useDropToken();
+  const detail = useTokenDetail();
   const { handlers, ghostStart, ghostRef, isClickIgnored } = useScreenDrag(
     (samples) => {
       const release = samples.at(-1);
       if (!release) throw new Error("Dropped token without a point");
       dropToken(token.id, release);
     },
+    // The detail lies where the token is dragged to.
+    () => detail?.hide(),
   );
   const avatarFilter = isOutOfFight(token) ? "grayscale(1)" : undefined;
 
@@ -126,7 +130,14 @@ function TokenRow({
             if (!isEditing) openTokenMenu(token.id, event);
           }}
         >
-          <Box pos="relative" style={{ flexShrink: 0 }}>
+          <Box
+            pos="relative"
+            style={{ flexShrink: 0 }}
+            // Besides finding the token like the rest of the row, the image opens its detail.
+            onClick={() => {
+              if (!isClickIgnored()) detail?.toggle(token.id);
+            }}
+          >
             <Avatar src={image} size="md" style={{ filter: avatarFilter }} />
             <TokenListBadges token={token} />
           </Box>
