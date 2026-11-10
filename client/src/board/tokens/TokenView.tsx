@@ -9,6 +9,7 @@ import { tokenMarks } from "../../room/marks";
 import type { Token } from "../../room/roomStore";
 import { CELL_SIZE } from "../../room/grid";
 import { SelectionRing, SelectionTint } from "./SelectionRing";
+import { TokenGrip } from "./TokenGrip";
 import { TokenBadges } from "./TokenBadges";
 import { TokenNameLabel } from "./TokenNameLabel";
 import { TOKEN_BODY_NAME, TOKEN_NAME } from "./tokenNodes";
@@ -63,6 +64,7 @@ export function TokenView({
       onPointerClick={onClick}
       onContextMenu={onContextMenu}
     >
+      {isHighlighted && <TokenGrip size={size} />}
       {isHighlighted && <SelectionRing size={size} />}
       <Group
         name={TOKEN_BODY_NAME}
