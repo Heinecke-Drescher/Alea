@@ -1,4 +1,5 @@
 import type { DieSides } from "../room/dice";
+import { toPoints } from "../room/points";
 
 const POINT_UP = -Math.PI / 2;
 
@@ -14,8 +15,18 @@ function polygon(
   }).flat();
 }
 
-// Flat outlines centred on 0,0 as [x1, y1, x2, y2, …], so the kinds of dice are told apart at a glance.
-export function dieShape(sides: DieSides, radius: number): number[] {
+// The shoelace formula.
+export function outlineArea(flat: number[]) {
+  const corners = toPoints(flat);
+  const twiceArea = corners.reduce((sum, { x, y }, i) => {
+    const next = corners[(i + 1) % corners.length];
+    if (!next) throw new Error("Outline without corners");
+    return sum + x * next.y - next.x * y;
+  }, 0);
+  return Math.abs(twiceArea) / 2;
+}
+
+function outline(sides: DieSides, radius: number): number[] {
   switch (sides) {
     case 4:
       return polygon(3, radius);
@@ -32,4 +43,14 @@ export function dieShape(sides: DieSides, radius: number): number[] {
     case 20:
       return polygon(6, radius);
   }
+}
+
+// Flat outlines centred on 0,0 as [x1, y1, x2, y2, …], so the kinds of dice are told apart at a glance.
+// All cover the d20's area, as a triangle or a square in the d20's circle would look smaller.
+export function dieShape(sides: DieSides, radius: number): number[] {
+  const points = outline(sides, radius);
+  const scale = Math.sqrt(
+    outlineArea(outline(20, radius)) / outlineArea(points),
+  );
+  return points.map((value) => value * scale);
 }

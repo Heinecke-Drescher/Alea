@@ -183,7 +183,7 @@ export function ThrownDie({
         height={DIE_RADIUS * 2}
         align="center"
         verticalAlign="middle"
-        fontSize={DIE_RADIUS * (sides === 100 ? 0.55 : 0.7)}
+        fontSize={DIE_RADIUS * 0.7}
         fontStyle="bold"
         fill={colors.text}
       />

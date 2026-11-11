@@ -41,7 +41,7 @@ export function DieFace({ sides, color }: DieFaceProps) {
           className={classes.label}
           textAnchor="middle"
           dominantBaseline="central"
-          fontSize={sides === 100 ? 11 : 14}
+          fontSize={14}
         >
           d{sides}
         </text>
