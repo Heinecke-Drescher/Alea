@@ -8,6 +8,7 @@ import { isOutOfFight, tokenEffects } from "../../room/effects";
 import { tokenMarks } from "../../room/marks";
 import type { Token } from "../../room/roomStore";
 import { CELL_SIZE } from "../../room/grid";
+import { rimmedImageBox } from "../../tokens/tokenRim";
 import { SelectionRing, SelectionTint } from "./SelectionRing";
 import { TokenGrip } from "./TokenGrip";
 import { TokenRim } from "./TokenRim";
@@ -37,6 +38,7 @@ export function TokenView({
   const [image, status] = useImage(imageDataUrl);
   const imageRef = useRef<ImageNode>(null);
   const size = token.size * CELL_SIZE;
+  const imageBox = rimmedImageBox(size);
   const effects = tokenEffects(token);
   const isGray = isOutOfFight(token);
 
@@ -46,9 +48,9 @@ export function TokenView({
     if (!image) return;
     // Konva filters only work on cached nodes. Caching at the image's own
     // resolution keeps a zoomed-in token as sharp as without the filter.
-    if (isGray) node.cache({ pixelRatio: image.width / size });
+    if (isGray) node.cache({ pixelRatio: image.width / imageBox.width });
     else node.clearCache();
-  }, [image, size, isGray]);
+  }, [image, imageBox.width, isGray]);
 
   if (status === "failed") {
     throw new Error(`Image of token "${token.name}" could not be loaded`);
@@ -78,9 +80,7 @@ export function TokenView({
         <Image
           ref={imageRef}
           image={image}
-          width={size}
-          height={size}
-          cornerRadius={size / 2}
+          {...imageBox}
           filters={isGray ? [Grayscale] : []}
         />
         <TokenRim size={size} />
