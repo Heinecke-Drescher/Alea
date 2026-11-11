@@ -9,6 +9,7 @@ import { Group, Line, Text } from "react-konva";
 import { dieColors } from "../../dice/dieColors";
 import { dieShape } from "../../dice/dieShapes";
 import {
+  DIE_RADIUS,
   pathLength,
   pointAlong,
   ROLL_SECONDS,
@@ -22,7 +23,6 @@ import { useRoom } from "../../room/RoomContext";
 import type { Roll } from "../../room/roomStore";
 import { knockToken } from "./knockToken";
 
-const DIE_RADIUS = 42;
 const FADE_SECONDS = 0.5;
 const VISIBLE_MS = 3000;
 const FLICKER_MS = 70;

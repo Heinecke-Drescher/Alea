@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  DIE_RADIUS,
   dragVelocity,
   MAX_THROW_DISTANCE,
   pathLength,
@@ -10,13 +11,15 @@ import {
 
 const map = { x: 0, y: 0, columns: 10, rows: 10 };
 const size = 500;
+const near = DIE_RADIUS;
+const far = size - DIE_RADIUS;
 
 function rounded(path: number[]) {
   return path.map((value) => Math.round(value));
 }
 
-function isOnMap(path: number[]) {
-  return path.every((value) => value >= 0 && value <= size);
+function keepsRimOnMap(path: number[]) {
+  return path.every((value) => value >= near && value <= far);
 }
 
 describe("pathLength and pointAlong", () => {
@@ -80,7 +83,7 @@ describe("throwInDirection", () => {
   it("bounces off an edge like a dragged throw", () => {
     expect(
       rounded(throwInDirection({ x: 100, y: 100 }, Math.PI, 150, map)),
-    ).toEqual([100, 100, 0, 100, 30, 100]);
+    ).toEqual([100, 100, near, 100, 97, 100]);
   });
 });
 
@@ -100,25 +103,39 @@ describe("throwPath", () => {
   it("bounces off an edge and loses some swing", () => {
     expect(
       rounded(throwPath({ x: 450, y: 100 }, { x: 150, y: 0 }, map)),
-    ).toEqual([450, 100, 500, 100, 350, 100]);
+    ).toEqual([450, 100, far, 100, 283, 100]);
+  });
+
+  it("bounces when the rim of the die reaches an edge", () => {
+    for (const [velocity, bounce] of [
+      [{ x: 400, y: 0 }, [far, 250]],
+      [{ x: -400, y: 0 }, [near, 250]],
+      [{ x: 0, y: 400 }, [250, far]],
+      [{ x: 0, y: -400 }, [250, near]],
+    ] as const) {
+      const path = rounded(throwPath({ x: 250, y: 250 }, velocity, map));
+      expect(path.slice(2, 4)).toEqual(bounce);
+    }
   });
 
   it("bounces back from a corner", () => {
     const path = rounded(
       throwPath({ x: 450, y: 450 }, { x: 400, y: 400 }, map),
     );
-    expect(path.slice(0, 4)).toEqual([450, 450, 500, 500]);
-    expect(path[4]).toBeLessThan(500);
-    expect(path[5]).toBeLessThan(500);
+    expect(path.slice(0, 4)).toEqual([450, 450, far, far]);
+    expect(path[4]).toBeLessThan(far);
+    expect(path[5]).toBeLessThan(far);
   });
 
-  it("never leaves the map", () => {
+  it("keeps the rim of the die on the map", () => {
     for (const velocity of [
       { x: 5000, y: 1200 },
       { x: -3000, y: 4000 },
       { x: -100, y: -9000 },
     ]) {
-      expect(isOnMap(throwPath({ x: 30, y: 470 }, velocity, map))).toBe(true);
+      expect(keepsRimOnMap(throwPath({ x: 30, y: 470 }, velocity, map))).toBe(
+        true,
+      );
     }
   });
 
@@ -136,6 +153,6 @@ describe("throwPath", () => {
 
   it("starts on the map when dropped beside it", () => {
     const [x, y] = throwPath({ x: -80, y: 900 }, { x: 0, y: 0 }, map);
-    expect([x, y]).toEqual([0, size]);
+    expect([x, y]).toEqual([near, far]);
   });
 });

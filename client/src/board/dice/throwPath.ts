@@ -1,10 +1,6 @@
+import { clamp } from "@mantine/hooks";
 import type { Vector2d } from "konva/lib/types";
-import {
-  CELL_SIZE,
-  clampToMap,
-  mapRect,
-  type MapBounds,
-} from "../../room/grid";
+import { CELL_SIZE, mapRect, type MapBounds } from "../../room/grid";
 import { segments, toPoints } from "../../room/points";
 
 export interface DragSample {
@@ -13,6 +9,7 @@ export interface DragSample {
   time: number;
 }
 
+export const DIE_RADIUS = 42;
 export const MAX_THROW_DISTANCE = 32 * CELL_SIZE;
 const SWING_WINDOW_MS = 100;
 // How long a thrown die flies before it lands.
@@ -78,13 +75,27 @@ export function throwInDirection(
   return throwPath(start, velocity, bounds);
 }
 
+// A die bounces when its rim reaches an edge, so its center stays one radius inside.
+function rollingArea(bounds: MapBounds) {
+  const { x, y, width, height } = mapRect(bounds);
+  return {
+    x: x + DIE_RADIUS,
+    y: y + DIE_RADIUS,
+    width: width - 2 * DIE_RADIUS,
+    height: height - 2 * DIE_RADIUS,
+  };
+}
+
 export function throwPath(
   drop: Vector2d,
   velocity: Vector2d,
   bounds: MapBounds,
 ): number[] {
-  const map = mapRect(bounds);
-  let point = clampToMap(drop, bounds);
+  const map = rollingArea(bounds);
+  let point = {
+    x: clamp(drop.x, map.x, map.x + map.width),
+    y: clamp(drop.y, map.y, map.y + map.height),
+  };
   const path = [point.x, point.y];
   const speed = Math.hypot(velocity.x, velocity.y);
   let remaining = Math.min(speed * SECONDS_OF_ROLLING, MAX_THROW_DISTANCE);
