@@ -85,6 +85,7 @@ function TokenRow({
   // Only a mouse raises the image; a finger taps it instead.
   const imageRaise = usePointerRaise(false);
   const isTapOnImage = useRef(false);
+  const avatarRef = useRef<HTMLDivElement>(null);
   const { handlers, ghostStart, ghostRef, isClickIgnored } = useScreenDrag(
     (samples) => {
       const release = samples.at(-1);
@@ -120,6 +121,14 @@ function TokenRow({
           onDragStart={(event) => {
             detail.hide();
             startTokenDrag(event.dataTransfer, token.id);
+            // The browser would show the square picture inside the round frame, or the whole row.
+            const avatar = avatarRef.current;
+            if (!avatar) throw new Error("Token image is not mounted");
+            event.dataTransfer.setDragImage(
+              avatar,
+              avatar.offsetWidth / 2,
+              avatar.offsetHeight / 2,
+            );
           }}
           // The mouse keeps the browser's drag and drop, which also shows where it may drop.
           onPointerDown={(event) => {
@@ -162,7 +171,12 @@ function TokenRow({
               }
             }}
           >
-            <Avatar src={image} size="md" style={{ filter: avatarFilter }} />
+            <Avatar
+              ref={avatarRef}
+              src={image}
+              size="md"
+              style={{ filter: avatarFilter }}
+            />
             <TokenListBadges token={token} />
           </Box>
           {isEditing ? (
