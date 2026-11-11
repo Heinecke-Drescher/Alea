@@ -51,6 +51,7 @@ import { FocusTokenContext } from "../tokens/focusToken";
 import { HoldTokensContext, type HeldToken } from "../tokens/holdTokens";
 import { SelectedTokensContext } from "../tokens/selectedTokens";
 import { TokenMenuContext } from "../tokens/tokenMenu";
+import { createHoverIntent } from "../hoverIntent";
 import { DETAIL_WIDTH, TokenDetail } from "../tokens/TokenDetail";
 import { TokenDetailContext } from "../tokens/tokenDetailControl";
 import { TokenPanel } from "../tokens/TokenPanel";
@@ -143,14 +144,24 @@ function RoomView({ roomId }: { roomId: string }) {
   );
   const header = useHeaderCollapsed();
   const [detailTokenId, setDetailTokenId] = useState<string | null>(null);
-  const tokenDetail = useMemo(
-    () => ({
+  const tokenDetail = useMemo(() => {
+    const intent = createHoverIntent(
+      (tokenId: string) => {
+        setDetailTokenId(tokenId);
+        return true;
+      },
+      () => setDetailTokenId(null),
+    );
+    return {
       toggle: (tokenId: string) =>
         setDetailTokenId((shown) => (shown === tokenId ? null : tokenId)),
-      hide: () => setDetailTokenId(null),
-    }),
-    [],
-  );
+      hover: intent.hover,
+      // Also drops a detail the mouse is about to open.
+      hide: intent.cancel,
+      stopHover: intent.stop,
+    };
+  }, []);
+  useEffect(() => tokenDetail.stopHover, [tokenDetail]);
   // The detail, and on phones the token list, lie over the map, where the held tokens are to be
   // put down.
   const holdTokens = (tokens: HeldToken[]) => {

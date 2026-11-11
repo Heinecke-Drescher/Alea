@@ -1,16 +1,15 @@
-import { useMediaQuery, useReducedMotion } from "@mantine/hooks";
+import { useReducedMotion } from "@mantine/hooks";
 import Konva from "konva";
 import type { Group } from "konva/lib/Group";
 import type { Stage } from "konva/lib/Stage";
 import type { IRect } from "konva/lib/types";
 import { useEffect, useState, type RefObject } from "react";
-import { TOOLTIP_DELAY } from "../../theme";
+import { createHoverIntent } from "../../hoverIntent";
+import { useMouseHover } from "../../theme";
 import { TOKEN_BODY_NAME, tokenIdAt } from "./tokenNodes";
 
 const GROWN = 1.5;
 const GROW_SECONDS = 0.12;
-// Lets the pointer slip off a token for a moment, or reach the next one, without the card flickering.
-const CLOSE_DELAY = 200;
 
 export interface HoveredToken {
   id: string;
@@ -24,11 +23,7 @@ export function useTokenHover(
   stageRef: RefObject<Stage | null>,
   isEnabled: boolean,
 ): HoveredToken | null {
-  const canHover = useMediaQuery(
-    "(hover: hover) and (pointer: fine)",
-    undefined,
-    { getInitialValueInEffect: false },
-  );
+  const canHover = useMouseHover();
   const reducesMotion = useReducedMotion(undefined, {
     getInitialValueInEffect: false,
   });
@@ -40,8 +35,6 @@ export function useTokenHover(
     const stage = mounted;
     if (!isEnabled || !canHover) return;
     let hovered: string | null = null;
-    let isOpen = false;
-    let timer: number | undefined;
     // React keeps the tokens in its own order, and react-konva inserts new ones by the current
     // order of the nodes, so a raised token goes back to its place as soon as it is left.
     let raised: { token: Group; index: number } | null = null;
@@ -83,6 +76,18 @@ export function useTokenHover(
       return body ? { id, rect: body.getClientRect() } : null;
     }
 
+    // Moving on to the next token while a card is open shows its card as soon as the token has
+    // grown, as the card is placed beside the grown token.
+    const intent = createHoverIntent(
+      (id: string) => {
+        const card = cardFor(id);
+        setShown(card);
+        return card !== null;
+      },
+      () => setShown(null),
+      reducesMotion ? 0 : GROW_SECONDS * 1000,
+    );
+
     function hover(next: string | null) {
       if (next === hovered) return;
       grow(hovered, 1);
@@ -90,37 +95,14 @@ export function useTokenHover(
       grow(next, GROWN);
       if (next !== null) raise(next);
       hovered = next;
-      window.clearTimeout(timer);
-      if (next === null) {
-        timer = window.setTimeout(() => {
-          isOpen = false;
-          setShown(null);
-        }, CLOSE_DELAY);
-        return;
-      }
-      // Moving on to the next token while a card is open shows its card as soon as the token has
-      // grown, as the card is placed beside the grown token.
-      const delay = isOpen
-        ? reducesMotion
-          ? 0
-          : GROW_SECONDS * 1000
-        : TOOLTIP_DELAY;
-      timer = window.setTimeout(() => open(next), delay);
-    }
-
-    function open(id: string) {
-      const card = cardFor(id);
-      isOpen = card !== null;
-      setShown(card);
+      intent.hover(next);
     }
 
     function dismiss() {
-      window.clearTimeout(timer);
       grow(hovered, 1);
       lower();
       hovered = null;
-      isOpen = false;
-      setShown(null);
+      intent.cancel();
     }
 
     stage.on("mousemove.tokenHover", (event) => {
@@ -132,7 +114,7 @@ export function useTokenHover(
     stage.on("mousedown.tokenHover wheel.tokenHover", dismiss);
     return () => {
       stage.off(".tokenHover");
-      window.clearTimeout(timer);
+      intent.stop();
       // Also takes over a growth still running, which would end large otherwise.
       grow(hovered, 1);
       lower();

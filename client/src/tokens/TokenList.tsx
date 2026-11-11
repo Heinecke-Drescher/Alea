@@ -26,6 +26,7 @@ import { TokenListBadges } from "./TokenListBadges";
 import { useOpenTokenMenu } from "./tokenMenu";
 import { startTokenDrag } from "./tokenDrag";
 import classes from "./TokenList.module.css";
+import { useMouseHover } from "../theme";
 
 export function TokenList() {
   const room = useRoom();
@@ -81,6 +82,8 @@ function TokenRow({
   const openTokenMenu = useOpenTokenMenu();
   const dropToken = useDropToken();
   const detail = useTokenDetail();
+  const canHover = useMouseHover();
+  const [isOverImage, setOverImage] = useState(false);
   const { handlers, ghostStart, ghostRef, isClickIgnored } = useScreenDrag(
     (samples) => {
       const release = samples.at(-1);
@@ -97,7 +100,8 @@ function TokenRow({
       <Tooltip
         label="Click to find, double-click to rename, drag for a copy"
         position="left"
-        disabled={isEditing}
+        // The detail of a hovered image opens where the tooltip would.
+        disabled={isEditing || isOverImage}
       >
         <Group
           gap="xs"
@@ -137,9 +141,20 @@ function TokenRow({
             pos="relative"
             className={classes.image}
             style={{ flexShrink: 0 }}
-            // Besides finding the token like the rest of the row, the image opens its detail.
+            // Besides finding the token like the rest of the row, the image shows its detail: with a
+            // mouse when it rests on it, with a finger when tapped.
+            onMouseEnter={() => {
+              if (!canHover) return;
+              setOverImage(true);
+              detail.hover(token.id);
+            }}
+            onMouseLeave={() => {
+              if (!canHover) return;
+              setOverImage(false);
+              detail.hover(null);
+            }}
             onClick={() => {
-              if (!isClickIgnored()) detail.toggle(token.id);
+              if (!canHover && !isClickIgnored()) detail.toggle(token.id);
             }}
           >
             <Avatar src={image} size="md" style={{ filter: avatarFilter }} />

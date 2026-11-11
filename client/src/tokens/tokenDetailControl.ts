@@ -2,6 +2,8 @@ import { createContext, useContext } from "react";
 
 interface TokenDetailControl {
   toggle: (id: string) => void;
+  // With a mouse, resting on an image shows its token's detail; null when the mouse left it.
+  hover: (id: string | null) => void;
   hide: () => void;
 }
 
