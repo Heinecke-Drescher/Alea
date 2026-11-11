@@ -6,12 +6,15 @@ import {
   useComputedColorScheme,
   useMantineColorScheme,
 } from "@mantine/core";
+import { useFullscreenDocument } from "@mantine/hooks";
 import {
   IconCheck,
   IconChevronDown,
   IconCrown,
   IconLink,
   IconLogout,
+  IconMaximize,
+  IconMinimize,
   IconMoon,
   IconMusic,
   IconShare,
@@ -48,6 +51,7 @@ export function AleaMenu({
   const { setColorScheme } = useMantineColorScheme();
   const isDark = useComputedColorScheme("light") === "dark";
   const [isMusicOpen, setMusicOpen] = useState(false);
+  const fullscreen = useFullscreenDocument();
   // On a phone the system's share sheet reaches the group's chat directly.
   const isSharing = !useWideLayout() && canShareRoomLink();
 
@@ -105,6 +109,20 @@ export function AleaMenu({
             >
               Dark mode
             </Menu.Item>
+            {document.fullscreenEnabled && (
+              <Menu.Item
+                leftSection={
+                  fullscreen.fullscreen ? (
+                    <IconMinimize size={16} />
+                  ) : (
+                    <IconMaximize size={16} />
+                  )
+                }
+                onClick={fullscreen.toggle}
+              >
+                {fullscreen.fullscreen ? "Exit full screen" : "Full screen"}
+              </Menu.Item>
+            )}
             <Menu.Divider />
             {/* Without a connection, leaving would drop the changes that are not saved yet.
               A link ignores `disabled`, so the click itself is stopped too. */}
