@@ -1,0 +1,9 @@
+/* The context menus look like Mantine's own menus: a little room inside the frame, and the item
+   under the mouse as a rounded field instead of a bar from edge to edge. */
+.mantine-contextmenu {
+  padding: 4px;
+}
+
+.mantine-contextmenu-item-button {
+  border-radius: var(--mantine-radius-sm);
+}

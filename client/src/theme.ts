@@ -1,11 +1,23 @@
-import { createTheme, Modal, Tooltip, useMantineTheme } from "@mantine/core";
+import {
+  createTheme,
+  Menu,
+  Modal,
+  Popover,
+  Tooltip,
+  useMantineTheme,
+} from "@mantine/core";
 import { useMediaQuery, useOrientation } from "@mantine/hooks";
 import classes from "./theme.module.css";
 
 export const TOOLTIP_DELAY = 500;
+// Menus and popovers round their corners like the panels floating over the map, and the
+// context menu on the map does the same.
+export const MENU_RADIUS = "md";
 
 export const theme = createTheme({
   components: {
+    Menu: Menu.extend({ defaultProps: { radius: MENU_RADIUS } }),
+    Popover: Popover.extend({ defaultProps: { radius: MENU_RADIUS } }),
     Modal: Modal.extend({
       classNames: { root: classes.modalRoot, inner: classes.modalInner },
     }),
