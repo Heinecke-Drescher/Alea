@@ -10,7 +10,6 @@ import {
   tokenBadges,
   type Badge,
 } from "../../tokens/badgeIcons";
-import { BADGE_NAME } from "./tokenNodes";
 
 const BADGE_SIZE = 20;
 const BADGE_BORDER = 1.5;
@@ -44,7 +43,7 @@ export function TokenBadges({ effects, marks, tokenSize }: TokenBadgesProps) {
       ))}
       {hidden.length > 0 && (
         <HiddenBadges
-          labels={hidden.map((badge) => badge.label)}
+          count={hidden.length}
           x={placeX(shown.length)}
           y={BADGE_SIZE / 2}
         />
@@ -54,15 +53,15 @@ export function TokenBadges({ effects, marks, tokenSize }: TokenBadgesProps) {
 }
 
 interface HiddenBadgesProps {
-  labels: string[];
+  count: number;
   x: number;
   y: number;
 }
 
-function HiddenBadges({ labels, x, y }: HiddenBadgesProps) {
+function HiddenBadges({ count, x, y }: HiddenBadgesProps) {
   const theme = useMantineTheme();
   return (
-    <Group name={BADGE_NAME} label={labels.join(", ")} x={x} y={y}>
+    <Group x={x} y={y}>
       <Circle
         radius={BADGE_SIZE / 2}
         fill={theme.colors.gray[8]}
@@ -70,7 +69,7 @@ function HiddenBadges({ labels, x, y }: HiddenBadgesProps) {
         strokeWidth={BADGE_BORDER}
       />
       <Text
-        text={`+${labels.length}`}
+        text={`+${count}`}
         x={-BADGE_SIZE / 2}
         y={-BADGE_SIZE / 2}
         width={BADGE_SIZE}
@@ -99,7 +98,7 @@ function TokenBadge({ badge, x, y }: TokenBadgeProps) {
   }
 
   return (
-    <Group name={BADGE_NAME} label={badge.label} x={x} y={y}>
+    <Group x={x} y={y}>
       <Circle
         radius={BADGE_SIZE / 2}
         fill={theme.colors[badge.color][8]}

@@ -65,7 +65,7 @@ export function TokenView({
       onContextMenu={onContextMenu}
     >
       {isHighlighted && <TokenGrip size={size} />}
-      {isHighlighted && <SelectionRing size={size} />}
+      {/* The ring lies in the body, so it grows and is knocked along with the image. */}
       <Group
         name={TOKEN_BODY_NAME}
         x={size / 2}
@@ -73,6 +73,7 @@ export function TokenView({
         offsetX={size / 2}
         offsetY={size / 2}
       >
+        {isHighlighted && <SelectionRing size={size} />}
         <Image
           ref={imageRef}
           image={image}

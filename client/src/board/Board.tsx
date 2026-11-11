@@ -55,7 +55,8 @@ import { useItemDrag } from "./selection/useItemDrag";
 import { useSelection } from "./selection/useSelection";
 import { Strokes } from "./Strokes";
 import { ThrownDice } from "./dice/ThrownDice";
-import { BadgeTooltip } from "./tokens/BadgeTooltip";
+import { TokenHoverCard } from "./tokens/TokenHoverCard";
+import { useTokenHover } from "./tokens/useTokenHover";
 import { heldTokensClip } from "./tokens/heldTokens";
 import { HeldTokensHint } from "./tokens/HeldTokensHint";
 import { HeldTokensPreview } from "./tokens/HeldTokensPreview";
@@ -169,6 +170,7 @@ export function Board({
   const axisShift = fittedAxisShift(covered);
   const cursor = useCursorBroadcast(awareness);
   const isSelecting = activeTool.selectsItems;
+  const hoveredToken = useTokenHover(stageRef, isSelecting);
   const input = useBoardInput({
     activeTool,
     isSelecting,
@@ -310,173 +312,176 @@ export function Board({
   }));
 
   return (
-    <BadgeTooltip stageRef={stageRef}>
-      <Box
-        ref={sizeRef}
-        pos="relative"
-        h="100%"
-        style={{
-          cursor: cursorArrowCss(theme.colors[player.color][6]),
-          // Otherwise the browser pans or zooms the page where no shape listens.
-          touchAction: "none",
-          backgroundColor: mapSurroundColor(theme, colorScheme),
-          backgroundImage: backgroundImage
-            ? `url("${backgroundImage}")`
-            : "none",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
+    <Box
+      ref={sizeRef}
+      pos="relative"
+      h="100%"
+      style={{
+        cursor: cursorArrowCss(theme.colors[player.color][6]),
+        // Otherwise the browser pans or zooms the page where no shape listens.
+        touchAction: "none",
+        backgroundColor: mapSurroundColor(theme, colorScheme),
+        backgroundImage: backgroundImage ? `url("${backgroundImage}")` : "none",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+      onMouseDown={(event) => {
+        // Keeps the focus in a new text field: the browser moves it on mousedown, also after a
+        // cancelled pointerdown and after a tap. Clicks into the field itself are left alone.
+        const isOnMap = event.target instanceof HTMLCanvasElement;
+        if (tool === "text" && isOnMap) event.preventDefault();
+      }}
+      onDragOver={drops.onDragOver}
+      onDrop={drops.onDrop}
+    >
+      <Stage
+        width={width}
+        height={height}
+        ref={stageRef}
+        draggable
+        dragDistance={TAP_SCREEN_DISTANCE}
+        onDragStart={(event) =>
+          panWhereAllowed(
+            event,
+            (isSelecting || heldClip !== null) && input.canDragItems,
+          )
+        }
+        onWheel={(event) => {
+          panOrZoom(event);
+          // The map moved under a still pointer, so tools and cursors follow as if it had moved.
+          input.followPointer(event);
         }}
-        onMouseDown={(event) => {
-          // Keeps the focus in a new text field: the browser moves it on mousedown, also after a
-          // cancelled pointerdown and after a tap. Clicks into the field itself are left alone.
-          const isOnMap = event.target instanceof HTMLCanvasElement;
-          if (tool === "text" && isOnMap) event.preventDefault();
-        }}
-        onDragOver={drops.onDragOver}
-        onDrop={drops.onDrop}
-      >
-        <Stage
-          width={width}
-          height={height}
-          ref={stageRef}
-          draggable
-          dragDistance={TAP_SCREEN_DISTANCE}
-          onDragStart={(event) =>
-            panWhereAllowed(
-              event,
-              (isSelecting || heldClip !== null) && input.canDragItems,
-            )
+        {...input.stageHandlers}
+        onPointerDblClick={(event) => {
+          if (tool !== "select" || input.isLockedFinger(event)) return;
+          const textId = textIdAt(event.target);
+          if (textId) {
+            texts.editText(textId);
+            return;
           }
-          onWheel={(event) => {
-            panOrZoom(event);
-            // The map moved under a still pointer, so tools and cursors follow as if it had moved.
-            input.followPointer(event);
-          }}
-          {...input.stageHandlers}
-          onPointerDblClick={(event) => {
-            if (tool !== "select" || input.isLockedFinger(event)) return;
-            const textId = textIdAt(event.target);
-            if (textId) {
-              texts.editText(textId);
-              return;
-            }
-            // Double clicks on tokens are kept free for something else.
-            if (isOnToken(event.target)) return;
-            sendPing(pointerOnMap(event));
-          }}
-          onContextMenu={(event) => {
-            if (input.acceptsMenu(event)) {
-              boardMenu.open(event, pointerOnMap(event));
-            }
-          }}
+          // Double clicks on tokens are kept free for something else.
+          if (isOnToken(event.target)) return;
+          sendPing(pointerOnMap(event));
+        }}
+        onContextMenu={(event) => {
+          if (input.acceptsMenu(event)) {
+            boardMenu.open(event, pointerOnMap(event));
+          }
+        }}
+      >
+        <Layer listening={false}>
+          <MapFill />
+          <MapImage showsOutside={tool === "alignImage"} />
+          <Cells selection={area} />
+          <GridLines />
+        </Layer>
+        <Layer
+          onDragStart={startItemDrag}
+          onDragMove={itemDrag.move}
+          onDragEnd={itemDrag.end}
         >
-          <Layer listening={false}>
-            <MapFill />
-            <MapImage showsOutside={tool === "alignImage"} />
-            <Cells selection={area} />
-            <GridLines />
-          </Layer>
-          <Layer
-            onDragStart={startItemDrag}
-            onDragMove={itemDrag.move}
-            onDragEnd={itemDrag.end}
-          >
-            <Strokes
-              overFog={false}
-              draft={player.isDm ? draft : null}
-              {...strokeProps}
-            />
-            <Texts overFog={false} {...textProps} />
-            <Tokens
-              listening={isSelecting}
-              selection={area}
-              selectedIds={items.tokens}
-              draggable={input.canDragItems}
-              onTokenPress={input.pressItem("tokens")}
-              onTokenClick={input.clickItem("tokens")}
-              onTokenContextMenu={(token, event) => {
-                if (input.acceptsMenu(event)) tokenMenu.open(token, event);
-              }}
-            />
-          </Layer>
-          {/* Its own layer, so the fog is not redrawn with every cursor move. Players' strokes stay visible on top. */}
-          <Layer
-            onDragStart={startItemDrag}
-            onDragMove={itemDrag.move}
-            onDragEnd={itemDrag.end}
-          >
-            <FogOfWar />
-            <Strokes
-              overFog
-              draft={player.isDm ? null : draft}
-              {...strokeProps}
-            />
-            <Texts overFog {...textProps} />
-          </Layer>
-          <Layer>
-            <FogFrame frame={fogFrame} />
-            {tool === "resize" && <MapResizer />}
-            {tool === "alignImage" && <MapImageAligner />}
-            {isSelecting && reshapableId && (
-              <ShapeResizer
-                strokeId={reshapableId}
-                draggable={input.canDragItems}
-              />
-            )}
-            <SelectionFrame
-              area={area}
-              draggable={input.canDragItems}
-              onMove={selection.moveArea}
-            />
-            {isSynced && (
-              <ThrownDice viewCenter={viewCenter} landings={landings} />
-            )}
-            <CriticalScenes
-              critical={critical}
-              landings={landings}
-              onDone={onCriticalDone}
-            />
-            <ShapePreview draft={shapeDraft} color={colorValue} />
-            {texts.textDraft && (
-              <TextEditor
-                draft={texts.textDraft}
-                onWrite={texts.writeText}
-                onFinish={texts.finishText}
-                onCancel={texts.cancelText}
-              />
-            )}
-            <DistanceMeasure
-              measurement={measurement}
-              color={theme.colors[player.color][6]}
-            />
-            {heldClip && (
-              <HeldTokensPreview clip={heldClip} ref={heldPreview} />
-            )}
-            <Pings awareness={awareness} />
-            <Cursors awareness={awareness} />
-          </Layer>
-        </Stage>
-        <ViewControls onZoomIn={zoomIn} onZoomOut={zoomOut} onFitMap={fitMap} />
-        {held && (
-          <HeldTokensHint
-            count={held.length}
-            onCancel={() => setHeld(null)}
-            axisShift={axisShift}
+          <Strokes
+            overFog={false}
+            draft={player.isDm ? draft : null}
+            {...strokeProps}
           />
-        )}
-        <Toolbar
-          ref={toolbarRef}
-          axisShift={axisShift}
-          end={toolbarEnd}
-          activeTool={tool}
-          onToolChange={changeTool}
-          canAlignMapImage={canAlignMapImage}
-          activeColor={color}
-          onColorChange={setColor}
-          textSize={textSize}
-          onTextSizeChange={setTextSize}
+          <Texts overFog={false} {...textProps} />
+          <Tokens
+            listening={isSelecting}
+            selection={area}
+            selectedIds={items.tokens}
+            draggable={input.canDragItems}
+            onTokenPress={input.pressItem("tokens")}
+            onTokenClick={input.clickItem("tokens")}
+            onTokenContextMenu={(token, event) => {
+              if (input.acceptsMenu(event)) tokenMenu.open(token, event);
+            }}
+          />
+        </Layer>
+        {/* Its own layer, so the fog is not redrawn with every cursor move. Players' strokes stay visible on top. */}
+        <Layer
+          onDragStart={startItemDrag}
+          onDragMove={itemDrag.move}
+          onDragEnd={itemDrag.end}
+        >
+          <FogOfWar />
+          <Strokes
+            overFog
+            draft={player.isDm ? null : draft}
+            {...strokeProps}
+          />
+          <Texts overFog {...textProps} />
+        </Layer>
+        <Layer>
+          <FogFrame frame={fogFrame} />
+          {tool === "resize" && <MapResizer />}
+          {tool === "alignImage" && <MapImageAligner />}
+          {isSelecting && reshapableId && (
+            <ShapeResizer
+              strokeId={reshapableId}
+              draggable={input.canDragItems}
+            />
+          )}
+          <SelectionFrame
+            area={area}
+            draggable={input.canDragItems}
+            onMove={selection.moveArea}
+          />
+          {isSynced && (
+            <ThrownDice viewCenter={viewCenter} landings={landings} />
+          )}
+          <CriticalScenes
+            critical={critical}
+            landings={landings}
+            onDone={onCriticalDone}
+          />
+          <ShapePreview draft={shapeDraft} color={colorValue} />
+          {texts.textDraft && (
+            <TextEditor
+              draft={texts.textDraft}
+              onWrite={texts.writeText}
+              onFinish={texts.finishText}
+              onCancel={texts.cancelText}
+            />
+          )}
+          <DistanceMeasure
+            measurement={measurement}
+            color={theme.colors[player.color][6]}
+          />
+          {heldClip && <HeldTokensPreview clip={heldClip} ref={heldPreview} />}
+          <Pings awareness={awareness} />
+          <Cursors awareness={awareness} />
+        </Layer>
+      </Stage>
+      <ViewControls onZoomIn={zoomIn} onZoomOut={zoomOut} onFitMap={fitMap} />
+      {hoveredToken && (
+        <TokenHoverCard
+          hovered={hoveredToken}
+          view={{
+            width: width - covered.right,
+            height: height - covered.bottom,
+          }}
         />
-      </Box>
-    </BadgeTooltip>
+      )}
+      {held && (
+        <HeldTokensHint
+          count={held.length}
+          onCancel={() => setHeld(null)}
+          axisShift={axisShift}
+        />
+      )}
+      <Toolbar
+        ref={toolbarRef}
+        axisShift={axisShift}
+        end={toolbarEnd}
+        activeTool={tool}
+        onToolChange={changeTool}
+        canAlignMapImage={canAlignMapImage}
+        activeColor={color}
+        onColorChange={setColor}
+        textSize={textSize}
+        onTextSizeChange={setTextSize}
+      />
+    </Box>
   );
 }

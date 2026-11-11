@@ -51,7 +51,7 @@ import { FocusTokenContext } from "../tokens/focusToken";
 import { HoldTokensContext, type HeldToken } from "../tokens/holdTokens";
 import { SelectedTokensContext } from "../tokens/selectedTokens";
 import { TokenMenuContext } from "../tokens/tokenMenu";
-import { TokenDetail } from "../tokens/TokenDetail";
+import { DETAIL_WIDTH, TokenDetail } from "../tokens/TokenDetail";
 import { TokenDetailContext } from "../tokens/tokenDetailControl";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { undoStep } from "../undo/useUndo";
@@ -69,8 +69,6 @@ import {
   PANEL_GAP,
 } from "./panelColumn";
 import { PlayerNameModal } from "./PlayerNameModal";
-
-const DETAIL_WIDTH = 200;
 
 export function RoomPage() {
   const { roomId } = useParams();
