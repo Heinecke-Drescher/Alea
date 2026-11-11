@@ -34,7 +34,7 @@ import { PAINT_COLORS, paintColorValue, type PaintColor } from "./paintColors";
 import type { TextFontSize } from "../room/texts";
 import { TextToolButton } from "./texts/TextToolButton";
 import type { Tool } from "./tools/tool";
-import type { Ref } from "react";
+import type { ReactNode, Ref } from "react";
 import { useWideLayout } from "../theme";
 
 const EDGE_GAP = 12;
@@ -96,6 +96,8 @@ const FOG_TOOLS: ToolButton[] = [
 interface ToolbarProps {
   ref: Ref<HTMLDivElement>;
   axisShift: number;
+  // Buttons that do not belong to the map, after the tools.
+  end: ReactNode;
   activeTool: Tool;
   onToolChange: (tool: Tool) => void;
   canAlignMapImage: boolean;
@@ -108,6 +110,7 @@ interface ToolbarProps {
 export function Toolbar({
   ref,
   axisShift,
+  end,
   activeTool,
   onToolChange,
   canAlignMapImage,
@@ -270,6 +273,7 @@ export function Toolbar({
               </Menu.Dropdown>
             </Menu>
           )}
+          {end}
         </Group>
       </Tooltip.Group>
     </FloatingPanel>

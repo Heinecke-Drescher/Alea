@@ -232,10 +232,22 @@ function RoomView({ roomId }: { roomId: string }) {
                     h="calc(100dvh - var(--app-shell-header-offset, 0px))"
                   >
                     <Box ref={viewSizeRef} flex={1} mih={0} pos="relative">
-                      <ErrorBoundary FallbackComponent={MapError}>
+                      <ErrorBoundary
+                        FallbackComponent={MapError}
+                        // The broken map takes the toolbar and its button for the header with it.
+                        onError={() => header.setCollapsed(false)}
+                      >
                         <Board
                           ref={board}
                           toolbarRef={toolbarSizeRef}
+                          toolbarEnd={
+                            header.isCollapsed && (
+                              <ShowHeaderButton
+                                isDisconnected={connection === "disconnected"}
+                                onShow={() => header.setCollapsed(false)}
+                              />
+                            )
+                          }
                           onSelectedTokensChange={setSelectedTokens}
                           covered={covered}
                           awareness={awareness}
@@ -258,12 +270,6 @@ function RoomView({ roomId }: { roomId: string }) {
                           right={`calc(${SHEET_WIDTH} + 24px)`}
                           bottom={TOKENS_TOGGLE_SPACE}
                           mah="50%"
-                        />
-                      )}
-                      {header.isCollapsed && (
-                        <ShowHeaderButton
-                          isDisconnected={connection === "disconnected"}
-                          onShow={() => header.setCollapsed(false)}
                         />
                       )}
                       {!isWide && (

@@ -12,6 +12,7 @@ import {
   useRef,
   useState,
   type MouseEvent as ReactMouseEvent,
+  type ReactNode,
   type Ref,
 } from "react";
 import { Layer, Stage } from "react-konva";
@@ -104,6 +105,7 @@ interface BoardProps {
   covered: CoveredEdges;
   ref: Ref<BoardHandle>;
   toolbarRef: Ref<HTMLDivElement>;
+  toolbarEnd: ReactNode;
 }
 
 export function Board({
@@ -115,6 +117,7 @@ export function Board({
   covered,
   ref,
   toolbarRef,
+  toolbarEnd,
 }: BoardProps) {
   const room = useRoom();
   const player = usePlayer();
@@ -464,6 +467,7 @@ export function Board({
         <Toolbar
           ref={toolbarRef}
           axisShift={axisShift}
+          end={toolbarEnd}
           activeTool={tool}
           onToolChange={changeTool}
           canAlignMapImage={canAlignMapImage}

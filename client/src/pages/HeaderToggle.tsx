@@ -1,6 +1,5 @@
 import { ActionIcon, Indicator, Tooltip } from "@mantine/core";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
-import { FloatingPanel } from "../FloatingPanel";
 
 export function HideHeaderButton({ onHide }: { onHide: () => void }) {
   return (
@@ -25,28 +24,26 @@ interface ShowHeaderButtonProps {
   onShow: () => void;
 }
 
-// In the corner of the map, where the header's own button was. The warning about a lost connection
-// hides with the header, so a red dot keeps it in sight.
+// At the end of the toolbar, which never shares its row with it. The warning about a lost
+// connection hides with the header, so a red dot keeps it in sight.
 export function ShowHeaderButton({
   isDisconnected,
   onShow,
 }: ShowHeaderButtonProps) {
   const label = isDisconnected ? "Show header (not connected)" : "Show header";
   return (
-    <FloatingPanel pos="absolute" top={12} right={12} p={4}>
-      <Tooltip label={label}>
-        <Indicator color="red" size={10} disabled={!isDisconnected}>
-          <ActionIcon
-            variant="subtle"
-            color="gray"
-            size="lg"
-            aria-label={label}
-            onClick={onShow}
-          >
-            <IconChevronDown size={20} />
-          </ActionIcon>
-        </Indicator>
-      </Tooltip>
-    </FloatingPanel>
+    <Tooltip label={label} position="bottom">
+      <Indicator color="red" size={10} disabled={!isDisconnected}>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          size="lg"
+          aria-label={label}
+          onClick={onShow}
+        >
+          <IconChevronDown size={20} />
+        </ActionIcon>
+      </Indicator>
+    </Tooltip>
   );
 }
