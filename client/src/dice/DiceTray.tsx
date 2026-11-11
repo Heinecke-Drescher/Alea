@@ -1,5 +1,4 @@
 import {
-  ActionIcon,
   Box,
   Group,
   Popover,
@@ -9,16 +8,10 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import {
-  IconChevronLeft,
-  IconChevronRight,
-  IconEye,
-  IconEyeOff,
-} from "@tabler/icons-react";
+import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import type { ComponentProps } from "react";
 import { FloatingPanel } from "../FloatingPanel";
-import { usePlayer } from "../player/PlayerContext";
-import { DieButtons } from "./DieButtons";
+import { DieButtons, SECRET_OUTLINE, SecretToggle } from "./DieButtons";
 import { NewestRoll, RollHistory } from "./RollHistory";
 import { SecretRolls } from "./SecretRolls";
 import { useDice } from "./useDice";
@@ -26,27 +19,6 @@ import { useDice } from "./useDice";
 const HISTORY_WIDTH = 280;
 // Beside the tray there is room up to the top of the map, but not on a low window.
 const HISTORY_HEIGHT = "min(480px, 60dvh)";
-
-function SecretToggle() {
-  const { isDm } = usePlayer();
-  const { wantsSecret, setWantsSecret } = useDice();
-  if (!isDm) return null;
-  const label = wantsSecret ? "Roll for everyone" : "Roll secretly";
-  return (
-    <Tooltip label={label}>
-      <ActionIcon
-        size="sm"
-        variant={wantsSecret ? "light" : "subtle"}
-        color="gray"
-        aria-label={label}
-        aria-pressed={wantsSecret}
-        onClick={() => setWantsSecret(!wantsSecret)}
-      >
-        {wantsSecret ? <IconEyeOff size={16} /> : <IconEye size={16} />}
-      </ActionIcon>
-    </Tooltip>
-  );
-}
 
 // The newest roll below the tray. All rolls open beside the tray, so it keeps its size.
 function TrayHistory() {
@@ -91,7 +63,7 @@ function TrayHistory() {
           </ScrollArea.Autosize>
         </Popover.Dropdown>
       </Popover>
-      <SecretToggle />
+      <SecretToggle size="sm" />
     </Group>
   );
 }
@@ -117,9 +89,7 @@ export function DiceTray(props: ComponentProps<typeof FloatingPanel>) {
           bg="var(--mantine-color-default-hover)"
           style={{
             boxShadow: "inset 0 2px 6px rgb(0 0 0 / 35%)",
-            outline: isSecret
-              ? "2px dashed var(--mantine-color-dimmed)"
-              : undefined,
+            outline: isSecret ? SECRET_OUTLINE : undefined,
           }}
         >
           <DieButtons columns={4} />

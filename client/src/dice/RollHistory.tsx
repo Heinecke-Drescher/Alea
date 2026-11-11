@@ -54,7 +54,7 @@ function LastRoll({ roll, compact }: RollProps) {
   );
 }
 
-// The DM's secret rolls and everyone's rolls share the line; the newest of both is shown.
+// The own secret rolls and everyone's rolls share the line; the newest of both is shown.
 export function NewestRoll({ compact = false }: { compact?: boolean }) {
   const { secretRolls, rolls } = useDice();
   const [newestSecret] = secretRolls;

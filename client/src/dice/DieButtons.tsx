@@ -1,4 +1,5 @@
-import { SimpleGrid, Switch } from "@mantine/core";
+import { ActionIcon, SimpleGrid, Tooltip } from "@mantine/core";
+import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import { usePlayer } from "../player/PlayerContext";
 import { DIE_SIDES } from "../room/dice";
 import { DieButton } from "./DieButton";
@@ -35,15 +36,28 @@ export function DieButtons({ columns }: DieButtonsProps) {
   );
 }
 
-export function SecretSwitch() {
-  const { isDm } = usePlayer();
-  const { wantsSecret, setWantsSecret } = useDice();
-  if (!isDm) return null;
+// Marks the dice while they roll secretly, so no roll is kept from the others by mistake.
+export const SECRET_OUTLINE = "2px dashed var(--mantine-color-dimmed)";
+
+const TOGGLE_ICON_SIZES = { sm: 16, lg: 20 };
+
+// Large where a finger has to hit it.
+export function SecretToggle({ size }: { size: "sm" | "lg" }) {
+  const { isSecret, setSecret } = useDice();
+  const label = isSecret ? "Roll for everyone" : "Roll secretly";
+  const Icon = isSecret ? IconEyeOff : IconEye;
   return (
-    <Switch
-      label="Secret rolls"
-      checked={wantsSecret}
-      onChange={(event) => setWantsSecret(event.currentTarget.checked)}
-    />
+    <Tooltip label={label}>
+      <ActionIcon
+        size={size}
+        variant={isSecret ? "light" : "subtle"}
+        color="gray"
+        aria-label={label}
+        aria-pressed={isSecret}
+        onClick={() => setSecret(!isSecret)}
+      >
+        <Icon size={TOGGLE_ICON_SIZES[size]} />
+      </ActionIcon>
+    </Tooltip>
   );
 }

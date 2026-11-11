@@ -8,14 +8,13 @@ import { useShowCritical } from "./useCriticalRolls";
 
 const MAX_SECRET_ROLLS = 20;
 
-// Kept above the dice tray and the dice bar, so the DM's secret rolls survive a change of layout.
+// Kept above the dice tray and the dice bar, so secret rolls survive a change of layout.
 export function useDiceState() {
   const room = useRoom();
   const player = usePlayer();
   const rolls = [...useY(room.rollsArray)].reverse();
-  const [wantsSecret, setWantsSecret] = useState(false);
+  const [isSecret, setSecret] = useState(false);
   const [secretRolls, setSecretRolls] = useState<SecretRoll[]>([]);
-  const isSecret = player.isDm && wantsSecret;
   const showCritical = useShowCritical();
 
   function roll(sides: DieSides) {
@@ -31,7 +30,7 @@ export function useDiceState() {
     room.addRoll(player.name, player.color, sides, rollDie(sides));
   }
 
-  return { rolls, wantsSecret, setWantsSecret, isSecret, secretRolls, roll };
+  return { rolls, isSecret, setSecret, secretRolls, roll };
 }
 
 export const DiceContext = createContext<ReturnType<

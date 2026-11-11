@@ -10,7 +10,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconChevronUp } from "@tabler/icons-react";
 import { DIE_SIDES } from "../room/dice";
 import { useLandscape } from "../theme";
-import { DieButtons, SecretSwitch } from "./DieButtons";
+import { DieButtons, SECRET_OUTLINE, SecretToggle } from "./DieButtons";
 import { NewestRoll, RollHistory } from "./RollHistory";
 import { SecretRolls } from "./SecretRolls";
 import { useDice } from "./useDice";
@@ -25,15 +25,31 @@ export function DiceBar() {
   return (
     <Paper p="xs" radius={0} withBorder>
       <Stack gap="xs">
-        <DieButtons columns={isLandscape ? DIE_SIDES.length : 4} />
-        <UnstyledButton aria-label="Show all rolls" onClick={history.open}>
-          <Group wrap="nowrap" gap="xs">
-            <Box flex={1} miw={0}>
-              <NewestRoll />
-            </Box>
-            <IconChevronUp size={20} />
-          </Group>
-        </UnstyledButton>
+        <Box
+          bdrs="md"
+          style={{
+            outline: isSecret ? SECRET_OUTLINE : undefined,
+            outlineOffset: 4,
+          }}
+        >
+          <DieButtons columns={isLandscape ? DIE_SIDES.length : 4} />
+        </Box>
+        <Group wrap="nowrap" gap="xs">
+          <UnstyledButton
+            flex={1}
+            miw={0}
+            aria-label="Show all rolls"
+            onClick={history.open}
+          >
+            <Group wrap="nowrap" gap="xs">
+              <Box flex={1} miw={0}>
+                <NewestRoll />
+              </Box>
+              <IconChevronUp size={20} />
+            </Group>
+          </UnstyledButton>
+          <SecretToggle size="lg" />
+        </Group>
       </Stack>
       <Drawer
         opened={isOpen}
@@ -43,7 +59,6 @@ export function DiceBar() {
         title="Rolls"
       >
         <Stack>
-          <SecretSwitch />
           {isSecret && <SecretRolls rolls={secretRolls} />}
           <RollHistory />
         </Stack>
