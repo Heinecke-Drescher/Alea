@@ -6,10 +6,15 @@ import { TOOLBAR_SPACE } from "../Toolbar";
 interface HeldTokensHintProps {
   count: number;
   onCancel: () => void;
+  axisShift: number;
 }
 
 // Without it, held tokens on a phone would be invisible, and nothing would tell how to let go.
-export function HeldTokensHint({ count, onCancel }: HeldTokensHintProps) {
+export function HeldTokensHint({
+  count,
+  onCancel,
+  axisShift,
+}: HeldTokensHintProps) {
   const isFinger = useMediaQuery("(pointer: coarse)", undefined, {
     getInitialValueInEffect: false,
   });
@@ -18,7 +23,7 @@ export function HeldTokensHint({ count, onCancel }: HeldTokensHintProps) {
     <FloatingPanel
       pos="absolute"
       top={TOOLBAR_SPACE}
-      left="50%"
+      left={`calc(50% - ${axisShift}px)`}
       maw="calc(100% - 24px)"
       p="xs"
       style={{ transform: "translateX(-50%)" }}

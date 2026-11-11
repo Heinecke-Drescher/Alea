@@ -30,6 +30,7 @@ import { isValidRoomId } from "../../../shared/roomId";
 import { Board, type BoardHandle } from "../board/Board";
 import { MapError } from "../board/MapError";
 import { TOOLBAR_SPACE } from "../board/Toolbar";
+import { fittedAxisShift } from "../board/useBoardView";
 import { DiceBar } from "../dice/DiceBar";
 import { DicePanel } from "../dice/DicePanel";
 import { DiceTray } from "../dice/DiceTray";
@@ -63,12 +64,14 @@ import { TAB_WIDTH, TokenDrawer } from "../tokens/TokenDrawer";
 import { SHEET_WIDTH, TokenSheet } from "../tokens/TokenSheet";
 import { TOKENS_TOGGLE_SPACE, TokensToggle } from "../tokens/TokensToggle";
 import { useNarrowPortrait, useWideLayout } from "../theme";
+import {
+  fitsBesideToolbar,
+  PANEL_COLUMN_EDGE_GAP,
+  PANEL_COLUMN_WIDTH,
+  PANEL_GAP,
+} from "./panelColumn";
 import { PlayerNameModal } from "./PlayerNameModal";
 
-// The column of panels over the right edge of the map on wide screens.
-const PANEL_COLUMN_WIDTH = 240;
-const PANEL_COLUMN_RIGHT = 12;
-const PANEL_GAP = 12;
 const DETAIL_WIDTH = 200;
 
 export function RoomPage() {
@@ -132,6 +135,17 @@ function RoomView({ roomId }: { roomId: string }) {
   const isWide = useWideLayout();
   const hasDiceBar = useNarrowPortrait();
   const isSheetOpen = isTokensOpen && hasDiceBar;
+  const covered = {
+    right: isWide ? PANEL_COLUMN_EDGE_GAP + PANEL_COLUMN_WIDTH + PANEL_GAP : 0,
+    bottom: isSheetOpen ? TOKENS_TOGGLE_SPACE + sheetHeight : 0,
+  };
+  const { ref: viewSizeRef, width: viewWidth } = useElementSize();
+  const { ref: toolbarSizeRef, width: toolbarWidth } = useElementSize();
+  const isBesideToolbar = fitsBesideToolbar(
+    viewWidth,
+    toolbarWidth,
+    fittedAxisShift(covered),
+  );
   const header = useHeaderCollapsed();
   const [detailTokenId, setDetailTokenId] = useState<string | null>(null);
   const tokenDetail = useMemo(
@@ -233,21 +247,13 @@ function RoomView({ roomId }: { roomId: string }) {
                     // The offset, unlike the header's height, drops to 0 while the header is hidden.
                     h="calc(100dvh - var(--app-shell-header-offset, 0px))"
                   >
-                    <Box flex={1} mih={0} pos="relative">
+                    <Box ref={viewSizeRef} flex={1} mih={0} pos="relative">
                       <ErrorBoundary FallbackComponent={MapError}>
                         <Board
                           ref={board}
+                          toolbarRef={toolbarSizeRef}
                           onSelectedTokensChange={setSelectedTokens}
-                          covered={{
-                            right: isWide
-                              ? PANEL_COLUMN_RIGHT +
-                                PANEL_COLUMN_WIDTH +
-                                PANEL_GAP
-                              : 0,
-                            bottom: isSheetOpen
-                              ? TOKENS_TOGGLE_SPACE + sheetHeight
-                              : 0,
-                          }}
+                          covered={covered}
                           awareness={awareness}
                           isSynced={isSynced}
                           critical={criticals.critical}
@@ -286,12 +292,16 @@ function RoomView({ roomId }: { roomId: string }) {
                         />
                       )}
                       {isWide && (
-                        // Between the toolbar and the zoom buttons, so no panel covers another.
+                        // Beside or below the toolbar, so no panel covers another.
                         <Stack
                           pos="absolute"
-                          top={TOOLBAR_SPACE}
-                          bottom={68}
-                          right={PANEL_COLUMN_RIGHT}
+                          top={
+                            isBesideToolbar
+                              ? PANEL_COLUMN_EDGE_GAP
+                              : TOOLBAR_SPACE
+                          }
+                          bottom={PANEL_COLUMN_EDGE_GAP}
+                          right={PANEL_COLUMN_EDGE_GAP}
                           w={PANEL_COLUMN_WIDTH}
                           gap={PANEL_GAP}
                           style={{ pointerEvents: "none", zIndex: 10 }}

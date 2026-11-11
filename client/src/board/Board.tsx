@@ -74,7 +74,11 @@ import { isFogTool, type Tool } from "./tools/tool";
 import { useBoardTools } from "./tools/useBoardTools";
 import { pointerOnMap } from "./pointer";
 import { useBoardInput } from "./useBoardInput";
-import { useBoardView, type CoveredEdges } from "./useBoardView";
+import {
+  fittedAxisShift,
+  useBoardView,
+  type CoveredEdges,
+} from "./useBoardView";
 import { useCursorBroadcast } from "./useCursorBroadcast";
 import { useFitOnNewMap } from "./useFitOnNewMap";
 import { usePingBroadcast } from "./usePingBroadcast";
@@ -99,6 +103,7 @@ interface BoardProps {
   onSelectedTokensChange: (ids: readonly string[]) => void;
   covered: CoveredEdges;
   ref: Ref<BoardHandle>;
+  toolbarRef: Ref<HTMLDivElement>;
 }
 
 export function Board({
@@ -109,6 +114,7 @@ export function Board({
   onSelectedTokensChange,
   covered,
   ref,
+  toolbarRef,
 }: BoardProps) {
   const room = useRoom();
   const player = usePlayer();
@@ -157,6 +163,7 @@ export function Board({
     zoomIn,
     zoomOut,
   } = useBoardView(room, stageRef, covered);
+  const axisShift = fittedAxisShift(covered);
   const cursor = useCursorBroadcast(awareness);
   const isSelecting = activeTool.selectsItems;
   const input = useBoardInput({
@@ -448,9 +455,15 @@ export function Board({
         </Stage>
         <ViewControls onZoomIn={zoomIn} onZoomOut={zoomOut} onFitMap={fitMap} />
         {held && (
-          <HeldTokensHint count={held.length} onCancel={() => setHeld(null)} />
+          <HeldTokensHint
+            count={held.length}
+            onCancel={() => setHeld(null)}
+            axisShift={axisShift}
+          />
         )}
         <Toolbar
+          ref={toolbarRef}
+          axisShift={axisShift}
           activeTool={tool}
           onToolChange={changeTool}
           canAlignMapImage={canAlignMapImage}

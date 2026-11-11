@@ -4,6 +4,7 @@ import {
   MIN_ZOOM,
   VIEW_MARGIN,
   centeredView,
+  fittedAxisShift,
   fittedView,
   pinchedView,
   wheelPixels,
@@ -175,6 +176,15 @@ describe("fittedView", () => {
     const bottomRight = onScreen(view, map.x + map.width, map.y + map.height);
     expect(topLeft.x).toBeCloseTo(VIEW_MARGIN);
     expect(bottomRight.x).toBeCloseTo(stage.width - covered);
+  });
+
+  it("tells how far left of the stage's middle the map's middle lies", () => {
+    const map = { x: 0, y: 0, width: 500, height: 500 };
+    for (const right of [0, 264]) {
+      const covered = { right, bottom: 0 };
+      const middle = onScreen(fittedView(map, stage, covered), 250, 250);
+      expect(middle.x).toBeCloseTo(stage.width / 2 - fittedAxisShift(covered));
+    }
   });
 
   it("keeps the map clear of a panel over the bottom edge", () => {

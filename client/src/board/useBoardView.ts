@@ -114,6 +114,11 @@ export function fittedView(
   };
 }
 
+// How far left of the stage's middle a fitted map's middle lies, so what floats over the map shares its axis.
+export function fittedAxisShift(covered: CoveredEdges) {
+  return (Math.max(VIEW_MARGIN, covered.right) - VIEW_MARGIN) / 2;
+}
+
 export function centeredView(
   scale: number,
   point: Vector2d,
@@ -232,13 +237,13 @@ export function useBoardView(
     stage.position({ x, y });
   }
 
-  // In the middle of what the toolbar and a panel over the bottom edge leave free.
+  // In the middle of what the toolbar and a panel over the bottom edge leave free, on the toolbar's axis.
   function centerOn(point: Vector2d) {
     const stage = mountedStage();
     const visible = {
       x: 0,
       y: TOOLBAR_SPACE,
-      width: stage.width(),
+      width: stage.width() - 2 * fittedAxisShift(covered),
       height: stage.height() - TOOLBAR_SPACE - covered.bottom,
     };
     const { x, y } = centeredView(stage.scaleX(), point, visible);
