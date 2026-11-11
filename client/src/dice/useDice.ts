@@ -8,7 +8,7 @@ import { useShowCritical } from "./useCriticalRolls";
 
 const MAX_SECRET_ROLLS = 20;
 
-// Kept above the side panel and the dice bar, so the DM's secret rolls survive turning the phone.
+// Kept above the dice tray and the dice bar, so the DM's secret rolls survive a change of layout.
 export function useDiceState() {
   const room = useRoom();
   const player = usePlayer();

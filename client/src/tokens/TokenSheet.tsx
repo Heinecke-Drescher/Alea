@@ -14,7 +14,7 @@ interface TokenSheetProps {
 }
 
 // Rises from the lower edge of the map up to half its height, above the toggle and the zoom
-// buttons. Hidden instead of removed, so the list keeps its state like the side panel did.
+// buttons. Hidden instead of removed, so the list keeps its state.
 export function TokenSheet({ isOpen, ref, children }: TokenSheetProps) {
   return (
     <Transition

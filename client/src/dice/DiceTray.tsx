@@ -122,7 +122,7 @@ export function DiceTray(props: ComponentProps<typeof FloatingPanel>) {
               : undefined,
           }}
         >
-          <DieButtons columns={4} spacing="xs" />
+          <DieButtons columns={4} />
         </Box>
       </Tooltip>
       <TrayHistory />

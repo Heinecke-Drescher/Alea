@@ -87,7 +87,7 @@ function TokenRow({
       dropToken(token.id, release);
     },
     // The detail lies where the token is dragged to.
-    () => detail?.hide(),
+    () => detail.hide(),
   );
   const avatarFilter = isOutOfFight(token) ? "grayscale(1)" : undefined;
 
@@ -113,7 +113,7 @@ function TokenRow({
           // While editing, dragging selects text in the name instead.
           draggable={!isEditing}
           onDragStart={(event) => {
-            detail?.hide();
+            detail.hide();
             startTokenDrag(event.dataTransfer, token.id);
           }}
           // The mouse keeps the browser's drag and drop, which also shows where it may drop.
@@ -138,7 +138,7 @@ function TokenRow({
             style={{ flexShrink: 0 }}
             // Besides finding the token like the rest of the row, the image opens its detail.
             onClick={() => {
-              if (!isClickIgnored()) detail?.toggle(token.id);
+              if (!isClickIgnored()) detail.toggle(token.id);
             }}
           >
             <Avatar src={image} size="md" style={{ filter: avatarFilter }} />

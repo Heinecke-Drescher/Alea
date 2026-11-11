@@ -5,7 +5,6 @@ import {
   Button,
   Center,
   Group,
-  ScrollArea,
   Stack,
   Text,
   Title,
@@ -32,7 +31,6 @@ import { MapError } from "../board/MapError";
 import { TOOLBAR_SPACE } from "../board/Toolbar";
 import { fittedAxisShift } from "../board/useBoardView";
 import { DiceBar } from "../dice/DiceBar";
-import { DicePanel } from "../dice/DicePanel";
 import { DiceTray } from "../dice/DiceTray";
 import { DiceProvider } from "../dice/DiceProvider";
 import { ThrowDieContext } from "../dice/throwDie";
@@ -63,7 +61,7 @@ import { useHeaderCollapsed } from "./useHeaderCollapsed";
 import { TAB_WIDTH, TokenDrawer } from "../tokens/TokenDrawer";
 import { SHEET_WIDTH, TokenSheet } from "../tokens/TokenSheet";
 import { TOKENS_TOGGLE_SPACE, TokensToggle } from "../tokens/TokensToggle";
-import { useNarrowPortrait, useWideLayout } from "../theme";
+import { useWideLayout } from "../theme";
 import {
   fitsBesideToolbar,
   PANEL_COLUMN_EDGE_GAP,
@@ -133,8 +131,7 @@ function RoomView({ roomId }: { roomId: string }) {
   const throwDie = (sides: DieSides, samples: ScreenSample[]) =>
     board.current?.throwDie(sides, samples);
   const isWide = useWideLayout();
-  const hasDiceBar = useNarrowPortrait();
-  const isSheetOpen = isTokensOpen && hasDiceBar;
+  const isSheetOpen = isTokensOpen && !isWide;
   const covered = {
     right: isWide ? PANEL_COLUMN_EDGE_GAP + PANEL_COLUMN_WIDTH + PANEL_GAP : 0,
     bottom: isSheetOpen ? TOKENS_TOGGLE_SPACE + sheetHeight : 0,
@@ -168,9 +165,7 @@ function RoomView({ roomId }: { roomId: string }) {
       <TokenMenuContext value={openTokenMenu}>
         <SelectedTokensContext value={selectedTokens}>
           <DropTokenContext value={dropToken}>
-            <TokenDetailContext
-              value={hasDiceBar || isWide ? tokenDetail : null}
-            >
+            <TokenDetailContext value={tokenDetail}>
               <HoldTokensContext value={holdTokens}>
                 <TokenPanel />
               </HoldTokensContext>
@@ -200,18 +195,7 @@ function RoomView({ roomId }: { roomId: string }) {
         <ShowCriticalContext value={criticals.show}>
           <DiceProvider>
             <ThrowDieContext value={throwDie}>
-              <AppShell
-                header={{ height: 60, collapsed: header.isCollapsed }}
-                aside={{
-                  width: 320,
-                  breakpoint: "sm",
-                  // Wide screens show the tokens in a panel over the map, phones held upright in a sheet.
-                  collapsed: {
-                    mobile: !isTokensOpen || hasDiceBar,
-                    desktop: true,
-                  },
-                }}
-              >
+              <AppShell header={{ height: 60, collapsed: header.isCollapsed }}>
                 <AppShell.Header>
                   <Group h="100%" px="md" gap="sm" wrap="nowrap">
                     <AleaMenu
@@ -260,7 +244,7 @@ function RoomView({ roomId }: { roomId: string }) {
                           onCriticalDone={criticals.clear}
                         />
                       </ErrorBoundary>
-                      {hasDiceBar && (
+                      {!isWide && (
                         <TokenSheet isOpen={isSheetOpen} ref={sheetRef}>
                           {tokenPanel}
                         </TokenSheet>
@@ -331,27 +315,9 @@ function RoomView({ roomId }: { roomId: string }) {
                         </Stack>
                       )}
                     </Box>
-                    {hasDiceBar && <DiceBar />}
+                    {!isWide && <DiceBar />}
                   </Stack>
                 </AppShell.Main>
-                <AppShell.Aside>
-                  <AppShell.Section
-                    grow
-                    component={ScrollArea}
-                    p="md"
-                    // Keeps the end of the list clear of the toggle above the panel.
-                    pb={TOKENS_TOGGLE_SPACE}
-                  >
-                    <Stack>
-                      {!isWide && !hasDiceBar && (
-                        <>
-                          {tokenPanel}
-                          <DicePanel />
-                        </>
-                      )}
-                    </Stack>
-                  </AppShell.Section>
-                </AppShell.Aside>
               </AppShell>
             </ThrowDieContext>
           </DiceProvider>

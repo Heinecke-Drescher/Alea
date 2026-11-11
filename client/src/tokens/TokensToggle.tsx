@@ -1,4 +1,4 @@
-import { Button, getDefaultZIndex } from "@mantine/core";
+import { Button } from "@mantine/core";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
 import { FloatingPanel } from "../FloatingPanel";
 
@@ -23,8 +23,6 @@ export function TokensToggle({ isOpen, onToggle }: TokensToggleProps) {
       bottom={EDGE_GAP}
       right={EDGE_GAP}
       p={PADDING}
-      // Stays above the opened side panel, so it also closes it.
-      style={{ zIndex: getDefaultZIndex("app") + 1 }}
     >
       <Button
         variant="subtle"

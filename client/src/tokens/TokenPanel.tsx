@@ -29,8 +29,7 @@ export function TokenPanel() {
 
   return (
     // Fills a panel of limited size and scrolls the list below the title. The containment keeps a
-    // long name from widening any panel around it, also the side panel's table-like scroll area,
-    // so the name is cut off instead.
+    // long name from widening the panel around it, so the name is cut off instead.
     <Stack gap="xs" mih={0} flex={1} style={{ contain: "inline-size" }}>
       <Group justify="space-between" wrap="nowrap">
         <Title order={4}>Tokens</Title>

@@ -1,4 +1,4 @@
-import { SimpleGrid, Switch, type MantineSpacing } from "@mantine/core";
+import { SimpleGrid, Switch } from "@mantine/core";
 import { usePlayer } from "../player/PlayerContext";
 import { DIE_SIDES } from "../room/dice";
 import { DieButton } from "./DieButton";
@@ -7,14 +7,13 @@ import { useDice } from "./useDice";
 
 interface DieButtonsProps {
   columns: number;
-  spacing: MantineSpacing;
 }
 
-export function DieButtons({ columns, spacing }: DieButtonsProps) {
+export function DieButtons({ columns }: DieButtonsProps) {
   const { color } = usePlayer();
   const { isSecret, roll } = useDice();
   return (
-    <SimpleGrid cols={columns} spacing={spacing}>
+    <SimpleGrid cols={columns} spacing="xs">
       {DIE_SIDES.map((sides) =>
         isSecret ? (
           <DieButton

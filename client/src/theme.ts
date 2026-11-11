@@ -18,8 +18,7 @@ export const theme = createTheme({
   },
 });
 
-// The same breakpoint at which the app shell shows the side panel next to the map. Read at once,
-// so nothing renders in the wrong place first.
+// Below it, the layout is a phone's. Read at once, so nothing renders in the wrong place first.
 export function useWideLayout() {
   const { breakpoints } = useMantineTheme();
   return useMediaQuery(`(min-width: ${breakpoints.sm})`, undefined, {
@@ -27,10 +26,12 @@ export function useWideLayout() {
   });
 }
 
-// A phone held upright, whose fitted map usually leaves room below it. The screen's orientation,
-// not the page's, as the on-screen keyboard makes the page wider than high.
-export function useNarrowPortrait() {
-  const isWide = useWideLayout();
+// Only both together: a narrow window on a monitor lies on a landscape screen, and a phone held
+// upright with its on-screen keyboard open shows a landscape page.
+export function useLandscape() {
   const { type } = useOrientation({ getInitialValueInEffect: false });
-  return !isWide && type.startsWith("portrait");
+  const isPageLandscape = useMediaQuery("(orientation: landscape)", undefined, {
+    getInitialValueInEffect: false,
+  });
+  return type.startsWith("landscape") && isPageLandscape;
 }

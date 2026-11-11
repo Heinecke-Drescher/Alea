@@ -5,12 +5,12 @@ interface TokenDetailControl {
   hide: () => void;
 }
 
-// Only phones held upright and wide screens have room for the detail beside the token list;
-// elsewhere it is null.
 export const TokenDetailContext = createContext<TokenDetailControl | null>(
   null,
 );
 
 export function useTokenDetail() {
-  return useContext(TokenDetailContext);
+  const detail = useContext(TokenDetailContext);
+  if (!detail) throw new Error("Token details are not provided");
+  return detail;
 }
