@@ -10,6 +10,7 @@ import type { Token } from "../../room/roomStore";
 import { CELL_SIZE } from "../../room/grid";
 import { SelectionRing, SelectionTint } from "./SelectionRing";
 import { TokenGrip } from "./TokenGrip";
+import { TokenRim } from "./TokenRim";
 import { TokenBadges } from "./TokenBadges";
 import { TokenNameLabel } from "./TokenNameLabel";
 import { TOKEN_BODY_NAME, TOKEN_NAME } from "./tokenNodes";
@@ -82,6 +83,7 @@ export function TokenView({
           cornerRadius={size / 2}
           filters={isGray ? [Grayscale] : []}
         />
+        <TokenRim size={size} />
         {isHighlighted && <SelectionTint size={size} />}
         <TokenBadges
           effects={effects}

@@ -7,6 +7,7 @@ import {
   Text,
   TextInput,
   Tooltip,
+  useMantineTheme,
 } from "@mantine/core";
 import { IconDots } from "@tabler/icons-react";
 import { useRef, useState } from "react";
@@ -25,6 +26,7 @@ import { useSelectedTokens } from "./selectedTokens";
 import { TokenListBadges } from "./TokenListBadges";
 import { useOpenTokenMenu } from "./tokenMenu";
 import { startTokenDrag } from "./tokenDrag";
+import { rimStyle } from "./tokenRim";
 import classes from "./TokenList.module.css";
 import { usePointerRaise } from "../usePointerRaise";
 
@@ -82,6 +84,7 @@ function TokenRow({
   const openTokenMenu = useOpenTokenMenu();
   const dropToken = useDropToken();
   const detail = useTokenDetail();
+  const theme = useMantineTheme();
   // Only a mouse raises the image; a finger taps it instead.
   const imageRaise = usePointerRaise(false);
   const isTapOnImage = useRef(false);
@@ -96,6 +99,7 @@ function TokenRow({
     () => detail.hide(),
   );
   const avatarFilter = isOutOfFight(token) ? "grayscale(1)" : undefined;
+  const rim = rimStyle(theme);
 
   return (
     <>
@@ -175,7 +179,7 @@ function TokenRow({
               ref={avatarRef}
               src={image}
               size="md"
-              style={{ filter: avatarFilter }}
+              style={{ ...rim, filter: avatarFilter }}
             />
             <TokenListBadges token={token} />
           </Box>
@@ -225,7 +229,7 @@ function TokenRow({
         <Avatar
           src={image}
           size={GHOST_SIZE}
-          style={{ filter: avatarFilter }}
+          style={{ ...rim, filter: avatarFilter }}
         />
       </DragGhost>
     </>

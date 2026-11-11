@@ -4,6 +4,7 @@ import {
   Stack,
   Text,
   ThemeIcon,
+  useMantineTheme,
   type PaperProps,
 } from "@mantine/core";
 import { useClickOutside, useHotkeys } from "@mantine/hooks";
@@ -15,6 +16,7 @@ import { embeddedImage } from "../room/tokens";
 import { useRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import { badgeIcon, tokenBadges } from "./badgeIcons";
+import { rimStyle } from "./tokenRim";
 import { useShownToken } from "./useShownToken";
 
 const IMAGE_SIZE = 96;
@@ -23,6 +25,7 @@ export const DETAIL_WIDTH = 200;
 // One token with every status and the full text of every mark, which the badges have no room for.
 export function TokenDetailContent({ token }: { token: Token }) {
   const room = useRoom();
+  const theme = useMantineTheme();
   const images = useY(room.imagesMap);
   const badges = tokenBadges(tokenEffects(token), tokenMarks(token));
 
@@ -31,6 +34,7 @@ export function TokenDetailContent({ token }: { token: Token }) {
       <Avatar
         src={embeddedImage(images[token.imageId])}
         style={{
+          ...rimStyle(theme),
           width: "100%",
           maxWidth: IMAGE_SIZE,
           height: "auto",

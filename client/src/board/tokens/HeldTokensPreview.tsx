@@ -4,6 +4,7 @@ import { Group, Image } from "react-konva";
 import useImage from "use-image";
 import type { Clip } from "../../room/areaActions";
 import { CELL_SIZE } from "../../room/grid";
+import { TokenRim } from "./TokenRim";
 
 const PREVIEW_OPACITY = 0.5;
 
@@ -39,13 +40,14 @@ function PreviewToken({
 }) {
   const [element] = useImage(image);
   return (
-    <Image
-      image={element}
-      x={x * CELL_SIZE}
-      y={y * CELL_SIZE}
-      width={CELL_SIZE}
-      height={CELL_SIZE}
-      cornerRadius={CELL_SIZE / 2}
-    />
+    <Group x={x * CELL_SIZE} y={y * CELL_SIZE}>
+      <Image
+        image={element}
+        width={CELL_SIZE}
+        height={CELL_SIZE}
+        cornerRadius={CELL_SIZE / 2}
+      />
+      <TokenRim size={CELL_SIZE} />
+    </Group>
   );
 }
