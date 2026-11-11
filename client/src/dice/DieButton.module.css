@@ -34,6 +34,18 @@
   }
 }
 
+/* A finger has no hover; the die grows while it is held instead and shows around the finger. */
+@media (pointer: coarse) {
+  .button:active {
+    position: relative;
+    z-index: 1;
+  }
+
+  .button:active .die {
+    transform: scale(1.5);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .die {
     transition: none;
