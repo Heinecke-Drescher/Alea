@@ -19,10 +19,11 @@ export function useEraserTool(room: Room): BoardTool {
     }
     lastPoint.current = point;
     const stage = event.target.getStage();
-    const pointer = stage?.getPointerPosition();
-    if (!stage || !pointer)
-      throw new Error("Pointer event without stage pointer");
-    const id = stage.getIntersection(pointer)?.id();
+    if (!stage) throw new Error("Pointer event without stage");
+    // At this point, not at the pointer, as a fast move hands several points along with one event.
+    const id = stage
+      .getIntersection(stage.getAbsoluteTransform().point(point))
+      ?.id();
     if (!id) return;
     if (room.strokesMap.has(id)) room.removeStroke(id);
     if (room.textsMap.has(id)) room.removeText(id);

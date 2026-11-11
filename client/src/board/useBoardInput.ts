@@ -3,7 +3,12 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
 import type { ItemType } from "../room/areaActions";
-import { pointerOnMap, PRIMARY_BUTTON, PRIMARY_BUTTON_FLAG } from "./pointer";
+import {
+  pointerOnMap,
+  pointsOnMap,
+  PRIMARY_BUTTON,
+  PRIMARY_BUTTON_FLAG,
+} from "./pointer";
 import { selectedItems, type Selection } from "./selection/selection";
 import type { SelectionControls } from "./selection/useSelection";
 import type { BoardTool } from "./tools/tool";
@@ -117,13 +122,19 @@ export function useBoardInput({
     const isReleased = !(event.evt.buttons & PRIMARY_BUTTON_FLAG);
     if (toolPointer.current !== null && isReleased) endTool();
     longPress.move(event);
-    followPointer(event);
+    moveTo(event, pointsOnMap(event));
   }
 
   function followPointer(event: KonvaEventObject<MouseEvent>) {
-    lastPointer.current = pointerOnMap(event);
-    cursor.move(lastPointer.current);
-    activeTool.onMove({ point: lastPointer.current, event });
+    moveTo(event, [pointerOnMap(event)]);
+  }
+
+  function moveTo(event: KonvaEventObject<MouseEvent>, points: Vector2d[]) {
+    const last = points.at(-1);
+    if (!last) throw new Error("Pointer move without a point");
+    lastPointer.current = last;
+    cursor.move(last);
+    for (const point of points) activeTool.onMove({ point, event });
   }
 
   // Also gets the pointerup that Konva sends after each pointercancel.
