@@ -24,6 +24,8 @@ export function HeldTokensHint({
       pos="absolute"
       top={TOOLBAR_SPACE}
       left={`calc(50% - ${axisShift}px)`}
+      // Otherwise it may only use the width right of `left`, half the map, and squeezes its text.
+      w="max-content"
       maw="calc(100% - 24px)"
       p="xs"
       style={{ transform: "translateX(-50%)" }}
@@ -32,7 +34,12 @@ export function HeldTokensHint({
         <Text size="sm">
           {isFinger ? "Tap" : "Click"} the map to place {what}
         </Text>
-        <Button size="xs" variant="default" onClick={onCancel}>
+        <Button
+          size="xs"
+          variant="default"
+          onClick={onCancel}
+          style={{ flexShrink: 0 }}
+        >
           Cancel
         </Button>
       </Group>
