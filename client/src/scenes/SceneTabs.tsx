@@ -191,7 +191,6 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
                   <Menu.Target>
                     <Tooltip
                       label="Click for the scene menu"
-                      openDelay={500}
                       disabled={tab.id !== activeTabId || menuTabId === tab.id}
                     >
                       <Tabs.Tab

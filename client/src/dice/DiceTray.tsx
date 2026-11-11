@@ -78,7 +78,6 @@ export function DiceTray(props: ComponentProps<typeof FloatingPanel>) {
             ? "Click to roll secretly"
             : "Drag a die onto the map to roll it there, or click to roll"
         }
-        openDelay={500}
         multiline
         w={200}
       >

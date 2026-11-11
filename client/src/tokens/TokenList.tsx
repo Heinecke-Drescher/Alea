@@ -96,7 +96,6 @@ function TokenRow({
       <Tooltip
         label="Click to find, double-click to rename, drag for a copy"
         position="left"
-        openDelay={500}
         disabled={isEditing}
       >
         <Group
