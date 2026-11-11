@@ -21,29 +21,14 @@
   transition: transform 120ms ease-out;
 }
 
-/* Only for a mouse: a touch screen keeps the hover after a tap, so the die would stay large. */
-@media (hover: hover) and (pointer: fine) {
-  .button:hover {
-    /* Grown, it lies over its neighbors instead of under the next one. */
-    position: relative;
-    z-index: 1;
-  }
-
-  .button:hover .die {
-    transform: scale(1.5);
-  }
+.button[data-raised] {
+  /* Grown, it lies over its neighbors instead of under the next one. */
+  position: relative;
+  z-index: 1;
 }
 
-/* A finger has no hover; the die grows while it is held instead and shows around the finger. */
-@media (pointer: coarse) {
-  .button:active {
-    position: relative;
-    z-index: 1;
-  }
-
-  .button:active .die {
-    transform: scale(1.5);
-  }
+.button[data-raised] .die {
+  transform: scale(1.5);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -71,7 +56,7 @@
   font-weight: 700;
 }
 
-.button:hover .shape {
+.button[data-raised] .shape {
   fill: var(--die-hover-fill);
 }
 

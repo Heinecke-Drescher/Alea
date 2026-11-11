@@ -5,7 +5,6 @@ import type { Stage } from "konva/lib/Stage";
 import type { IRect } from "konva/lib/types";
 import { useEffect, useState, type RefObject } from "react";
 import { createHoverIntent } from "../../hoverIntent";
-import { useMouseHover } from "../../theme";
 import { TOKEN_BODY_NAME, tokenIdAt } from "./tokenNodes";
 
 const GROWN = 1.5;
@@ -17,13 +16,12 @@ export interface HoveredToken {
 }
 
 // A token under the mouse grows at once and shows its details after a moment, like a tooltip.
-// Only for a mouse, as a touch screen keeps the hover after a tap; and not while a button is down,
-// so pressing, dragging and drawing areas show nothing.
+// Only for a mouse, and not while a button is down, so pressing, dragging and drawing areas show
+// nothing.
 export function useTokenHover(
   stageRef: RefObject<Stage | null>,
   isEnabled: boolean,
 ): HoveredToken | null {
-  const canHover = useMouseHover();
   const reducesMotion = useReducedMotion(undefined, {
     getInitialValueInEffect: false,
   });
@@ -33,7 +31,7 @@ export function useTokenHover(
     const mounted = stageRef.current;
     if (!mounted) throw new Error("Stage is not mounted");
     const stage = mounted;
-    if (!isEnabled || !canHover) return;
+    if (!isEnabled) return;
     let hovered: string | null = null;
     // React keeps the tokens in its own order, and react-konva inserts new ones by the current
     // order of the nodes, so a raised token goes back to its place as soon as it is left.
@@ -105,13 +103,15 @@ export function useTokenHover(
       intent.cancel();
     }
 
-    stage.on("mousemove.tokenHover", (event) => {
+    // Asks every event, like usePointerRaise, as some phones claim a mouse in their media queries.
+    stage.on("pointermove.tokenHover", (event) => {
+      if (event.evt.pointerType !== "mouse") return;
       if (event.evt.buttons !== 0 || Konva.isDragging()) dismiss();
       else hover(tokenIdAt(event.target));
     });
-    stage.on("mouseleave.tokenHover", () => hover(null));
+    stage.on("pointerleave.tokenHover", () => hover(null));
     // The view moves under a wheel, so the card would no longer be beside its token.
-    stage.on("mousedown.tokenHover wheel.tokenHover", dismiss);
+    stage.on("pointerdown.tokenHover wheel.tokenHover", dismiss);
     return () => {
       stage.off(".tokenHover");
       intent.stop();
@@ -120,7 +120,7 @@ export function useTokenHover(
       lower();
       setShown(null);
     };
-  }, [stageRef, isEnabled, canHover, reducesMotion]);
+  }, [stageRef, isEnabled, reducesMotion]);
 
   return shown;
 }

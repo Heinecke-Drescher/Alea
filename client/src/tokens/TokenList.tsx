@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { IconDots } from "@tabler/icons-react";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { DragGhost } from "../DragGhost";
 import { useFogGuard } from "../fog/useFogGuard";
 import { isOutOfFight } from "../room/effects";
@@ -26,7 +26,7 @@ import { TokenListBadges } from "./TokenListBadges";
 import { useOpenTokenMenu } from "./tokenMenu";
 import { startTokenDrag } from "./tokenDrag";
 import classes from "./TokenList.module.css";
-import { useMouseHover } from "../theme";
+import { usePointerRaise } from "../usePointerRaise";
 
 export function TokenList() {
   const room = useRoom();
@@ -82,8 +82,9 @@ function TokenRow({
   const openTokenMenu = useOpenTokenMenu();
   const dropToken = useDropToken();
   const detail = useTokenDetail();
-  const canHover = useMouseHover();
-  const [isOverImage, setOverImage] = useState(false);
+  // Only a mouse raises the image; a finger taps it instead.
+  const imageRaise = usePointerRaise(false);
+  const isTapOnImage = useRef(false);
   const { handlers, ghostStart, ghostRef, isClickIgnored } = useScreenDrag(
     (samples) => {
       const release = samples.at(-1);
@@ -101,7 +102,7 @@ function TokenRow({
         label="Click to find, double-click to rename, drag for a copy"
         position="left"
         // The detail of a hovered image opens where the tooltip would.
-        disabled={isEditing || isOverImage}
+        disabled={isEditing || imageRaise.isRaised}
       >
         <Group
           gap="xs"
@@ -143,18 +144,22 @@ function TokenRow({
             style={{ flexShrink: 0 }}
             // Besides finding the token like the rest of the row, the image shows its detail: with a
             // mouse when it rests on it, with a finger when tapped.
-            onMouseEnter={() => {
-              if (!canHover) return;
-              setOverImage(true);
-              detail.hover(token.id);
+            mod={{ raised: imageRaise.isRaised }}
+            onPointerEnter={(event) => {
+              imageRaise.handlers.onPointerEnter(event);
+              if (event.pointerType === "mouse") detail.hover(token.id);
             }}
-            onMouseLeave={() => {
-              if (!canHover) return;
-              setOverImage(false);
-              detail.hover(null);
+            onPointerLeave={(event) => {
+              imageRaise.handlers.onPointerLeave();
+              if (event.pointerType === "mouse") detail.hover(null);
+            }}
+            onPointerDown={(event) => {
+              isTapOnImage.current = event.pointerType !== "mouse";
             }}
             onClick={() => {
-              if (!canHover && !isClickIgnored()) detail.toggle(token.id);
+              if (isTapOnImage.current && !isClickIgnored()) {
+                detail.toggle(token.id);
+              }
             }}
           >
             <Avatar src={image} size="md" style={{ filter: avatarFilter }} />

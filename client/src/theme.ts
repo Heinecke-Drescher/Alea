@@ -26,13 +26,6 @@ export function useWideLayout() {
   });
 }
 
-// A mouse or touchpad; a touch screen keeps the hover after a tap, so nothing may depend on it there.
-export function useMouseHover() {
-  return useMediaQuery("(hover: hover) and (pointer: fine)", undefined, {
-    getInitialValueInEffect: false,
-  });
-}
-
 // Only both together: a narrow window on a monitor lies on a landscape screen, and a phone held
 // upright with its on-screen keyboard open shows a landscape page.
 export function useLandscape() {
