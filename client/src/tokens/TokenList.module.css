@@ -1,0 +1,18 @@
+.image {
+  transition: transform 120ms ease-out;
+}
+
+/* Only for a mouse: a touch screen keeps the hover after a tap, so the image would stay large. */
+@media (hover: hover) and (pointer: fine) {
+  /* Grows no further than the row's padding, as the scrolling list cuts off what sticks out. */
+  .image:hover {
+    transform: scale(1.2);
+    z-index: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .image {
+    transition: none;
+  }
+}

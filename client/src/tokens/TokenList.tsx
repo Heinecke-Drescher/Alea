@@ -25,6 +25,7 @@ import { useSelectedTokens } from "./selectedTokens";
 import { TokenListBadges } from "./TokenListBadges";
 import { useOpenTokenMenu } from "./tokenMenu";
 import { startTokenDrag } from "./tokenDrag";
+import classes from "./TokenList.module.css";
 
 export function TokenList() {
   const room = useRoom();
@@ -134,6 +135,7 @@ function TokenRow({
         >
           <Box
             pos="relative"
+            className={classes.image}
             style={{ flexShrink: 0 }}
             // Besides finding the token like the rest of the row, the image opens its detail.
             onClick={() => {

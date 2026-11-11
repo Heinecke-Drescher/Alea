@@ -18,6 +18,26 @@
   max-width: 60px;
   margin: 0 auto;
   overflow: visible;
+  transition: transform 120ms ease-out;
+}
+
+/* Only for a mouse: a touch screen keeps the hover after a tap, so the die would stay large. */
+@media (hover: hover) and (pointer: fine) {
+  .button:hover {
+    /* Grown, it lies over its neighbors instead of under the next one. */
+    position: relative;
+    z-index: 1;
+  }
+
+  .button:hover .die {
+    transform: scale(1.5);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .die {
+    transition: none;
+  }
 }
 
 .shape {
