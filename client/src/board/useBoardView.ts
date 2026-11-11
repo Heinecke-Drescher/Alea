@@ -1,11 +1,12 @@
-import { clamp } from "@mantine/hooks";
+import { clamp, useReducedMotion } from "@mantine/hooks";
 import Konva from "konva";
 import type { KonvaEventObject, Node } from "konva/lib/Node";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { IRect, Vector2d } from "konva/lib/types";
-import { useRef, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import type { Room } from "../room/createRoom";
 import { clampToMap, mapRect } from "../room/grid";
+import { dragVelocity, SWING_WINDOW_MS, type DragSample } from "./dragVelocity";
 import { PRIMARY_BUTTON } from "./pointer";
 import { TOOLBAR_SPACE } from "./Toolbar";
 
@@ -22,6 +23,12 @@ const DELTA_PAGE = 2;
 const LINE_HEIGHT = 16;
 // A pinch sends many small steps, a mouse wheel notch one large one; no event zooms more than one ZOOM_STEP.
 const PIXELS_PER_ZOOM_STEP = 10;
+// A map flung by a finger slows down exponentially, so every glide takes about as long; the time
+// constant follows Ariya Hidayat's "JavaScript Kinetic Scrolling".
+const GLIDE_SECONDS = 0.325;
+// In pixels per second: slower releases stop where the finger let go.
+const MIN_GLIDE_SPEED = 300;
+const GLIDE_END_DISTANCE = 0.5;
 
 export interface View {
   scale: number;
@@ -131,6 +138,27 @@ export function centeredView(
   };
 }
 
+export function glideVelocity(
+  velocity: Vector2d,
+  maxDistance: number,
+): Vector2d | null {
+  const speed = Math.hypot(velocity.x, velocity.y);
+  if (speed < MIN_GLIDE_SPEED) return null;
+  const factor = Math.min(1, maxDistance / (speed * GLIDE_SECONDS));
+  return { x: velocity.x * factor, y: velocity.y * factor };
+}
+
+export function glideOffset(velocity: Vector2d, seconds: number) {
+  const reach = 1 - Math.exp(-seconds / GLIDE_SECONDS);
+  const remaining =
+    Math.hypot(velocity.x, velocity.y) * GLIDE_SECONDS * (1 - reach);
+  return {
+    x: velocity.x * GLIDE_SECONDS * reach,
+    y: velocity.y * GLIDE_SECONDS * reach,
+    isDone: remaining < GLIDE_END_DISTANCE,
+  };
+}
+
 export function wheelPixels(
   {
     deltaX,
@@ -152,6 +180,19 @@ export function useBoardView(
   covered: CoveredEdges,
 ) {
   const lastPinch = useRef<Pinch | null>(null);
+  // Null unless a finger pans the map.
+  const panSamples = useRef<DragSample[] | null>(null);
+  const glideFrame = useRef<number | null>(null);
+  const reducesMotion = useReducedMotion(undefined, {
+    getInitialValueInEffect: false,
+  });
+
+  useEffect(
+    () => () => {
+      if (glideFrame.current !== null) cancelAnimationFrame(glideFrame.current);
+    },
+    [],
+  );
 
   function mountedStage() {
     const stage = stageRef.current;
@@ -159,10 +200,62 @@ export function useBoardView(
     return stage;
   }
 
+  // Tells whether the map was gliding, so the touch that catches it does nothing else.
+  function stopGlide() {
+    if (glideFrame.current === null) return false;
+    cancelAnimationFrame(glideFrame.current);
+    glideFrame.current = null;
+    return true;
+  }
+
+  function panSample(stage: StageNode): DragSample {
+    return { ...stage.position(), time: performance.now() };
+  }
+
+  function trackPan(event: KonvaEventObject<DragEvent>) {
+    const samples = panSamples.current;
+    if (event.target !== stageRef.current || !samples) return;
+    const sample = panSample(mountedStage());
+    panSamples.current = [
+      ...samples.filter(({ time }) => time >= sample.time - SWING_WINDOW_MS),
+      sample,
+    ];
+  }
+
+  function endPan(event: KonvaEventObject<DragEvent>) {
+    const samples = panSamples.current;
+    if (event.target !== stageRef.current || !samples) return;
+    panSamples.current = null;
+    if (reducesMotion) return;
+    const stage = mountedStage();
+    // The release counts as the last move, so a finger held still before lifting has no swing.
+    const velocity = glideVelocity(
+      dragVelocity([...samples, panSample(stage)]),
+      Math.max(stage.width(), stage.height()),
+    );
+    if (velocity) glide(stage, velocity);
+  }
+
+  function glide(stage: StageNode, velocity: Vector2d) {
+    const start = stage.position();
+    const startTime = performance.now();
+    function step(time: number) {
+      // A frame's time can lie just before the glide started.
+      const { x, y, isDone } = glideOffset(
+        velocity,
+        Math.max(0, time - startTime) / 1000,
+      );
+      stage.position({ x: start.x + x, y: start.y + y });
+      glideFrame.current = isDone ? null : requestAnimationFrame(step);
+    }
+    glideFrame.current = requestAnimationFrame(step);
+  }
+
   // Like drawing tools: the wheel or two fingers pan, Ctrl + wheel zooms.
   // Pinching a trackpad arrives as a wheel event with Ctrl.
   function panOrZoom(event: KonvaEventObject<WheelEvent>) {
     event.evt.preventDefault();
+    stopGlide();
     const stage = mountedStage();
     const delta = wheelPixels(event.evt, stage.size());
     if (!event.evt.ctrlKey && !event.evt.metaKey) {
@@ -191,7 +284,13 @@ export function useBoardView(
     // Konva starts a finger's drag from a touch event, which has no button.
     const isFinger = event.evt.type.startsWith("touch");
     const allowed = isFinger ? fingerPans : event.evt.button !== PRIMARY_BUTTON;
-    if (!allowed) stage.stopDrag();
+    // Cleared before stopping, as stopping ends the drag at once.
+    panSamples.current = null;
+    if (!allowed) {
+      stage.stopDrag();
+      return;
+    }
+    if (isFinger) panSamples.current = [panSample(stage)];
   }
 
   function pointAtStageCenter(stage: StageNode) {
@@ -207,6 +306,7 @@ export function useBoardView(
   }
 
   function zoomAroundCenter(factor: number) {
+    stopGlide();
     const stage = mountedStage();
     const scale = clamp(stage.scaleX() * factor, MIN_ZOOM, MAX_ZOOM);
     const { x, y } = centeredView(scale, pointAtStageCenter(stage), {
@@ -227,6 +327,7 @@ export function useBoardView(
   }
 
   function fitMap() {
+    stopGlide();
     const stage = mountedStage();
     const { scale, x, y } = fittedView(
       mapRect(room.mapBounds()),
@@ -239,6 +340,7 @@ export function useBoardView(
 
   // In the middle of what the toolbar and a panel over the bottom edge leave free, on the toolbar's axis.
   function centerOn(point: Vector2d) {
+    stopGlide();
     const stage = mountedStage();
     const visible = {
       x: 0,
@@ -258,6 +360,9 @@ export function useBoardView(
       lastPinch.current = null;
       return;
     }
+    // Two fingers move the view themselves; the pan of the first one does not glide on.
+    stopGlide();
+    panSamples.current = null;
     if (Konva.isDragging()) {
       for (const node of stage.find((node: Node) => node.isDragging())) {
         node.stopDrag();
@@ -282,6 +387,9 @@ export function useBoardView(
     pinch,
     endPinch,
     panWhereAllowed,
+    trackPan,
+    endPan,
+    stopGlide,
     viewCenter,
     fitMap,
     centerOn,

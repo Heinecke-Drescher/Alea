@@ -7,14 +7,7 @@ import {
 } from "../../room/grid";
 import { segments, toPoints } from "../../room/points";
 
-export interface DragSample {
-  x: number;
-  y: number;
-  time: number;
-}
-
 export const MAX_THROW_DISTANCE = 32 * CELL_SIZE;
-const SWING_WINDOW_MS = 100;
 // How long a thrown die flies before it lands.
 export const ROLL_SECONDS = 1;
 const SECONDS_OF_ROLLING = 2;
@@ -51,20 +44,6 @@ export function pointAlong(path: number[], distance: number): Vector2d {
   const end = toPoints(path).at(-1);
   if (!end) throw new Error("Invalid path");
   return end;
-}
-
-export function dragVelocity(samples: DragSample[]): Vector2d {
-  const last = samples.at(-1);
-  if (!last) return { x: 0, y: 0 };
-  const first = samples.find(
-    (sample) => last.time - sample.time <= SWING_WINDOW_MS,
-  );
-  if (!first || first.time === last.time) return { x: 0, y: 0 };
-  const seconds = (last.time - first.time) / 1000;
-  return {
-    x: (last.x - first.x) / seconds,
-    y: (last.y - first.y) / seconds,
-  };
 }
 
 export function throwInDirection(
