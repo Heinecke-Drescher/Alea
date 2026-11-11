@@ -10,7 +10,9 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconChevronUp } from "@tabler/icons-react";
 import { DIE_SIDES } from "../room/dice";
 import { useLandscape } from "../theme";
+import { usePointerRaise } from "../usePointerRaise";
 import { DieButtons, SECRET_OUTLINE, SecretToggle } from "./DieButtons";
+import { HistoryArrow } from "./HistoryArrow";
 import { NewestRoll, RollHistory } from "./RollHistory";
 import { SecretRolls } from "./SecretRolls";
 import { useDice } from "./useDice";
@@ -21,6 +23,7 @@ export function DiceBar() {
   const { isSecret, secretRolls } = useDice();
   const [isOpen, history] = useDisclosure();
   const isLandscape = useLandscape();
+  const arrowRaise = usePointerRaise(false);
 
   return (
     <Paper p="xs" radius={0} withBorder>
@@ -40,12 +43,16 @@ export function DiceBar() {
             miw={0}
             aria-label="Show all rolls"
             onClick={history.open}
+            onPointerEnter={arrowRaise.handlers.onPointerEnter}
+            onPointerLeave={arrowRaise.handlers.onPointerLeave}
           >
             <Group wrap="nowrap" gap="xs">
               <Box flex={1} miw={0}>
                 <NewestRoll />
               </Box>
-              <IconChevronUp size={20} />
+              <HistoryArrow isRaised={arrowRaise.isRaised}>
+                <IconChevronUp size={20} />
+              </HistoryArrow>
             </Group>
           </UnstyledButton>
           <SecretToggle size="lg" />

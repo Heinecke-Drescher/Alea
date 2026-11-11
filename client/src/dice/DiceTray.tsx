@@ -11,7 +11,9 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import type { ComponentProps } from "react";
 import { FloatingPanel } from "../FloatingPanel";
+import { usePointerRaise } from "../usePointerRaise";
 import { DieButtons, SECRET_OUTLINE, SecretToggle } from "./DieButtons";
+import { HistoryArrow } from "./HistoryArrow";
 import { NewestRoll, RollHistory } from "./RollHistory";
 import { SecretRolls } from "./SecretRolls";
 import { useDice } from "./useDice";
@@ -24,6 +26,7 @@ const HISTORY_HEIGHT = "min(480px, 60dvh)";
 function TrayHistory() {
   const { isSecret, secretRolls } = useDice();
   const [isOpen, history] = useDisclosure();
+  const arrowRaise = usePointerRaise(false);
   return (
     <Group wrap="nowrap" gap="xs" p="xs" pt={4}>
       <Popover
@@ -41,16 +44,20 @@ function TrayHistory() {
             aria-label={isOpen ? "Hide all rolls" : "Show all rolls"}
             aria-expanded={isOpen}
             onClick={history.toggle}
+            onPointerEnter={arrowRaise.handlers.onPointerEnter}
+            onPointerLeave={arrowRaise.handlers.onPointerLeave}
           >
             <Group wrap="nowrap" gap="xs">
               <Box flex={1} miw={0}>
                 <NewestRoll compact />
               </Box>
-              {isOpen ? (
-                <IconChevronRight size={18} />
-              ) : (
-                <IconChevronLeft size={18} />
-              )}
+              <HistoryArrow isRaised={arrowRaise.isRaised}>
+                {isOpen ? (
+                  <IconChevronRight size={18} />
+                ) : (
+                  <IconChevronLeft size={18} />
+                )}
+              </HistoryArrow>
             </Group>
           </UnstyledButton>
         </Popover.Target>
