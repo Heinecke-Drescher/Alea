@@ -160,9 +160,6 @@ export function Board({
     pinch,
     endPinch,
     panWhereAllowed,
-    trackPan,
-    endPan,
-    stopGlide,
     viewCenter,
     fitMap,
     centerOn,
@@ -350,20 +347,12 @@ export function Board({
               (isSelecting || heldClip !== null) && input.canDragItems,
             )
           }
-          onDragMove={trackPan}
-          onDragEnd={endPan}
           onWheel={(event) => {
             panOrZoom(event);
             // The map moved under a still pointer, so tools and cursors follow as if it had moved.
             input.followPointer(event);
           }}
           {...input.stageHandlers}
-          // A finger that catches the gliding map only stops it, like on a phone's own maps.
-          onPointerDown={(event) => {
-            const wasGliding = stopGlide();
-            if (wasGliding && event.evt.pointerType === "touch") return;
-            input.stageHandlers.onPointerDown(event);
-          }}
           onPointerDblClick={(event) => {
             if (tool !== "select" || input.isLockedFinger(event)) return;
             const textId = textIdAt(event.target);

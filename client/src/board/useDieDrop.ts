@@ -1,7 +1,6 @@
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { RefObject } from "react";
-import { throwPath } from "./dice/throwPath";
-import { dragVelocity, type DragSample } from "./dragVelocity";
+import { dragVelocity, throwPath, type DragSample } from "./dice/throwPath";
 import { usePlayer } from "../player/PlayerContext";
 import { rollDie, type DieSides } from "../room/dice";
 import { cellAt, containsCell } from "../room/grid";

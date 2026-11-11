@@ -6,8 +6,6 @@ import {
   centeredView,
   fittedAxisShift,
   fittedView,
-  glideOffset,
-  glideVelocity,
   pinchedView,
   wheelPixels,
   zoomedView,
@@ -204,50 +202,6 @@ describe("fittedView", () => {
     const huge = { x: 0, y: 0, width: 100_000, height: 100_000 };
     expect(fittedView(tiny, stage, uncovered).scale).toBe(MAX_ZOOM);
     expect(fittedView(huge, stage, uncovered).scale).toBe(MIN_ZOOM);
-  });
-});
-
-describe("glideVelocity", () => {
-  it("does not glide after a slow release", () => {
-    expect(glideVelocity({ x: 200, y: 0 }, 1000)).toBeNull();
-  });
-
-  it("keeps the speed of a release that glides less than the limit", () => {
-    expect(glideVelocity({ x: 1000, y: 500 }, 1000)).toEqual({
-      x: 1000,
-      y: 500,
-    });
-  });
-
-  it("slows a fast release down to the farthest glide", () => {
-    const velocity = glideVelocity({ x: 30000, y: 40000 }, 1000);
-    if (!velocity) throw new Error("A fast release glides");
-    const end = glideOffset(velocity, Infinity);
-    expect(Math.hypot(end.x, end.y)).toBeCloseTo(1000);
-    expect(velocity.y / velocity.x).toBeCloseTo(40 / 30);
-  });
-});
-
-describe("glideOffset", () => {
-  const velocity = { x: 2000, y: -1000 };
-
-  it("starts where the finger let go", () => {
-    const start = glideOffset(velocity, 0);
-    expect(start.x).toBeCloseTo(0);
-    expect(start.y).toBeCloseTo(0);
-  });
-
-  it("moves on in the direction of the release and slows down", () => {
-    const early = glideOffset(velocity, 0.1);
-    const later = glideOffset(velocity, 0.2);
-    expect(early.x).toBeGreaterThan(0);
-    expect(early.y).toBeLessThan(0);
-    expect(later.x - early.x).toBeLessThan(early.x);
-  });
-
-  it("comes to rest", () => {
-    expect(glideOffset(velocity, 0.1).isDone).toBe(false);
-    expect(glideOffset(velocity, 3).isDone).toBe(true);
   });
 });
 
