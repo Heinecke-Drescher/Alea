@@ -246,7 +246,12 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
         </Tabs>
       </ScrollArea>
       <Tooltip label="Add scene">
-        <ActionIcon variant="subtle" aria-label="Add scene" onClick={addScene}>
+        <ActionIcon
+          variant="subtle"
+          color="gray"
+          aria-label="Add scene"
+          onClick={addScene}
+        >
           <IconPlus size={18} />
         </ActionIcon>
       </Tooltip>

@@ -1,4 +1,6 @@
 import {
+  ActionIcon,
+  Button,
   createTheme,
   Menu,
   Modal,
@@ -13,9 +15,26 @@ export const TOOLTIP_DELAY = 500;
 // Menus and popovers round their corners like the panels floating over the map, and the
 // context menu on the map does the same.
 export const MENU_RADIUS = "md";
+// Everything that only reacts to the mouse, gray buttons, menu items, tabs, shares one gray;
+// blue stays for choosing a tool, as blue means selection.
+export const NEUTRAL_HOVER = "var(--mantine-color-default-hover)";
+
+function isNeutral(props: { variant?: string; color?: string }) {
+  return props.variant === "subtle" && props.color === "gray";
+}
 
 export const theme = createTheme({
   components: {
+    ActionIcon: ActionIcon.extend({
+      vars: (_, props) => ({
+        root: isNeutral(props) ? { "--ai-hover": NEUTRAL_HOVER } : {},
+      }),
+    }),
+    Button: Button.extend({
+      vars: (_, props) => ({
+        root: isNeutral(props) ? { "--button-hover": NEUTRAL_HOVER } : {},
+      }),
+    }),
     Menu: Menu.extend({ defaultProps: { radius: MENU_RADIUS } }),
     Popover: Popover.extend({ defaultProps: { radius: MENU_RADIUS } }),
     Modal: Modal.extend({

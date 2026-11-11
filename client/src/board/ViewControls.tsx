@@ -23,6 +23,7 @@ export function ViewControls({
         <Tooltip label="Zoom out (Ctrl+wheel)" position="top">
           <ActionIcon
             variant="subtle"
+            color="gray"
             size="lg"
             aria-label="Zoom out"
             onClick={onZoomOut}
@@ -33,6 +34,7 @@ export function ViewControls({
         <Tooltip label="Zoom in (Ctrl+wheel)" position="top">
           <ActionIcon
             variant="subtle"
+            color="gray"
             size="lg"
             aria-label="Zoom in"
             onClick={onZoomIn}
@@ -44,6 +46,7 @@ export function ViewControls({
         <Tooltip label="Fit map (Shift+1)" position="top">
           <ActionIcon
             variant="subtle"
+            color="gray"
             size="lg"
             aria-label="Fit map"
             onClick={onFitMap}

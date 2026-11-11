@@ -50,6 +50,7 @@ export function TokenSizeControl({
       <Group gap={4} wrap="nowrap">
         <ActionIcon
           variant="subtle"
+          color="gray"
           aria-label="Smaller"
           disabled={!canShrink}
           onClick={() => resizeTo(token.size - 1)}
@@ -61,6 +62,7 @@ export function TokenSizeControl({
         </Text>
         <ActionIcon
           variant="subtle"
+          color="gray"
           aria-label="Larger"
           disabled={!canGrow}
           onClick={() => resizeTo(token.size + 1)}

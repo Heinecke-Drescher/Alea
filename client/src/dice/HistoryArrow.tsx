@@ -1,5 +1,6 @@
 import { Center } from "@mantine/core";
 import type { ReactNode } from "react";
+import { NEUTRAL_HOVER } from "../theme";
 
 const SIZE = 28;
 
@@ -17,7 +18,7 @@ export function HistoryArrow({
       w={SIZE}
       h={SIZE}
       bdrs="sm"
-      bg={isRaised ? "var(--mantine-color-default-hover)" : undefined}
+      bg={isRaised ? NEUTRAL_HOVER : undefined}
       style={{ flexShrink: 0 }}
     >
       {children}

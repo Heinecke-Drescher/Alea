@@ -13,6 +13,7 @@ export function UndoButtons() {
       <Tooltip label="Undo (Ctrl+Z)" position="top">
         <ActionIcon
           variant="subtle"
+          color="gray"
           size="lg"
           aria-label="Undo"
           disabled={!canUndo}
@@ -24,6 +25,7 @@ export function UndoButtons() {
       <Tooltip label="Redo (Ctrl+Y)" position="top">
         <ActionIcon
           variant="subtle"
+          color="gray"
           size="lg"
           aria-label="Redo"
           disabled={!canRedo}

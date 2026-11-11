@@ -36,7 +36,7 @@ export function TokenPanel() {
         <Menu position="bottom-end" shadow="md">
           <Menu.Target>
             <Tooltip label="Add tokens">
-              <ActionIcon variant="subtle" aria-label="Add tokens">
+              <ActionIcon variant="subtle" color="gray" aria-label="Add tokens">
                 <IconPlus size={18} />
               </ActionIcon>
             </Tooltip>

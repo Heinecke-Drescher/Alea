@@ -3,6 +3,8 @@ import { useLocalStorage } from "@mantine/hooks";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import type { ReactNode, Ref } from "react";
 import { FloatingPanel } from "../FloatingPanel";
+import { NEUTRAL_HOVER } from "../theme";
+import { usePointerRaise } from "../usePointerRaise";
 
 export const TAB_WIDTH = 30;
 const TAB_HEIGHT = 160;
@@ -23,11 +25,14 @@ export function TokenDrawer({ onClose, ref, children }: TokenDrawerProps) {
     getInitialValueInEffect: false,
   });
   const label = isOpen ? "Hide tokens" : "Show tokens";
+  const tabRaise = usePointerRaise(false);
   const tab = (
     <FloatingPanel
       pos="absolute"
       top={VIEW_GAP}
       w={TAB_WIDTH}
+      // The whole tab is the button, so its panel shows the hover in its rounded shape.
+      bg={tabRaise.isRaised ? NEUTRAL_HOVER : undefined}
       style={{
         // Open, it overlaps the drawer's border by a pixel, so both look like one piece.
         ...(isOpen ? { left: 1 - TAB_WIDTH } : { right: -VIEW_GAP }),
@@ -48,6 +53,8 @@ export function TokenDrawer({ onClose, ref, children }: TokenDrawerProps) {
             if (isOpen) onClose();
             setOpen(!isOpen);
           }}
+          onPointerEnter={tabRaise.handlers.onPointerEnter}
+          onPointerLeave={tabRaise.handlers.onPointerLeave}
         >
           <Stack gap="xs" align="center" justify="center" h="100%">
             {isOpen ? (

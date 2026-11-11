@@ -1,0 +1,14 @@
+/* The same gray as NEUTRAL_HOVER in theme.ts, for what Mantine and mantine-contextmenu color
+   themselves: menu items, tabs and the items of the context menus. */
+.mantine-Menu-item {
+  --menu-item-hover: var(--mantine-color-default-hover);
+}
+
+.mantine-Tabs-tab {
+  --tab-hover-color: var(--mantine-color-default-hover);
+}
+
+[data-mantine-color-scheme]
+  .mantine-contextmenu-item-button:hover:not([disabled]) {
+  background: var(--mantine-color-default-hover);
+}
