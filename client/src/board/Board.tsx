@@ -1,5 +1,6 @@
 import { Box, useComputedColorScheme, useMantineTheme } from "@mantine/core";
 import { useElementSize, useHotkeys } from "@mantine/hooks";
+import Konva from "konva";
 import type { Group as GroupNode } from "konva/lib/Group";
 import type { Stage as StageNode } from "konva/lib/Stage";
 import type { KonvaEventObject } from "konva/lib/Node";
@@ -87,6 +88,11 @@ import { usePingBroadcast } from "./usePingBroadcast";
 import { useBoardDrops } from "./useBoardDrops";
 import { useDieDrop } from "./useDieDrop";
 import { ViewControls } from "./ViewControls";
+
+// Each layer is a canvas over the whole view, so a phone at 3x paints nine times the pixels of 1x;
+// above 2x the extra sharpness is hard to see. Konva reads this when it creates a canvas.
+const MAX_PIXEL_RATIO = 2;
+Konva.pixelRatio = Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO);
 
 export interface BoardHandle {
   focusToken: (id: string) => void;
