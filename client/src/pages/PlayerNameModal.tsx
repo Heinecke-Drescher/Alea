@@ -11,7 +11,7 @@ interface PlayerNameModalProps {
   // null while the player has not picked a color, so it follows the typed name.
   currentColor: PlayerColor | null;
   onSave: (name: string, color: PlayerColor) => void;
-  onCancel: (() => void) | null;
+  onCancel: () => void;
 }
 
 export function PlayerNameModal({
@@ -22,15 +22,7 @@ export function PlayerNameModal({
   onCancel,
 }: PlayerNameModalProps) {
   return (
-    <Modal
-      opened={opened}
-      onClose={onCancel ?? (() => {})}
-      title="Who are you?"
-      withCloseButton={onCancel !== null}
-      closeOnClickOutside={onCancel !== null}
-      closeOnEscape={onCancel !== null}
-      centered
-    >
+    <Modal opened={opened} onClose={onCancel} title="Who are you?" centered>
       <PlayerForm
         currentName={currentName}
         currentColor={currentColor}

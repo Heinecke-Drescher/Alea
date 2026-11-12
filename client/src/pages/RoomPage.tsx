@@ -69,6 +69,7 @@ import {
   PANEL_COLUMN_WIDTH,
   PANEL_GAP,
 } from "./panelColumn";
+import { NameHint } from "./NameHint";
 import { PlayerNameModal } from "./PlayerNameModal";
 
 export function RoomPage() {
@@ -106,7 +107,6 @@ function RoomView({ roomId }: { roomId: string }) {
   const localPlayer = useLocalPlayer();
   const { id, name, color } = localPlayer;
   const player = useMemo(() => ({ id, name, color }), [id, name, color]);
-  const needsName = name === "";
   const criticals = useCriticalRolls(room, isSynced);
   const board = useRef<BoardHandle>(null);
   const [selectedTokens, setSelectedTokens] = useState<readonly string[]>([]);
@@ -257,6 +257,15 @@ function RoomView({ roomId }: { roomId: string }) {
                               />
                             )
                           }
+                          hint={
+                            localPlayer.isNameAssigned && (
+                              <NameHint
+                                name={name}
+                                onChange={editName}
+                                onClose={localPlayer.keepAssignedName}
+                              />
+                            )
+                          }
                           onSelectedTokensChange={setSelectedTokens}
                           covered={covered}
                           awareness={awareness}
@@ -337,7 +346,7 @@ function RoomView({ roomId }: { roomId: string }) {
             </ThrowDieContext>
           </DiceProvider>
           <PlayerNameModal
-            opened={needsName || isEditingName}
+            opened={isEditingName}
             currentName={name}
             currentColor={localPlayer.pickedColor}
             onSave={(newName, newColor) => {
@@ -345,7 +354,7 @@ function RoomView({ roomId }: { roomId: string }) {
               localPlayer.setColor(newColor);
               stopEditingName();
             }}
-            onCancel={needsName ? null : stopEditingName}
+            onCancel={stopEditingName}
           />
         </ShowCriticalContext>
       </PlayerContext>

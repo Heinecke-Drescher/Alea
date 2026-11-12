@@ -1,7 +1,6 @@
-import { Button, Group, Text } from "@mantine/core";
+import { Button, Text } from "@mantine/core";
 import { useMediaQuery } from "@mantine/hooks";
-import { FloatingPanel } from "../../FloatingPanel";
-import { TOOLBAR_SPACE } from "../Toolbar";
+import { ToolbarHint } from "../ToolbarHint";
 
 interface HeldTokensHintProps {
   count: number;
@@ -20,29 +19,18 @@ export function HeldTokensHint({
   });
   const what = count === 1 ? "the token" : `${count} tokens`;
   return (
-    <FloatingPanel
-      pos="absolute"
-      top={TOOLBAR_SPACE}
-      left={`calc(50% - ${axisShift}px)`}
-      // Otherwise it may only use the width right of `left`, half the map, and squeezes its text.
-      w="max-content"
-      maw="calc(100% - 24px)"
-      p="xs"
-      style={{ transform: "translateX(-50%)" }}
-    >
-      <Group gap="sm" wrap="nowrap">
-        <Text size="sm">
-          {isFinger ? "Tap" : "Click"} the map to place {what}
-        </Text>
-        <Button
-          size="xs"
-          variant="default"
-          onClick={onCancel}
-          style={{ flexShrink: 0 }}
-        >
-          Cancel
-        </Button>
-      </Group>
-    </FloatingPanel>
+    <ToolbarHint axisShift={axisShift}>
+      <Text size="sm">
+        {isFinger ? "Tap" : "Click"} the map to place {what}
+      </Text>
+      <Button
+        size="xs"
+        variant="default"
+        onClick={onCancel}
+        style={{ flexShrink: 0 }}
+      >
+        Cancel
+      </Button>
+    </ToolbarHint>
   );
 }

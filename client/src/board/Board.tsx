@@ -60,6 +60,7 @@ import { TokenHoverCard } from "./tokens/TokenHoverCard";
 import { useTokenHover } from "./tokens/useTokenHover";
 import { heldTokensClip } from "./tokens/heldTokens";
 import { HeldTokensHint } from "./tokens/HeldTokensHint";
+import { ToolbarHint } from "./ToolbarHint";
 import { HeldTokensPreview } from "./tokens/HeldTokensPreview";
 import { isOnToken } from "./tokens/tokenNodes";
 import { Tokens } from "./tokens/Tokens";
@@ -113,6 +114,7 @@ interface BoardProps {
   ref: Ref<BoardHandle>;
   toolbarRef: Ref<HTMLDivElement>;
   toolbarEnd: ReactNode;
+  hint: ReactNode;
 }
 
 export function Board({
@@ -125,6 +127,7 @@ export function Board({
   ref,
   toolbarRef,
   toolbarEnd,
+  hint,
 }: BoardProps) {
   const room = useRoom();
   const player = usePlayer();
@@ -469,12 +472,15 @@ export function Board({
           }}
         />
       )}
-      {held && (
+      {/* Held tokens need their hint to be let go, so it goes first. */}
+      {held ? (
         <HeldTokensHint
           count={held.length}
           onCancel={() => setHeld(null)}
           axisShift={axisShift}
         />
+      ) : (
+        hint && <ToolbarHint axisShift={axisShift}>{hint}</ToolbarHint>
       )}
       <Toolbar
         ref={toolbarRef}

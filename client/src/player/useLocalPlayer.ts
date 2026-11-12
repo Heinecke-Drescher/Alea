@@ -2,8 +2,10 @@ import { useLocalStorage } from "@mantine/hooks";
 import { nanoid } from "nanoid";
 import { useState } from "react";
 import { defaultPlayerColor, isPlayerColor } from "../room/playerColors";
+import { randomPlayerName } from "./randomPlayerName";
 
 const PLAYER_ID_KEY = "alea-player-id";
+const PLAYER_NAME_KEY = "alea-player-name";
 
 // Names can change or repeat, so the DM role is tied to this id kept in the browser.
 function localPlayerId() {
@@ -16,9 +18,19 @@ function localPlayerId() {
 
 export function useLocalPlayer() {
   const [id] = useState(localPlayerId);
-  const [name, setName] = useLocalStorage({
-    key: "alea-player-name",
-    defaultValue: "",
+  const [isNameMissing] = useState(
+    () => localStorage.getItem(PLAYER_NAME_KEY) === null,
+  );
+  const [assignedName] = useState(randomPlayerName);
+  // Mantine stores the default on mount, so the assigned name stays the same in every room.
+  const [name, setStoredName] = useLocalStorage({
+    key: PLAYER_NAME_KEY,
+    defaultValue: assignedName,
+    getInitialValueInEffect: false,
+  });
+  const [isNameAssigned, setNameAssigned] = useLocalStorage({
+    key: "alea-player-name-assigned",
+    defaultValue: isNameMissing,
     getInitialValueInEffect: false,
   });
   const [storedColor, setColor] = useLocalStorage({
@@ -29,5 +41,19 @@ export function useLocalPlayer() {
   const pickedColor = isPlayerColor(storedColor) ? storedColor : null;
   const color = pickedColor ?? defaultPlayerColor(name);
 
-  return { id, name, color, pickedColor, setName, setColor };
+  function setName(newName: string) {
+    setStoredName(newName);
+    setNameAssigned(false);
+  }
+
+  return {
+    id,
+    name,
+    color,
+    pickedColor,
+    setName,
+    setColor,
+    isNameAssigned,
+    keepAssignedName: () => setNameAssigned(false),
+  };
 }
