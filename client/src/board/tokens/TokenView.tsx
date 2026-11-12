@@ -9,6 +9,7 @@ import { tokenMarks } from "../../room/marks";
 import type { Token } from "../../room/roomStore";
 import { CELL_SIZE } from "../../room/grid";
 import { rimmedImageBox } from "../../tokens/tokenRim";
+import { BrokenTokenImage } from "./BrokenTokenImage";
 import { SelectionRing, SelectionTint } from "./SelectionRing";
 import { TokenGrip } from "./TokenGrip";
 import { TokenRim } from "./TokenRim";
@@ -43,18 +44,14 @@ export function TokenView({
   const isGray = isOutOfFight(token);
 
   useEffect(() => {
+    if (!image) return;
     const node = imageRef.current;
     if (!node) throw new Error("Token image is not mounted");
-    if (!image) return;
     // Konva filters only work on cached nodes. Caching at the image's own
     // resolution keeps a zoomed-in token as sharp as without the filter.
     if (isGray) node.cache({ pixelRatio: image.width / imageBox.width });
     else node.clearCache();
   }, [image, imageBox.width, isGray]);
-
-  if (status === "failed") {
-    throw new Error(`Image of token "${token.name}" could not be loaded`);
-  }
 
   return (
     <Group
@@ -77,12 +74,17 @@ export function TokenView({
         offsetY={size / 2}
       >
         {isHighlighted && <SelectionRing size={size} />}
-        <Image
-          ref={imageRef}
-          image={image}
-          {...imageBox}
-          filters={isGray ? [Grayscale] : []}
-        />
+        {/* An image from a file or another player may be broken; the rest of the map keeps working. */}
+        {status === "failed" ? (
+          <BrokenTokenImage {...imageBox} />
+        ) : (
+          <Image
+            ref={imageRef}
+            image={image}
+            {...imageBox}
+            filters={isGray ? [Grayscale] : []}
+          />
+        )}
         <TokenRim size={size} />
         {isHighlighted && <SelectionTint size={size} />}
         <TokenBadges
