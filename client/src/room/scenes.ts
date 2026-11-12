@@ -137,9 +137,12 @@ export function createScenes(store: RoomStore) {
   }
 
   function renameScene(id: string, name: string) {
-    const { order } = knownScene(store, id);
+    const { name: current, order } = knownScene(store, id);
+    if (name === current) return;
     const { file } = scenesMap.get(id) as Partial<Scene>;
+    undoManager.stopCapturing();
     scenesMap.set(id, { name, order, ...(file !== undefined && { file }) });
+    undoManager.stopCapturing();
   }
 
   // One undo step, so undo brings back the scene that was on the map before.

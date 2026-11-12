@@ -45,6 +45,36 @@ function showSceneError(title: string, error: unknown) {
   });
 }
 
+// The name is written once at the end, so renaming is one undo step and Escape keeps the old name.
+function SceneNameInput({
+  name,
+  onDone,
+}: {
+  name: string;
+  onDone: (name: string | null) => void;
+}) {
+  const [draft, setDraft] = useState(name);
+  const isCancelled = useRef(false);
+
+  return (
+    <TextInput
+      value={draft}
+      onChange={(event) => setDraft(event.target.value)}
+      onBlur={() => onDone(isCancelled.current ? null : draft)}
+      onKeyDown={(event) => {
+        if (event.key === "Escape") isCancelled.current = true;
+        if (event.key === "Enter" || event.key === "Escape") {
+          event.currentTarget.blur();
+        }
+      }}
+      aria-label="Scene name"
+      size="xs"
+      w={140}
+      autoFocus
+    />
+  );
+}
+
 export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
   const room = useRoom();
   const dm = useDm();
@@ -109,6 +139,14 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
     setEditingId(tab === ONLY_SCENE ? room.saveOnlyScene() : tab.id);
   }
 
+  function rename(tab: SceneTab, name: string) {
+    try {
+      room.renameScene(tab.id, name);
+    } catch (error) {
+      showSceneError(`Could not rename ${sceneName(tab)}`, error);
+    }
+  }
+
   function confirmDelete(tab: SceneTab) {
     modals.openConfirmModal({
       title: "Delete scene",
@@ -158,22 +196,13 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
           <Tabs.List p={4} style={{ flexWrap: "nowrap" }}>
             {tabs.map((tab) =>
               tab.id === editingId ? (
-                <TextInput
+                <SceneNameInput
                   key={tab.id}
-                  value={tab.name}
-                  onChange={(event) =>
-                    room.renameScene(tab.id, event.target.value)
-                  }
-                  onBlur={() => setEditingId(null)}
-                  onKeyDown={(event) => {
-                    if (event.key === "Enter" || event.key === "Escape") {
-                      setEditingId(null);
-                    }
+                  name={tab.name}
+                  onDone={(name) => {
+                    setEditingId(null);
+                    if (name !== null) rename(tab, name);
                   }}
-                  aria-label="Scene name"
-                  size="xs"
-                  w={140}
-                  autoFocus
                 />
               ) : (
                 <Menu

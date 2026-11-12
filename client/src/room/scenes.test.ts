@@ -187,6 +187,23 @@ describe("scenes", () => {
     expect(room.scenesMap.get(id)?.file).toEqual(emptyMap());
   });
 
+  it("renames in its own undo step", () => {
+    const id = room.addScene();
+    room.renameScene(id, "Dungeon");
+    room.renameScene(id, "Crypt");
+    room.undoManager.undo();
+    expect(room.scenesMap.get(id)?.name).toBe("Dungeon");
+    room.undoManager.undo();
+    expect(room.scenesMap.get(id)?.name).toBe("Scene 2");
+  });
+
+  it("leaves no undo step when the name stays the same", () => {
+    const id = room.addScene();
+    const steps = room.undoManager.undoStack.length;
+    room.renameScene(id, "Scene 2");
+    expect(room.undoManager.undoStack.length).toBe(steps);
+  });
+
   it("gives an old room's map its scene entry for renaming", () => {
     fillMap();
     const before = room.exportMap();
