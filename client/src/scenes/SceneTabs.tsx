@@ -195,6 +195,8 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
                     >
                       <Tabs.Tab
                         value={tab.id}
+                        // Mantine gives its press effect to buttons, not tabs.
+                        className="mantine-active"
                         c={tab.name === "" ? "dimmed" : undefined}
                         rightSection={
                           tab.id === activeTabId ? (
