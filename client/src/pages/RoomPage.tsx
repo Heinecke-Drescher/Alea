@@ -42,6 +42,7 @@ import {
 } from "../dice/useCriticalRolls";
 import { RoomContext } from "../room/RoomContext";
 import { PlayerContext } from "../player/PlayerContext";
+import { FLOATING_GAP } from "../FloatingPanel";
 import { recordVisit } from "../recentRooms/useRecentRooms";
 import { useLocalPlayer } from "../player/useLocalPlayer";
 import { usePresenceBroadcast } from "../room/connection/usePresenceBroadcast";
@@ -292,8 +293,8 @@ function RoomView({ roomId }: { roomId: string }) {
                           tokenId={detailTokenId}
                           listArea={tokenListArea}
                           onClose={tokenDetail.hide}
-                          left={12}
-                          right={`calc(${SHEET_WIDTH} + 24px)`}
+                          left={FLOATING_GAP}
+                          right={`calc(${SHEET_WIDTH} + ${2 * FLOATING_GAP}px)`}
                           bottom={TOKENS_TOGGLE_SPACE}
                           mah="50%"
                         />

@@ -13,14 +13,13 @@ import { useLandscape } from "../theme";
 import { usePointerRaise } from "../usePointerRaise";
 import { DieButtons, SECRET_OUTLINE, SecretToggle } from "./DieButtons";
 import { HistoryArrow } from "./HistoryArrow";
-import { NewestRoll, RollHistory } from "./RollHistory";
-import { SecretRolls } from "./SecretRolls";
+import { AllRolls, NewestRoll } from "./RollHistory";
 import { useDice } from "./useDice";
 
 // Below the map on narrow screens, where the fitted map usually leaves room. In one row in
 // landscape, which has little height to spare.
 export function DiceBar() {
-  const { isSecret, secretRolls } = useDice();
+  const { isSecret } = useDice();
   const [isOpen, history] = useDisclosure();
   const isLandscape = useLandscape();
   const arrowRaise = usePointerRaise(false);
@@ -65,10 +64,7 @@ export function DiceBar() {
         size="70%"
         title="Rolls"
       >
-        <Stack>
-          {isSecret && <SecretRolls rolls={secretRolls} />}
-          <RollHistory />
-        </Stack>
+        <AllRolls />
       </Drawer>
     </Paper>
   );

@@ -3,6 +3,7 @@ import { motion } from "motion/react";
 import { rollColor } from "../room/rolls";
 import type { Roll } from "../room/roomStore";
 import { RollRow } from "./RollRow";
+import { SecretRolls } from "./SecretRolls";
 import { useDice } from "./useDice";
 
 function RollPlayer({ roll }: { roll: Roll }) {
@@ -77,7 +78,7 @@ export function NewestRoll({ compact = false }: { compact?: boolean }) {
   );
 }
 
-export function RollHistory() {
+function RollHistory() {
   const [lastRoll, ...olderRolls] = useDice().rolls;
   return (
     <Stack gap={4}>
@@ -85,6 +86,16 @@ export function RollHistory() {
       {olderRolls.map((olderRoll) => (
         <RollEntry key={olderRoll.id} roll={olderRoll} />
       ))}
+    </Stack>
+  );
+}
+
+export function AllRolls() {
+  const { isSecret, secretRolls } = useDice();
+  return (
+    <Stack>
+      {isSecret && <SecretRolls rolls={secretRolls} />}
+      <RollHistory />
     </Stack>
   );
 }

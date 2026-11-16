@@ -7,7 +7,7 @@ import { useImageFileDialog } from "../images/useImageFileDialog";
 import { MAP_IMAGE_KEY } from "../room/mapImage";
 import { useRoom } from "../room/RoomContext";
 import { useMapImage } from "../room/useMapImage";
-import { useCanSetMapImage } from "./useCanSetMapImage";
+import { useCanChangeMap } from "../player/useCanChangeMap";
 
 async function imageSize(file: File) {
   const bitmap = await createImageBitmap(file);
@@ -31,7 +31,7 @@ export function useMapImageFile(onSet: () => void) {
   });
 
   return {
-    canSet: useCanSetMapImage(),
+    canSet: useCanChangeMap(),
     hasMapImage: useMapImage() !== null,
     chooseMapImage,
     removeMapImage: room.removeMapImage,

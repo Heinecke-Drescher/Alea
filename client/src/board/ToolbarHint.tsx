@@ -1,6 +1,6 @@
 import { Group } from "@mantine/core";
 import type { ReactNode } from "react";
-import { FloatingPanel } from "../FloatingPanel";
+import { FLOATING_GAP, FloatingPanel } from "../FloatingPanel";
 import { TOOLBAR_SPACE } from "./Toolbar";
 
 interface ToolbarHintProps {
@@ -16,7 +16,7 @@ export function ToolbarHint({ axisShift, children }: ToolbarHintProps) {
       left={`calc(50% - ${axisShift}px)`}
       // Otherwise it may only use the width right of `left`, half the map, and squeezes its text.
       w="max-content"
-      maw="calc(100% - 24px)"
+      maw={`calc(100% - ${2 * FLOATING_GAP}px)`}
       p="xs"
       style={{ transform: "translateX(-50%)" }}
     >

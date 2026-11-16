@@ -1,6 +1,5 @@
 import type { IRect } from "konva/lib/types";
-
-const GAP = 12;
+import { FLOATING_GAP } from "../../FloatingPanel";
 
 interface CardPlacement {
   left: number;
@@ -16,15 +15,17 @@ export function hoverCardPlacement(
   view: { width: number; height: number },
   cardWidth: number,
 ): CardPlacement {
-  const right = token.x + token.width + GAP;
+  const right = token.x + token.width + FLOATING_GAP;
   const left = Math.max(
-    GAP,
-    right + cardWidth <= view.width - GAP ? right : token.x - GAP - cardWidth,
+    FLOATING_GAP,
+    right + cardWidth <= view.width - FLOATING_GAP
+      ? right
+      : token.x - FLOATING_GAP - cardWidth,
   );
   if (token.y + token.height / 2 <= view.height / 2) {
-    const top = Math.max(GAP, token.y);
-    return { left, top, maxHeight: view.height - top - GAP };
+    const top = Math.max(FLOATING_GAP, token.y);
+    return { left, top, maxHeight: view.height - top - FLOATING_GAP };
   }
-  const bottom = Math.max(GAP, view.height - token.y - token.height);
-  return { left, bottom, maxHeight: view.height - bottom - GAP };
+  const bottom = Math.max(FLOATING_GAP, view.height - token.y - token.height);
+  return { left, bottom, maxHeight: view.height - bottom - FLOATING_GAP };
 }

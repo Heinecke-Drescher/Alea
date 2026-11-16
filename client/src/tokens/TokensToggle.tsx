@@ -1,15 +1,14 @@
 import { Button } from "@mantine/core";
 import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
-import { FloatingPanel } from "../FloatingPanel";
+import {
+  FLOATING_BAR_SPACE,
+  FLOATING_BUTTON_HEIGHT,
+  FLOATING_GAP,
+  FLOATING_PADDING,
+  FloatingPanel,
+} from "../FloatingPanel";
 
-const EDGE_GAP = 12;
-// As high as the zoom buttons beside it.
-const BUTTON_HEIGHT = 34;
-const PADDING = 4;
-const BORDER = 1;
-// What the toggle takes from the lower edge of the map, with the same gap above it as below.
-export const TOKENS_TOGGLE_SPACE =
-  EDGE_GAP + BUTTON_HEIGHT + 2 * (PADDING + BORDER) + EDGE_GAP;
+export const TOKENS_TOGGLE_SPACE = FLOATING_BAR_SPACE;
 
 interface TokensToggleProps {
   isOpen: boolean;
@@ -20,14 +19,14 @@ export function TokensToggle({ isOpen, onToggle }: TokensToggleProps) {
   return (
     <FloatingPanel
       pos="absolute"
-      bottom={EDGE_GAP}
-      right={EDGE_GAP}
-      p={PADDING}
+      bottom={FLOATING_GAP}
+      right={FLOATING_GAP}
+      p={FLOATING_PADDING}
     >
       <Button
         variant="subtle"
         color="gray"
-        h={BUTTON_HEIGHT}
+        h={FLOATING_BUTTON_HEIGHT}
         px="xs"
         leftSection={
           isOpen ? <IconChevronDown size={18} /> : <IconChevronUp size={18} />

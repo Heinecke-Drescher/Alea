@@ -1,6 +1,6 @@
 import { Transition } from "@mantine/core";
 import type { ReactNode, Ref } from "react";
-import { FloatingPanel } from "../FloatingPanel";
+import { FLOATING_GAP, FloatingPanel } from "../FloatingPanel";
 import { TOKENS_TOGGLE_SPACE } from "./TokensToggle";
 
 // Keeps names readable on narrow phones, where half the map would leave too little.
@@ -28,10 +28,10 @@ export function TokenSheet({ isOpen, ref, children }: TokenSheetProps) {
         <FloatingPanel
           ref={ref}
           pos="absolute"
-          right={12}
+          right={FLOATING_GAP}
           // Leaves the left of the map free, so a token can be dragged sideways onto it.
           w={SHEET_WIDTH}
-          maw="calc(100% - 24px)"
+          maw={`calc(100% - ${2 * FLOATING_GAP}px)`}
           bottom={TOKENS_TOGGLE_SPACE}
           mah="50%"
           p="sm"

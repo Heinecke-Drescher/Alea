@@ -1,6 +1,10 @@
 import { ActionIcon, Divider, Group, Tooltip } from "@mantine/core";
 import { IconZoomIn, IconZoomOut, IconZoomScan } from "@tabler/icons-react";
-import { FloatingPanel } from "../FloatingPanel";
+import {
+  FLOATING_GAP,
+  FLOATING_PADDING,
+  FloatingPanel,
+} from "../FloatingPanel";
 import { UndoButtons } from "./UndoButtons";
 
 interface ViewControlsProps {
@@ -16,7 +20,12 @@ export function ViewControls({
 }: ViewControlsProps) {
   // The same place on every layout, as narrow ones keep the lower right corner for the tokens.
   return (
-    <FloatingPanel pos="absolute" bottom={12} left={12} p={4}>
+    <FloatingPanel
+      pos="absolute"
+      bottom={FLOATING_GAP}
+      left={FLOATING_GAP}
+      p={FLOATING_PADDING}
+    >
       <Group gap={4} wrap="nowrap">
         <UndoButtons />
         <Divider orientation="vertical" />

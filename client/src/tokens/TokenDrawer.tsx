@@ -2,14 +2,12 @@ import { Box, Stack, Text, Tooltip, UnstyledButton } from "@mantine/core";
 import { useLocalStorage } from "@mantine/hooks";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import type { ReactNode, Ref } from "react";
-import { FloatingPanel } from "../FloatingPanel";
+import { FLOATING_GAP, FloatingPanel } from "../FloatingPanel";
 import { NEUTRAL_HOVER } from "../theme";
 import { usePointerRaise } from "../usePointerRaise";
 
 export const TAB_WIDTH = 30;
 const TAB_HEIGHT = 160;
-// The drawer's column keeps this distance to the edge of the map view.
-const VIEW_GAP = 12;
 
 // Like a box of tokens next to the table: pulled out by its tab when needed, remembered per browser.
 interface TokenDrawerProps {
@@ -29,13 +27,13 @@ export function TokenDrawer({ onClose, ref, children }: TokenDrawerProps) {
   const tab = (
     <FloatingPanel
       pos="absolute"
-      top={VIEW_GAP}
+      top={FLOATING_GAP}
       w={TAB_WIDTH}
       // The whole tab is the button, so its panel shows the hover in its rounded shape.
       bg={tabRaise.isRaised ? NEUTRAL_HOVER : undefined}
       style={{
         // Open, it overlaps the drawer's border by a pixel, so both look like one piece.
-        ...(isOpen ? { left: 1 - TAB_WIDTH } : { right: -VIEW_GAP }),
+        ...(isOpen ? { left: 1 - TAB_WIDTH } : { right: -FLOATING_GAP }),
         pointerEvents: "auto",
         borderRight: "none",
         borderTopRightRadius: 0,
@@ -78,7 +76,7 @@ export function TokenDrawer({ onClose, ref, children }: TokenDrawerProps) {
       pos="relative"
       p="sm"
       // Shrinks in a low window, but keeps its title and its tab.
-      mih={TAB_HEIGHT + 2 * VIEW_GAP}
+      mih={TAB_HEIGHT + 2 * FLOATING_GAP}
       display="flex"
       style={{ pointerEvents: "auto" }}
     >

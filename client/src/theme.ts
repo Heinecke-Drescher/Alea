@@ -38,6 +38,7 @@ export const theme = createTheme({
     Menu: Menu.extend({ defaultProps: { radius: MENU_RADIUS } }),
     Popover: Popover.extend({ defaultProps: { radius: MENU_RADIUS } }),
     Modal: Modal.extend({
+      defaultProps: { centered: true },
       classNames: { root: classes.modalRoot, inner: classes.modalInner },
     }),
     Tooltip: Tooltip.extend({

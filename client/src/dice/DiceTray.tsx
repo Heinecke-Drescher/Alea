@@ -3,7 +3,6 @@ import {
   Group,
   Popover,
   ScrollArea,
-  Stack,
   Tooltip,
   UnstyledButton,
 } from "@mantine/core";
@@ -14,8 +13,7 @@ import { FloatingPanel } from "../FloatingPanel";
 import { usePointerRaise } from "../usePointerRaise";
 import { DieButtons, SECRET_OUTLINE, SecretToggle } from "./DieButtons";
 import { HistoryArrow } from "./HistoryArrow";
-import { NewestRoll, RollHistory } from "./RollHistory";
-import { SecretRolls } from "./SecretRolls";
+import { AllRolls, NewestRoll } from "./RollHistory";
 import { useDice } from "./useDice";
 
 const HISTORY_WIDTH = 280;
@@ -24,7 +22,6 @@ const HISTORY_HEIGHT = "min(480px, 60dvh)";
 
 // The newest roll below the tray. All rolls open beside the tray, so it keeps its size.
 function TrayHistory() {
-  const { isSecret, secretRolls } = useDice();
   const [isOpen, history] = useDisclosure();
   const arrowRaise = usePointerRaise(false);
   return (
@@ -63,10 +60,7 @@ function TrayHistory() {
         </Popover.Target>
         <Popover.Dropdown p="xs">
           <ScrollArea.Autosize mah={HISTORY_HEIGHT}>
-            <Stack>
-              {isSecret && <SecretRolls rolls={secretRolls} />}
-              <RollHistory />
-            </Stack>
+            <AllRolls />
           </ScrollArea.Autosize>
         </Popover.Dropdown>
       </Popover>

@@ -53,7 +53,6 @@ export function useDmControl(awareness: Awareness | null) {
   function confirmTakeOver(awayDm: DungeonMaster) {
     modals.openConfirmModal({
       title: "Take over DM",
-      centered: true,
       children: (
         <Text size="sm">
           {awayDm.name} is not in the room. Become the DM instead?

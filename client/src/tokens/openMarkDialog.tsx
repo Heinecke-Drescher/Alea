@@ -11,7 +11,6 @@ export function openMarkDialog(room: Room, tokenId: string, index?: number) {
   if (index !== undefined && !current) return;
   const modalId = modals.open({
     title: current ? "Edit mark" : "Add mark",
-    centered: true,
     children: (
       <MarkForm
         current={current ?? NEW_MARK}

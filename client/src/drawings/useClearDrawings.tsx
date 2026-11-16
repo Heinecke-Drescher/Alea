@@ -13,7 +13,6 @@ export function useClearDrawings() {
   function clearDrawings() {
     modals.openConfirmModal({
       title: "Clear drawings",
-      centered: true,
       children: (
         <Text size="sm">
           Remove all painted cells, lines and texts for everyone? Tokens stay.

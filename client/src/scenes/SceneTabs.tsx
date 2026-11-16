@@ -19,9 +19,8 @@ import {
 } from "@tabler/icons-react";
 import { useContextMenu } from "mantine-contextmenu";
 import { useEffect, useRef, useState } from "react";
-import { usePlayer } from "../player/PlayerContext";
+import { useCanChangeMap } from "../player/useCanChangeMap";
 import { useRoom } from "../room/RoomContext";
-import { useDm } from "../room/useDm";
 import { useY } from "../room/useY";
 import {
   ACTIVE_SCENE_KEY,
@@ -77,8 +76,7 @@ function SceneNameInput({
 
 export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
   const room = useRoom();
-  const dm = useDm();
-  const { isDm } = usePlayer();
+  const canChangeMap = useCanChangeMap();
   const { showContextMenu } = useContextMenu();
   const scenes = useY(room.scenesMap);
   const activeId = useY(room.activeSceneMap)[ACTIVE_SCENE_KEY];
@@ -99,7 +97,7 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
   }, [activeId]);
 
   // Players would see what the DM has prepared, so only the DM sees the scenes.
-  if (dm !== null && !isDm) {
+  if (!canChangeMap) {
     return (
       <Menu position="bottom-start" shadow="md">
         <Menu.Target>
@@ -146,7 +144,6 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
   function confirmDelete(tab: SceneTab) {
     modals.openConfirmModal({
       title: "Delete scene",
-      centered: true,
       children: (
         <Text size="sm">Delete {sceneName(tab)} and everything on it?</Text>
       ),

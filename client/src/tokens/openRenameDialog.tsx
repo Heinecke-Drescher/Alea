@@ -8,7 +8,6 @@ export function openRenameDialog(room: Room, tokenId: string) {
   if (!token) return;
   const modalId = modals.open({
     title: "Rename token",
-    centered: true,
     children: (
       <TokenTextForm
         label="Name"

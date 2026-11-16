@@ -15,7 +15,6 @@ export function openPlaceholderImageDialog(
 ) {
   const modalId = modals.open({
     title: "Placeholder image",
-    centered: true,
     children: (
       <PlaceholderForm
         initialColor={color}

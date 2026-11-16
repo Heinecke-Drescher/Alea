@@ -65,7 +65,7 @@ export function PlaceholderModal({ opened, onClose }: PlaceholderModalProps) {
   const player = usePlayer();
   const holdTokens = useHoldTokens();
   return (
-    <Modal opened={opened} onClose={onClose} title="Add placeholders" centered>
+    <Modal opened={opened} onClose={onClose} title="Add placeholders">
       <PlaceholderForm
         initialColor={player.color}
         forOneToken={false}

@@ -22,7 +22,7 @@ export function PlayerNameModal({
   onCancel,
 }: PlayerNameModalProps) {
   return (
-    <Modal opened={opened} onClose={onCancel} title="Who are you?" centered>
+    <Modal opened={opened} onClose={onCancel} title="Who are you?">
       <PlayerForm
         currentName={currentName}
         currentColor={currentColor}

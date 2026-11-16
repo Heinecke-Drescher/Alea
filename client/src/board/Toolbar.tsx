@@ -28,7 +28,12 @@ import {
   IconSquare,
   type Icon,
 } from "@tabler/icons-react";
-import { FloatingPanel } from "../FloatingPanel";
+import {
+  FLOATING_BAR_SPACE,
+  FLOATING_GAP,
+  FLOATING_PADDING,
+  FloatingPanel,
+} from "../FloatingPanel";
 import { usePlayer } from "../player/PlayerContext";
 import { PAINT_COLORS, paintColorValue, type PaintColor } from "./paintColors";
 import type { TextFontSize } from "../room/texts";
@@ -37,14 +42,7 @@ import type { Tool } from "./tools/tool";
 import type { ReactNode, Ref } from "react";
 import { useWideLayout } from "../theme";
 
-const EDGE_GAP = 12;
-// Mantine's ActionIcon of size "lg".
-const BUTTON_HEIGHT = 34;
-const PADDING = 4;
-const BORDER = 1;
-// What the toolbar takes from the upper edge of the map, with the same gap below it as above.
-export const TOOLBAR_SPACE =
-  EDGE_GAP + BUTTON_HEIGHT + 2 * (PADDING + BORDER) + EDGE_GAP;
+export const TOOLBAR_SPACE = FLOATING_BAR_SPACE;
 
 interface ToolButton {
   tool: Tool;
@@ -169,10 +167,10 @@ export function Toolbar({
     <FloatingPanel
       ref={ref}
       pos="absolute"
-      top={EDGE_GAP}
+      top={FLOATING_GAP}
       left={`calc(50% - ${axisShift}px)`}
       style={{ transform: "translateX(-50%)" }}
-      p={PADDING}
+      p={FLOATING_PADDING}
     >
       <Tooltip.Group>
         <Group gap={4} wrap="nowrap">

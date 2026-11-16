@@ -2,11 +2,10 @@ import { Text } from "@mantine/core";
 import { useFileDialog } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
 import { notifyError } from "../notifyError";
-import { usePlayer } from "../player/PlayerContext";
+import { useCanChangeMap } from "../player/useCanChangeMap";
 import type { Room } from "../room/createRoom";
 import { useRoom } from "../room/RoomContext";
 import { checkMapFileSize, parseMapFile, type MapFile } from "../room/roomFile";
-import { useDm } from "../room/useDm";
 
 function downloadMap(room: Room) {
   const json = JSON.stringify(room.exportMap());
@@ -24,7 +23,6 @@ function downloadMap(room: Room) {
 function confirmImport(onConfirm: () => void) {
   modals.openConfirmModal({
     title: "Import map",
-    centered: true,
     children: <Text size="sm">Replace the map for everyone?</Text>,
     labels: { confirm: "Replace map", cancel: "Cancel" },
     confirmProps: { color: "red" },
@@ -34,8 +32,7 @@ function confirmImport(onConfirm: () => void) {
 
 export function useMapFiles() {
   const room = useRoom();
-  const dm = useDm();
-  const { isDm } = usePlayer();
+  const canImport = useCanChangeMap();
   const fileDialog = useFileDialog({
     multiple: false,
     accept: ".json,application/json",
@@ -66,7 +63,7 @@ export function useMapFiles() {
   }
 
   return {
-    canImport: dm === null || isDm,
+    canImport,
     exportMap: () => downloadMap(room),
     importMap: fileDialog.open,
   };

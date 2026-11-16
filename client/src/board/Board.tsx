@@ -20,7 +20,7 @@ import { Layer, Stage } from "react-konva";
 import type { Critical } from "../dice/criticalRoll";
 import type { ScreenSample } from "../useScreenDrag";
 import type { DieSides } from "../room/dice";
-import { useCanAlignMapImage } from "../mapImage/useCanSetMapImage";
+import { useCanAlignMapImage } from "../mapImage/useCanAlignMapImage";
 import { usePlayer } from "../player/PlayerContext";
 import type { Awareness } from "../room/connection/connectRoom";
 import { useRoom } from "../room/RoomContext";
