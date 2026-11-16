@@ -8,8 +8,7 @@ import { emptyMap } from "./roomFile";
 import { OUTSIDE_UNDO } from "./roomStore";
 import { ACTIVE_SCENE_KEY, FIRST_SCENE_NAME, sceneTabs } from "./scenes";
 import { TEXT_FONT_SIZES } from "./texts";
-
-const IMAGE = "data:image/webp;base64,AAAA";
+import { IMAGE } from "./testRoom";
 
 let room: Room;
 

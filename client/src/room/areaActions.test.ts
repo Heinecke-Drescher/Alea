@@ -3,10 +3,11 @@ import * as Y from "yjs";
 import { NO_ITEMS } from "./areaActions";
 import { createRoom, type Room } from "./createRoom";
 import { isClosed, isOverFog } from "./drawing";
-import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
+import { CELL_SIZE, DEFAULT_MAP_BOUNDS, mapRect } from "./grid";
 import type { MapTextData } from "./roomStore";
 import type { AreaShape } from "./shapes";
 import { TEXT_FONT_SIZES } from "./texts";
+import { IMAGE, moveOnlyTokenTo, only } from "./testRoom";
 
 const TRAP: MapTextData = {
   text: "Trap",
@@ -18,7 +19,6 @@ const TRAP: MapTextData = {
   fontSize: TEXT_FONT_SIZES.M,
 };
 
-const IMAGE = "data:image/webp;base64,AAAA";
 const SQUARE: AreaShape = {
   kind: "square",
   from: { x: 0, y: 0 },
@@ -49,18 +49,7 @@ function strokeOf(id: string | undefined) {
 }
 
 function onlyToken() {
-  const [token] = room.tokensMap.values();
-  if (!token) throw new Error("Expected a token");
-  return token;
-}
-
-function moveOnlyTokenTo(x: number, y: number) {
-  const token = onlyToken();
-  room.moveItems(
-    { strokes: [], tokens: [token.id], texts: [] },
-    (x - token.x) * CELL_SIZE,
-    (y - token.y) * CELL_SIZE,
-  );
+  return only(room.tokensMap.values());
 }
 
 describe("texts in area actions", () => {
@@ -132,12 +121,7 @@ describe("texts in area actions", () => {
 });
 
 describe("moveArea", () => {
-  const cellArea = (x: number, y: number, width: number, height: number) => ({
-    x: x * CELL_SIZE,
-    y: y * CELL_SIZE,
-    width: width * CELL_SIZE,
-    height: height * CELL_SIZE,
-  });
+  const oneCell = mapRect({ x: 1, y: 1, columns: 1, rows: 1 });
 
   it("moves the cells inside the area", () => {
     room.paintCell(1, 1, "#ff0000");
@@ -156,7 +140,7 @@ describe("moveArea", () => {
   it("paints over cells at the destination", () => {
     room.paintCell(1, 1, "#ff0000");
     room.paintCell(2, 1, "#00ff00");
-    room.moveArea(cellArea(1, 1, 1, 1), 1, 0);
+    room.moveArea(oneCell, 1, 0);
     expect(room.cellsMap.toJSON()).toEqual({
       "2,1": { x: 2, y: 1, color: "#ff0000" },
     });
@@ -165,7 +149,7 @@ describe("moveArea", () => {
   it("moves tokens the area reaches into and keeps them on the map", () => {
     room.addToken("Dragon", IMAGE, { x: 0, y: 0 });
     room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
-    room.moveArea(cellArea(1, 1, 1, 1), columns, 2);
+    room.moveArea(oneCell, columns, 2);
     expect(onlyToken()).toMatchObject({ x: columns - 3, y: 2 });
   });
 
@@ -175,7 +159,7 @@ describe("moveArea", () => {
     room.addStroke("#00ff00", [200, 200, 250, 250]);
     const [inner, crossing, outer] = room.strokesMap.keys();
     if (!inner || !crossing || !outer) throw new Error("Expected 3 strokes");
-    room.moveArea(cellArea(1, 1, 1, 1), 1, 0);
+    room.moveArea(oneCell, 1, 0);
     expect(room.strokesMap.get(inner)?.points).toEqual([110, 60, 140, 90]);
     expect(room.strokesMap.get(crossing)?.points).toEqual([50, 75, 200, 75]);
     expect(room.strokesMap.get(outer)?.points).toEqual([200, 200, 250, 250]);
@@ -185,9 +169,9 @@ describe("moveArea", () => {
     room.paintCell(1, 1, "#ff0000");
     room.addStroke("#000000", [0, 75, 150, 75]);
     room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
-    moveOnlyTokenTo(1, 1);
+    moveOnlyTokenTo(room, 1, 1);
     const before = room.doc.toJSON();
-    room.moveArea(cellArea(1, 1, 1, 1), 2, 2);
+    room.moveArea(oneCell, 2, 2);
     room.undoManager.undo();
     expect(room.doc.toJSON()).toEqual(before);
   });
@@ -209,8 +193,7 @@ describe("moveItems", () => {
   it("moves strokes and tokens together in a single undo step", () => {
     room.addStroke("#000000", [10, 10, 20, 20]);
     room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
-    const [strokeId] = room.strokesMap.keys();
-    if (!strokeId) throw new Error("Expected a stroke");
+    const strokeId = only(room.strokesMap.keys());
     const before = room.doc.toJSON();
     const tokenId = onlyToken().id;
     room.moveItems(
@@ -232,8 +215,7 @@ describe("moveItems", () => {
 
   it("skips items that were removed in the meantime", () => {
     room.addStroke("#000000", [10, 10, 20, 20]);
-    const [id] = room.strokesMap.keys();
-    if (!id) throw new Error("Expected a stroke");
+    const id = only(room.strokesMap.keys());
     room.moveItems(strokes([id, "gone"]), 5, 5);
     expect(room.strokesMap.size).toBe(1);
     expect(room.strokesMap.get(id)?.points).toEqual([15, 15, 25, 25]);
@@ -288,8 +270,7 @@ describe("copy, paste and delete", () => {
 
   it("pastes copied strokes by pixels", () => {
     room.addStroke("#000000", [10, 10, 20, 20]);
-    const [id] = room.strokesMap.keys();
-    if (!id) throw new Error("Expected a stroke");
+    const id = only(room.strokesMap.keys());
     const clip = room.copyItems({ strokes: [id], tokens: [], texts: [] });
     const [copyId] = room.paste(clip, 7, 3).strokes;
     if (!copyId) throw new Error("Expected a pasted stroke");
@@ -336,8 +317,7 @@ describe("copy, paste and delete", () => {
 
   it("marks pasted strokes by the one who pastes and keeps the mark when moved", () => {
     room.addStroke("#000000", [10, 10, 20, 20], true);
-    const [id] = room.strokesMap.keys();
-    if (!id) throw new Error("Expected a stroke");
+    const id = only(room.strokesMap.keys());
     const clip = room.copyItems({ strokes: [id], tokens: [], texts: [] });
     const [belowId] = room.paste(clip, 5, 5).strokes;
     const [aboveId] = room.paste(clip, 5, 5, true).strokes;

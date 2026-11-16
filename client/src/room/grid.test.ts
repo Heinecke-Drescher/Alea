@@ -5,19 +5,13 @@ import {
   clampCellToMap,
   clampToMap,
   dropCells,
+  mapRect,
   MAX_MAP_CELLS,
   MIN_MAP_CELLS,
   nearestFreeSquare,
   snapMapBounds,
   snapToCorner,
 } from "./grid";
-
-const box = (x: number, y: number, width: number, height: number) => ({
-  x: x * CELL_SIZE,
-  y: y * CELL_SIZE,
-  width: width * CELL_SIZE,
-  height: height * CELL_SIZE,
-});
 
 describe("cellsAlong", () => {
   const at = (x: number, y: number) => ({
@@ -111,7 +105,12 @@ describe("snapMapBounds", () => {
   });
 
   it("keeps the right edge when the left edge hits the minimum", () => {
-    expect(snapMapBounds(box(28, 0, 2, 20), "middle-left")).toEqual({
+    expect(
+      snapMapBounds(
+        mapRect({ x: 28, y: 0, columns: 2, rows: 20 }),
+        "middle-left",
+      ),
+    ).toEqual({
       x: 30 - MIN_MAP_CELLS,
       y: 0,
       columns: MIN_MAP_CELLS,
@@ -120,7 +119,12 @@ describe("snapMapBounds", () => {
   });
 
   it("keeps the top edge when the bottom edge hits the maximum", () => {
-    expect(snapMapBounds(box(0, -3, 30, 200), "bottom-center")).toEqual({
+    expect(
+      snapMapBounds(
+        mapRect({ x: 0, y: -3, columns: 30, rows: 200 }),
+        "bottom-center",
+      ),
+    ).toEqual({
       x: 0,
       y: -3,
       columns: 30,

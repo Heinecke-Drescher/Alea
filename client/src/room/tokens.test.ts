@@ -1,10 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
-import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
+import { DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
 import { embeddedImage } from "./tokens";
+import { IMAGE, moveOnlyTokenTo, only } from "./testRoom";
 
-const IMAGE = "data:image/webp;base64,AAAA";
 const { columns, rows } = DEFAULT_MAP_BOUNDS;
 
 let room: Room;
@@ -20,18 +20,7 @@ function tokenOf(id: string | undefined) {
 }
 
 function onlyToken() {
-  const [token] = room.tokensMap.values();
-  if (!token) throw new Error("Expected a token");
-  return token;
-}
-
-function moveOnlyTokenTo(x: number, y: number) {
-  const token = onlyToken();
-  room.moveItems(
-    { strokes: [], tokens: [token.id], texts: [] },
-    (x - token.x) * CELL_SIZE,
-    (y - token.y) * CELL_SIZE,
-  );
+  return only(room.tokensMap.values());
 }
 
 describe("addToken", () => {
@@ -72,7 +61,7 @@ describe("changing tokens", () => {
 
   it("resizes a token to a new place and size in a single undo step", () => {
     room.addToken("Dragon", IMAGE, { x: 0, y: 0 });
-    moveOnlyTokenTo(5, 5);
+    moveOnlyTokenTo(room, 5, 5);
     const before = room.doc.toJSON();
     room.resizeToken(onlyToken().id, { x: 3, y: 4, size: 3 });
     expect(onlyToken()).toMatchObject({ x: 3, y: 4, size: 3 });
@@ -82,7 +71,7 @@ describe("changing tokens", () => {
 
   it("keeps a resized token inside the map", () => {
     room.addToken("Dragon", IMAGE, { x: 0, y: 0 });
-    moveOnlyTokenTo(columns - 1, rows - 1);
+    moveOnlyTokenTo(room, columns - 1, rows - 1);
     room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
     expect(onlyToken()).toMatchObject({
       size: 3,

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { heldTokensClip } from "./heldTokens";
-
-const IMAGE = "data:image/webp;base64,AAAA";
+import { IMAGE } from "../../room/testRoom";
 
 function positions(count: number) {
   const tokens = Array.from({ length: count }, (_, i) => ({

@@ -16,8 +16,8 @@ import {
 import { megabytes } from "./roomSpace";
 import type { AreaShape } from "./shapes";
 import { TEXT_FONT_SIZES } from "./texts";
+import { IMAGE, only } from "./testRoom";
 
-const IMAGE = "data:image/webp;base64,AAAA";
 const PLACE = { x: 0, y: 0, width: 1000, height: 750, rotation: 0 };
 const TEXT = {
   text: "Trap",
@@ -53,8 +53,7 @@ function fillRoom(target: Room) {
   target.addStroke("#00ff00", [5, 5, 20, 20], true);
   target.addShape("#0000ff", SQUARE, false);
   target.addToken("Goblin", IMAGE, { x: 3, y: 2 });
-  const [token] = target.tokensMap.values();
-  if (!token) throw new Error("Expected a token");
+  const token = only(target.tokensMap.values());
   target.toggleEffect(token.id, "dead");
   target.setBackground(IMAGE);
   target.hideCells({ x: 0, y: 0 }, { x: 1, y: 0 });
@@ -104,8 +103,7 @@ describe("map files", () => {
 
   it("brings a token's marks into another room", () => {
     fillRoom(room);
-    const [token] = room.tokensMap.values();
-    if (!token) throw new Error("Expected a token");
+    const token = only(room.tokensMap.values());
     room.addMark(token.id, { ...NEW_MARK, text: "Bloodied" });
     room.addMark(token.id, { ...NEW_MARK, text: "" });
     const file = parseMapFile(JSON.stringify(room.exportMap()));
@@ -120,8 +118,7 @@ describe("map files", () => {
 
   it("exports no marks that another player's data holds wrongly", () => {
     fillRoom(room);
-    const [token] = room.tokensMap.values();
-    if (!token) throw new Error("Expected a token");
+    const token = only(room.tokensMap.values());
     room.tokensMap.set(token.id, { ...token, marks: [3] } as never);
     expect(room.exportMap().tokens[0]).not.toHaveProperty("marks");
   });

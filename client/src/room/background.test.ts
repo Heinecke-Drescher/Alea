@@ -2,8 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { BACKGROUND_IMAGE_ID } from "./background";
 import { createRoom, type Room } from "./createRoom";
-
-const IMAGE = "data:image/webp;base64,AAAA";
+import { IMAGE } from "./testRoom";
 
 let room: Room;
 

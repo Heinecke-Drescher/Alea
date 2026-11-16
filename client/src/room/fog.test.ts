@@ -8,7 +8,7 @@ import {
   rectTouchesFog,
   type FogView,
 } from "./fog";
-import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
+import { DEFAULT_MAP_BOUNDS, mapRect } from "./grid";
 
 const { columns, rows } = DEFAULT_MAP_BOUNDS;
 
@@ -28,13 +28,6 @@ function fogView(): FogView {
 function fogged() {
   return foggedCells(fogView());
 }
-
-const cells = (x: number, y: number, width: number, height: number) => ({
-  x: x * CELL_SIZE,
-  y: y * CELL_SIZE,
-  width: width * CELL_SIZE,
-  height: height * CELL_SIZE,
-});
 
 describe("fog of war", () => {
   it("hides nothing at first", () => {
@@ -69,8 +62,12 @@ describe("fog of war", () => {
 
   it("tells whether a rectangle in pixels touches a fogged cell", () => {
     room.hideCells({ x: 3, y: 1 }, { x: 3, y: 2 });
-    expect(rectTouchesFog(fogView(), cells(1, 1, 2, 2))).toBe(false);
-    expect(rectTouchesFog(fogView(), cells(1, 1, 3, 2))).toBe(true);
+    expect(
+      rectTouchesFog(fogView(), mapRect({ x: 1, y: 1, columns: 2, rows: 2 })),
+    ).toBe(false);
+    expect(
+      rectTouchesFog(fogView(), mapRect({ x: 1, y: 1, columns: 3, rows: 2 })),
+    ).toBe(true);
     expect(
       rectTouchesFog(fogView(), { x: 140, y: 60, width: 5, height: 5 }),
     ).toBe(false);
@@ -95,6 +92,8 @@ describe("fog of war", () => {
   it("never fogs cells off the map", () => {
     room.hideCells({ x: -3, y: 0 }, { x: -1, y: 0 });
     expect(fogged()).toEqual([]);
-    expect(rectTouchesFog(fogView(), cells(-3, 0, 3, 1))).toBe(false);
+    expect(
+      rectTouchesFog(fogView(), mapRect({ x: -3, y: 0, columns: 3, rows: 1 })),
+    ).toBe(false);
   });
 });

@@ -3,8 +3,8 @@ import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
 import { hasShapes, isClosed, isOverFog } from "./drawing";
 import type { AreaShape } from "./shapes";
+import { IMAGE, only } from "./testRoom";
 
-const IMAGE = "data:image/webp;base64,AAAA";
 const SQUARE: AreaShape = {
   kind: "square",
   from: { x: 0, y: 0 },
@@ -31,8 +31,7 @@ describe("drawing", () => {
 
   it("adds and removes strokes", () => {
     room.addStroke("#000000", [0, 0, 10, 10]);
-    const [stroke] = room.strokesMap.values();
-    if (!stroke) throw new Error("Expected a stroke");
+    const stroke = only(room.strokesMap.values());
     expect(stroke).toMatchObject({ color: "#000000", points: [0, 0, 10, 10] });
     room.removeStroke(stroke.id);
     expect(room.strokesMap.size).toBe(0);
@@ -69,8 +68,7 @@ describe("drawing", () => {
 
   it("refuses to reshape lines and to shrink shapes to nothing", () => {
     room.addStroke("#000000", [0, 0, 10, 10]);
-    const [lineId] = room.strokesMap.keys();
-    if (!lineId) throw new Error("Expected a stroke");
+    const lineId = only(room.strokesMap.keys());
     expect(() => room.reshapeStroke(lineId, { x: 50, y: 50 })).toThrow();
     const id = room.addShape("#000000", SQUARE, false);
     expect(() => room.reshapeStroke(id, SQUARE.from)).toThrow();

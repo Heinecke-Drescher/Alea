@@ -2,8 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
-
-const IMAGE = "data:image/webp;base64,AAAA";
+import { IMAGE, moveOnlyTokenTo, only } from "./testRoom";
 
 let room: Room;
 
@@ -12,18 +11,7 @@ beforeEach(() => {
 });
 
 function onlyToken() {
-  const [token] = room.tokensMap.values();
-  if (!token) throw new Error("Expected a token");
-  return token;
-}
-
-function moveOnlyTokenTo(x: number, y: number) {
-  const token = onlyToken();
-  room.moveItems(
-    { strokes: [], tokens: [token.id], texts: [] },
-    (x - token.x) * CELL_SIZE,
-    (y - token.y) * CELL_SIZE,
-  );
+  return only(room.tokensMap.values());
 }
 
 describe("map bounds", () => {
@@ -60,7 +48,7 @@ describe("map bounds", () => {
     room.eraseCell(10, 0);
 
     room.addToken("Ogre", IMAGE, { x: 0, y: 0 });
-    moveOnlyTokenTo(0, 8);
+    moveOnlyTokenTo(room, 0, 8);
     room.resizeToken(onlyToken().id, { ...onlyToken(), size: 3 });
     expect(room.resize(bounds(0, 0, 30, 10))).toBe(false);
     expect(room.resize(bounds(0, 9, 30, 11))).toBe(false);
@@ -84,7 +72,7 @@ describe("map bounds", () => {
     room.resize(bounds(-10, 0, 40, 20));
     room.addToken("Ogre", IMAGE, { x: -10, y: 0 });
     expect(onlyToken()).toMatchObject({ x: -10, y: 0 });
-    moveOnlyTokenTo(29, 0);
+    moveOnlyTokenTo(room, 29, 0);
     room.resizeToken(onlyToken().id, { ...onlyToken(), size: 2 });
     expect(onlyToken()).toMatchObject({ x: 28, y: 0 });
   });

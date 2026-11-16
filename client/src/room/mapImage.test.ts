@@ -9,8 +9,7 @@ import {
   turnedClockwise,
   validMapImage,
 } from "./mapImage";
-
-const IMAGE = "data:image/webp;base64,AAAA";
+import { IMAGE } from "./testRoom";
 
 let room: Room;
 

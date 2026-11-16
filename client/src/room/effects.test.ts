@@ -3,8 +3,7 @@ import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
 import { tokenEffects } from "./effects";
 import type { Token } from "./roomStore";
-
-const IMAGE = "data:image/webp;base64,AAAA";
+import { IMAGE, only } from "./testRoom";
 
 let room: Room;
 
@@ -19,9 +18,7 @@ function tokenOf(id: string | undefined) {
 }
 
 function onlyToken() {
-  const [token] = room.tokensMap.values();
-  if (!token) throw new Error("Expected a token");
-  return token;
+  return only(room.tokensMap.values());
 }
 
 describe("status effects", () => {

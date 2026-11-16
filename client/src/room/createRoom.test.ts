@@ -1,9 +1,8 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
-import { CELL_SIZE } from "./grid";
 import { createRoom, type Room } from "./createRoom";
+import { IMAGE, moveOnlyTokenTo, only } from "./testRoom";
 
-const IMAGE = "data:image/webp;base64,AAAA";
 const SPOT = { x: 120, y: 80 };
 
 let room: Room;
@@ -13,18 +12,7 @@ beforeEach(() => {
 });
 
 function onlyToken() {
-  const [token] = room.tokensMap.values();
-  if (!token) throw new Error("Expected a token");
-  return token;
-}
-
-function moveOnlyTokenTo(x: number, y: number) {
-  const token = onlyToken();
-  room.moveItems(
-    { strokes: [], tokens: [token.id], texts: [] },
-    (x - token.x) * CELL_SIZE,
-    (y - token.y) * CELL_SIZE,
-  );
+  return only(room.tokensMap.values());
 }
 
 describe("undo and redo", () => {
@@ -67,7 +55,7 @@ describe("undo and redo", () => {
     const sync = (from: Room, to: Room) =>
       Y.applyUpdate(to.doc, Y.encodeStateAsUpdate(from.doc), "remote");
     room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
-    moveOnlyTokenTo(5, 5);
+    moveOnlyTokenTo(room, 5, 5);
     sync(room, other);
     other.removeToken(onlyToken().id);
     sync(other, room);

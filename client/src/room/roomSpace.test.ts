@@ -6,6 +6,7 @@ import { createRoom, type Room } from "./createRoom";
 import { MAP_IMAGE_KEY } from "./mapImage";
 import { megabytes, ROOM_SPACE_BYTES } from "./roomSpace";
 import { OUTSIDE_UNDO } from "./roomStore";
+import { only } from "./testRoom";
 
 function imageOf(bytes: number) {
   return `data:image/webp;base64,${"A".repeat(bytes)}`;
@@ -27,9 +28,7 @@ function fillOutsideUndo(image: string) {
 }
 
 function onlyTokenId() {
-  const [id] = room.tokensMap.keys();
-  if (!id) throw new Error("No token in the room");
-  return id;
+  return only(room.tokensMap.keys());
 }
 
 describe("room space", () => {
@@ -111,8 +110,7 @@ describe("room space when copying tokens", () => {
 
   it("pastes strokes into a full room", () => {
     room.addStroke("#000", [0, 0, 10, 10]);
-    const [strokeId] = room.strokesMap.keys();
-    if (!strokeId) throw new Error("No stroke in the room");
+    const strokeId = only(room.strokesMap.keys());
     fillOutsideUndo(TWO_MB);
     const clip = room.copyItems({ strokes: [strokeId], tokens: [], texts: [] });
     expect(() => room.paste(clip, 10, 0)).not.toThrow();
