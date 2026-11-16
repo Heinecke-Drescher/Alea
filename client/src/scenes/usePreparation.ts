@@ -45,11 +45,7 @@ export function usePreparation(live: Room, playerId: string) {
         if (shownToPlayers.current !== preparation) {
           notifyEnded("The scene was deleted or put on the map.");
         }
-      } else if (
-        dm !== null &&
-        dm.playerId !== playerId &&
-        saveNow(preparation)
-      ) {
+      } else if (dm?.playerId !== playerId && saveNow(preparation)) {
         setPreparation(null);
         notifyEnded("Only the DM can prepare scenes.");
       }

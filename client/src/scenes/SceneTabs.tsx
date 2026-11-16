@@ -13,6 +13,7 @@ import { modals } from "@mantine/modals";
 import { notifyError } from "../notifyError";
 import {
   IconChevronDown,
+  IconCrown,
   IconEye,
   IconPencil,
   IconPlus,
@@ -20,7 +21,9 @@ import {
 } from "@tabler/icons-react";
 import { useContextMenu } from "mantine-contextmenu";
 import { useEffect, useRef, useState } from "react";
+import { usePlayer } from "../player/PlayerContext";
 import { useCanChangeMap } from "../player/useCanChangeMap";
+import { useDm } from "../room/useDm";
 import { useSharedRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import {
@@ -92,6 +95,8 @@ export function SceneTabs({
 }: SceneTabsProps) {
   const room = useSharedRoom();
   const canChangeMap = useCanChangeMap();
+  const dm = useDm();
+  const player = usePlayer();
   const { showContextMenu } = useContextMenu();
   const scenes = useY(room.scenesMap);
   const activeId = useY(room.activeSceneMap)[ACTIVE_SCENE_KEY];
@@ -127,6 +132,20 @@ export function SceneTabs({
           </Button>
         </Menu.Target>
         <Menu.Dropdown>
+          {/* Without it, a group without a DM would not find the scenes. */}
+          {dm === null && player.name !== "" && (
+            <>
+              <Menu.Item
+                leftSection={<IconCrown size={16} />}
+                onClick={() =>
+                  room.becomeDm({ playerId: player.id, name: player.name })
+                }
+              >
+                Become DM to change scenes
+              </Menu.Item>
+              <Menu.Divider />
+            </>
+          )}
           <MapMenuItems actions={mapActions} />
         </Menu.Dropdown>
       </Menu>
