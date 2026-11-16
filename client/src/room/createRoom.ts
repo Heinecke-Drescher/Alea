@@ -9,7 +9,7 @@ import { createMapImage } from "./mapImage";
 import { createMusic } from "./music";
 import { createRolls } from "./rolls";
 import { createMapFiles } from "./roomFile";
-import { createRoomSpace } from "./roomSpace";
+import { createRoomSpace, docMeter, type SpaceMeter } from "./roomSpace";
 import { createRoomStore } from "./roomStore";
 import { createScenes } from "./scenes";
 import { createTexts } from "./texts";
@@ -17,8 +17,8 @@ import { createTokens } from "./tokens";
 
 export type Room = ReturnType<typeof createRoom>;
 
-export function createRoom(doc: Y.Doc) {
-  const store = createRoomStore(doc);
+export function createRoom(doc: Y.Doc, meter: SpaceMeter = docMeter(doc)) {
+  const store = createRoomStore(doc, meter);
   const map = createMapActions(store);
   return {
     ...store,

@@ -6,6 +6,7 @@ import type { StatusEffect } from "./effects";
 import type { MapImagePlace } from "./mapImage";
 import type { Mark } from "./marks";
 import type { PlayerColor } from "./playerColors";
+import type { SpaceMeter } from "./roomSpace";
 import type { AreaShape } from "./shapes";
 import { isRecord } from "./typeGuards";
 
@@ -107,7 +108,7 @@ export function validValues<V, T>(
 // Changes made with this origin stay out of undo.
 export const OUTSIDE_UNDO = Symbol("outside undo");
 
-export function createRoomStore(doc: Y.Doc) {
+export function createRoomStore(doc: Y.Doc, meter: SpaceMeter) {
   // These hold what other players wrote, so they are read only through `validToken`,
   // `validCell`, `validStroke`, `validMapBounds` and `validRoll`.
   const tokensMap = doc.getMap<unknown>("tokens");
@@ -160,6 +161,7 @@ export function createRoomStore(doc: Y.Doc) {
 
   return {
     doc,
+    meter,
     tokensMap,
     imagesMap,
     cellsMap,

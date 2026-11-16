@@ -37,12 +37,7 @@ import {
   type TokenData,
   validValues,
 } from "./roomStore";
-import {
-  megabytes,
-  ROOM_SPACE_BYTES,
-  RoomSpaceError,
-  storedBytesAfter,
-} from "./roomSpace";
+import { assertRoomFits, megabytes } from "./roomSpace";
 import { textData, validMapText } from "./texts";
 import { embeddedImage, newToken, tokenData, validToken } from "./tokens";
 import { isRecord } from "./typeGuards";
@@ -286,13 +281,12 @@ export function exportMap(store: RoomStore): MapFile {
 }
 
 export function createMapFiles(store: RoomStore) {
-  const { doc, undoManager } = store;
+  const { meter, undoManager } = store;
 
   function assertSpaceForMap(file: MapFile) {
-    const bytes = storedBytesAfter(doc, (copy) => writeMap(copy, file));
-    if (bytes <= ROOM_SPACE_BYTES) return;
-    throw new RoomSpaceError(
-      `With this map the room would need ${megabytes(bytes)} MB, but it can hold at most ${megabytes(ROOM_SPACE_BYTES)} MB. Use smaller or fewer images.`,
+    assertRoomFits(
+      meter.bytesAfter((copy) => writeMap(copy, file)),
+      "this map",
     );
   }
 

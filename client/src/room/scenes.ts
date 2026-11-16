@@ -7,12 +7,7 @@ import {
   type MapFile,
 } from "./roomFile";
 import type { RoomStore } from "./roomStore";
-import {
-  megabytes,
-  ROOM_SPACE_BYTES,
-  RoomSpaceError,
-  storedBytesAfter,
-} from "./roomSpace";
+import { assertRoomFits } from "./roomSpace";
 import { isFiniteNumber, isRecord } from "./typeGuards";
 
 export const ACTIVE_SCENE_KEY = "id";
@@ -90,7 +85,7 @@ function switchIn(
 }
 
 export function createScenes(store: RoomStore) {
-  const { doc, scenesMap, activeSceneMap, undoManager } = store;
+  const { doc, meter, scenesMap, activeSceneMap, undoManager } = store;
 
   function tabs() {
     return sceneTabs(scenesMap.toJSON());
@@ -157,12 +152,7 @@ export function createScenes(store: RoomStore) {
         switchIn(target, fromId, toId, file);
         andThen(target);
       });
-    const bytes = storedBytesAfter(doc, change);
-    if (bytes > ROOM_SPACE_BYTES) {
-      throw new RoomSpaceError(
-        `With this scene the room would need ${megabytes(bytes)} MB, but it can hold at most ${megabytes(ROOM_SPACE_BYTES)} MB. Use smaller or fewer images.`,
-      );
-    }
+    assertRoomFits(meter.bytesAfter(change), "this scene");
     undoManager.stopCapturing();
     change(store);
     undoManager.stopCapturing();

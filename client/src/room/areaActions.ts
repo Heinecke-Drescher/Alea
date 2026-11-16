@@ -197,7 +197,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
         (sum, token) => sum + token.image.length,
         0,
       );
-      assertSpace(doc, imageBytes, "the copied tokens");
+      assertSpace(store.meter, imageBytes, "the copied tokens");
     }
     undoManager.stopCapturing();
     const pasted: Record<ItemType, string[]> = {
