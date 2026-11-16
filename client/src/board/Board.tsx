@@ -314,7 +314,7 @@ export function Board({
   useImperativeHandle(ref, () => ({
     focusToken,
     openTokenMenu,
-    alignMapImage: () => setTool("alignImage"),
+    alignMapImage: () => changeTool("alignImage"),
     throwDie: dieDrop.rollFromScreen,
     holdTokens,
     dropToken: drops.copyTokenFromScreen,
