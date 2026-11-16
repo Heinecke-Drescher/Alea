@@ -122,7 +122,7 @@ describe("map files", () => {
   it("exports no marks that another player's data holds wrongly", () => {
     fillRoom(room);
     const token = tokenOf(room, only(room.tokensMap.keys()));
-    room.tokensMap.set(token.id, { ...token, marks: [3] } as never);
+    room.tokensMap.set(token.id, { ...token, marks: [3] });
     expect(room.exportMap().tokens[0]?.marks).toEqual([]);
   });
 
@@ -132,7 +132,7 @@ describe("map files", () => {
       color: "#000000",
       points: [0, 0, 10, 10],
       extra: 1,
-    } as never);
+    });
     const file = room.exportMap();
     expect(file.strokes).toEqual([
       { color: "#000000", points: [0, 0, 10, 10] },

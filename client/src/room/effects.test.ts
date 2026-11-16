@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
 import { tokenEffects } from "./effects";
-import type { Token } from "./roomStore";
 import { IMAGE, only, tokenOf } from "./testRoom";
 
 let room: Room;
@@ -39,12 +38,12 @@ describe("status effects", () => {
     room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const token = onlyToken();
     const foreign = { ...token, effects: ["dead", "flying", 3, "dead"] };
-    room.tokensMap.set(token.id, foreign as unknown as Token);
+    room.tokensMap.set(token.id, foreign);
     expect(tokenEffects(onlyToken())).toEqual(["dead"]);
     room.tokensMap.set(token.id, {
       ...token,
       effects: "dead",
-    } as unknown as Token);
+    });
     expect(tokenEffects(onlyToken())).toEqual([]);
   });
 

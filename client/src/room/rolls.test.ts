@@ -69,7 +69,7 @@ describe("rolls", () => {
     expect(rollPath({ ...someRoll, path: [0, 0, 10] })).toBeNull();
     expect(rollPath({ ...someRoll, path: [0, 0, NaN, 1] })).toBeNull();
     expect(rollPath({ ...someRoll, path: new Array(40).fill(1) })).toBeNull();
-    expect(rollPath({ ...someRoll, path: "0,0,1,1" as never })).toBeNull();
+    expect(rollPath({ ...someRoll, path: "0,0,1,1" })).toBeNull();
   });
 
   it("keeps only the latest 50 rolls", () => {

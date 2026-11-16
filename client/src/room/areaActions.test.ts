@@ -298,7 +298,7 @@ describe("copy, paste and delete", () => {
       color: "#000000",
       points: [10, 10, 20, 20],
       extra: 1,
-    } as never);
+    });
     const clip = room.copyItems({
       strokes: ["foreign"],
       tokens: [],
@@ -351,7 +351,7 @@ describe("copy, paste and delete", () => {
     room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const original = onlyToken();
     const clip = room.copyItems({ ...NO_ITEMS, tokens: [original.id] });
-    const [pastedId] = room.paste(clip, CELL_SIZE, 0).tokens;
+    const pastedId = only(room.paste(clip, CELL_SIZE, 0).tokens);
     const other = createRoom(new Y.Doc());
     other.importMap(room.exportMap());
     const goblin = {
@@ -362,7 +362,7 @@ describe("copy, paste and delete", () => {
       y: 0,
       size: 1,
     };
-    expect(room.tokensMap.get(pastedId ?? "")).toEqual(goblin);
+    expect(room.tokensMap.get(pastedId)).toEqual(goblin);
     expect([...other.tokensMap.values()]).toContainEqual(goblin);
   });
 

@@ -3,7 +3,6 @@ import * as Y from "yjs";
 import { CELL_SIZE } from "./grid";
 import { createRoom, type Room } from "./createRoom";
 import { MAX_MARK_LENGTH, MAX_MARKS, NEW_MARK, tokenMarks } from "./marks";
-import type { Token } from "./roomStore";
 import { IMAGE, only, tokenOf } from "./testRoom";
 
 let room: Room;
@@ -80,7 +79,7 @@ describe("marks", () => {
   it("reads only valid marks and their known fields from other players' data", () => {
     room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const token = onlyToken();
-    room.tokensMap.set(token.id, { ...token, marks: 3 } as unknown as Token);
+    room.tokensMap.set(token.id, { ...token, marks: 3 });
     expect(tokenMarks(onlyToken())).toEqual([]);
     room.tokensMap.set(token.id, {
       ...token,
@@ -91,7 +90,7 @@ describe("marks", () => {
         3,
         { ...NEW_MARK, text: "Target", extra: true },
       ],
-    } as unknown as Token);
+    });
     expect(tokenMarks(onlyToken())).toEqual([{ ...NEW_MARK, text: "Target" }]);
   });
 

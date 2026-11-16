@@ -94,7 +94,7 @@ describe("map bounds from other players", () => {
     ["a start between cells", { x: 0.5, y: 0, columns: 20, rows: 15 }],
     ["rows that are no number", { x: 0, y: 0, columns: 20, rows: "15" }],
   ])("uses the default size for %s", (_, value) => {
-    room.settingsMap.set(BOUNDS_KEY, value as never);
+    room.settingsMap.set(BOUNDS_KEY, value);
     expect(room.mapBounds()).toEqual(DEFAULT_MAP_BOUNDS);
   });
 });
