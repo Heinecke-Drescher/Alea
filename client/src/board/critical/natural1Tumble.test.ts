@@ -20,6 +20,8 @@ import {
 const area = { x: -500, y: 200, width: 1500, height: 1200 };
 const spacing = oneSpacing(area);
 const { trail, missed } = onePath({ x: 0, y: 600 }, spacing, area);
+const last = trail.at(-1);
+if (!last) throw new Error("Expected a trail");
 
 describe("oneSpacing", () => {
   it("is limited by the height on a wide map", () => {
@@ -39,8 +41,9 @@ describe("onePath", () => {
   it("moves only one cell straight at each step, the missed one included", () => {
     const path = [...trail, missed];
     for (let i = 1; i < path.length; i++) {
-      const from = path[i - 1]!;
-      const to = path[i]!;
+      const from = path[i - 1];
+      const to = path[i];
+      if (!from || !to) throw new Error("Expected a step");
       expect(Math.abs(to.x - from.x) + Math.abs(to.y - from.y)).toBeCloseTo(
         spacing,
       );
@@ -48,7 +51,6 @@ describe("onePath", () => {
   });
 
   it("misses the right end of the foot", () => {
-    const last = trail.at(-1)!;
     expect(missed).toEqual({ x: last.x + spacing, y: last.y });
   });
 
@@ -142,12 +144,12 @@ describe("stampedPlaces", () => {
 
 describe("crack", () => {
   const points = crackPoints(trail, spacing);
-  const die = trail.at(-1)!;
+  const die = last;
   const top = Math.min(...trail.map(({ y }) => y)) - spacing / 2;
 
   it("runs from where the die fell back up to the top of the 1", () => {
     expect(points[0]).toEqual(die);
-    expect(points.at(-1)!.y).toBeCloseTo(top);
+    expect(points.at(-1)?.y).toBeCloseTo(top);
   });
 
   it("zigzags around the stem but stays within a cell", () => {
@@ -161,14 +163,13 @@ describe("crack", () => {
   it("grows from the die upwards", () => {
     expect(grownCrack(points, 0)).toEqual([points[0]]);
     const half = grownCrack(points, CRACK_SECONDS / 2);
-    expect(half.at(-1)!.y).toBeCloseTo((die.y + top) / 2);
+    expect(half.at(-1)?.y).toBeCloseTo((die.y + top) / 2);
     expect(grownCrack(points, CRACK_SECONDS)).toEqual(points);
   });
 });
 
 describe("topple", () => {
   it("turns around the bottom right corner of the stem", () => {
-    const last = trail.at(-1)!;
     expect(topplePivot(trail, spacing)).toEqual({
       x: last.x + spacing / 2,
       y: last.y + spacing / 2,

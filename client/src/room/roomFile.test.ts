@@ -178,7 +178,7 @@ describe("map files", () => {
     const first = room.loadedMapMap.get(LOADED_MAP_KEY);
     room.importMap(file);
     const second = room.loadedMapMap.get(LOADED_MAP_KEY);
-    expect(first).toBeDefined();
+    expect(first).toMatch(/^.+$/);
     expect(second).not.toBe(first);
     room.undoManager.undo();
     expect(room.loadedMapMap.get(LOADED_MAP_KEY)).toBe(first);

@@ -1,7 +1,10 @@
 import type { Awareness } from "./connectRoom";
 import { isRecord } from "../typeGuards";
 
-export function isPlayerPresent(awareness: Awareness, playerId: string) {
+export function isPlayerPresent(
+  awareness: Pick<Awareness, "clientID" | "getStates">,
+  playerId: string,
+) {
   return Array.from(awareness.getStates()).some(
     ([clientId, state]) =>
       clientId !== awareness.clientID &&

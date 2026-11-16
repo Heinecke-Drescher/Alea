@@ -116,9 +116,10 @@ describe("scenes", () => {
     fillMap();
     const secondId = room.addScene();
     const firstId = activeSceneId();
+    const before = room.exportMap();
     room.switchScene(secondId);
     expect(room.scenesMap.get(secondId)?.file).toBeUndefined();
-    expect(room.scenesMap.get(firstId)?.file).toBeDefined();
+    expect(room.scenesMap.get(firstId)?.file).toEqual(before);
   });
 
   it("does nothing when switching to the scene on the map", () => {

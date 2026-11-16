@@ -11,8 +11,9 @@ describe("pingRings", () => {
   it("grows each ring and fades it out", () => {
     const [early] = pingRings(0.1);
     const [late] = pingRings(0.7);
-    expect(late!.size).toBeGreaterThan(early!.size);
-    expect(late!.opacity).toBeLessThan(early!.opacity);
+    if (!early || !late) throw new Error("Expected rings");
+    expect(late.size).toBeGreaterThan(early.size);
+    expect(late.opacity).toBeLessThan(early.opacity);
     for (const ring of pingRings(0.5)) {
       expect(ring.size).toBeGreaterThan(0);
       expect(ring.size).toBeLessThanOrEqual(1);
