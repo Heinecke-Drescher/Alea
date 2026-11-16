@@ -36,9 +36,6 @@ export function DieButtons({ columns }: DieButtonsProps) {
   );
 }
 
-// Marks the dice while they roll secretly, so no roll is kept from the others by mistake.
-export const SECRET_OUTLINE = "2px dashed var(--mantine-color-dimmed)";
-
 const TOGGLE_ICON_SIZES = { sm: 16, lg: 20 };
 
 // Large where a finger has to hit it.

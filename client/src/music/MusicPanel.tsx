@@ -2,12 +2,12 @@ import { Button, Group, Stack, TextInput } from "@mantine/core";
 import { IconPlayerPlay, IconPlayerStop } from "@tabler/icons-react";
 import { useState } from "react";
 import { videoIdFromUrl } from "../room/music";
-import { useRoom } from "../room/RoomContext";
+import { useSharedRoom } from "../room/RoomContext";
 import { useMusic } from "../room/useMusic";
 import { MusicPlayer } from "./MusicPlayer";
 
 export function MusicPanel() {
-  const room = useRoom();
+  const room = useSharedRoom();
   const music = useMusic();
   const [link, setLink] = useState("");
   const videoId = videoIdFromUrl(link);

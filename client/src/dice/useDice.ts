@@ -1,7 +1,7 @@
 import { createContext, useContext, useState } from "react";
 import { usePlayer } from "../player/PlayerContext";
 import { rollDie, type DieSides } from "../room/dice";
-import { useRoom } from "../room/RoomContext";
+import { useSharedRoom } from "../room/RoomContext";
 import { useRolls } from "../room/useRolls";
 import { rollSecretly, type SecretRoll } from "./secretRoll";
 import { useShowCritical } from "./useCriticalRolls";
@@ -10,7 +10,7 @@ const MAX_SECRET_ROLLS = 20;
 
 // Kept above the dice tray and the dice bar, so secret rolls survive a change of layout.
 export function useDiceState() {
-  const room = useRoom();
+  const room = useSharedRoom();
   const player = usePlayer();
   const rolls = [...useRolls()].reverse();
   const [isSecret, setSecret] = useState(false);

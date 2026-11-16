@@ -18,6 +18,9 @@ export const MENU_RADIUS = "md";
 // Everything that only reacts to the mouse, gray buttons, menu items, tabs, shares one gray;
 // blue stays for choosing a tool, as blue means selection.
 export const NEUTRAL_HOVER = "var(--mantine-color-default-hover)";
+// Marks what only this player sees: dice rolled secretly and a scene being prepared, so nothing
+// is kept from the others by mistake.
+export const PRIVATE_OUTLINE = "2px dashed var(--mantine-color-dimmed)";
 
 function isNeutral(props: { variant?: string; color?: string }) {
   return props.variant === "subtle" && props.color === "gray";

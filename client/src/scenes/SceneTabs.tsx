@@ -13,6 +13,7 @@ import { modals } from "@mantine/modals";
 import { notifyError } from "../notifyError";
 import {
   IconChevronDown,
+  IconEye,
   IconPencil,
   IconPlus,
   IconTrash,
@@ -20,7 +21,7 @@ import {
 import { useContextMenu } from "mantine-contextmenu";
 import { useEffect, useRef, useState } from "react";
 import { useCanChangeMap } from "../player/useCanChangeMap";
-import { useRoom } from "../room/RoomContext";
+import { useSharedRoom } from "../room/RoomContext";
 import { useY } from "../room/useY";
 import {
   ACTIVE_SCENE_KEY,
@@ -30,11 +31,9 @@ import {
   type SceneTab,
 } from "../room/scenes";
 import { MapMenuItems } from "./MapMenuItems";
+import { sceneName } from "./sceneName";
+import { PRIVATE_OUTLINE } from "../theme";
 import { useMapActions } from "./useMapActions";
-
-function sceneName(tab: SceneTab) {
-  return tab.name === "" ? "Unnamed" : tab.name;
-}
 
 function attempt(title: string, action: () => void) {
   try {
@@ -74,8 +73,24 @@ function SceneNameInput({
   );
 }
 
-export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
-  const room = useRoom();
+interface SceneTabsProps {
+  preparedId: string | null;
+  onPrepare: (id: string) => void;
+  onLeavePreparation: () => void;
+  onShowToPlayers: () => void;
+  onMapImageSet: () => void;
+}
+
+// Clicking another scene prepares it where only this player sees it; it reaches the players
+// only through "Show to players".
+export function SceneTabs({
+  preparedId,
+  onPrepare,
+  onLeavePreparation,
+  onShowToPlayers,
+  onMapImageSet,
+}: SceneTabsProps) {
+  const room = useSharedRoom();
   const canChangeMap = useCanChangeMap();
   const { showContextMenu } = useContextMenu();
   const scenes = useY(room.scenesMap);
@@ -84,6 +99,7 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
   const tabs = visibleSceneTabs(scenes);
   const isOnlyScene = tabs[0] === ONLY_SCENE;
   const activeTabId = isOnlyScene ? ONLY_SCENE.id : (activeId ?? null);
+  const shownTabId = preparedId ?? activeTabId;
   const strip = useRef<HTMLDivElement>(null);
   // Per tab, so a scene switch by someone else closes the menu instead of moving it.
   const [menuTabId, setMenuTabId] = useState<string | null>(null);
@@ -94,7 +110,7 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
     strip.current
       ?.querySelector('[aria-selected="true"]')
       ?.scrollIntoView({ block: "nearest", inline: "nearest" });
-  }, [activeId]);
+  }, [shownTabId]);
 
   // Players would see what the DM has prepared, so only the DM sees the scenes.
   if (!canChangeMap) {
@@ -117,17 +133,20 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
     );
   }
 
-  function switchTo(tab: SceneTab) {
-    attempt(`Could not switch to ${sceneName(tab)}`, () =>
-      room.switchScene(tab.id),
-    );
+  function prepare(tab: SceneTab) {
+    attempt(`Could not open ${sceneName(tab)}`, () => onPrepare(tab.id));
+  }
+
+  function showToPlayers() {
+    setMenuTabId(null);
+    onShowToPlayers();
   }
 
   function addScene() {
     const id = room.addScene();
     const tab = sceneTab(id, room.scenesMap.get(id));
     if (!tab) throw new Error(`Added scene ${id} is missing`);
-    switchTo(tab);
+    prepare(tab);
   }
 
   function startRenaming(tab: SceneTab) {
@@ -174,12 +193,14 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
       >
         <Tabs
           variant="pills"
-          value={activeTabId}
+          value={shownTabId}
           // Arrow keys only move the focus; switching changes the map for everyone.
           activateTabWithKeyboard={false}
           onChange={(id) => {
             const tab = tabs.find((scene) => scene.id === id);
-            if (tab && !isOnlyScene) switchTo(tab);
+            if (!tab || isOnlyScene) return;
+            if (tab.id === activeTabId) onLeavePreparation();
+            else prepare(tab);
           }}
         >
           {/* Room for the focus ring, which the scrolling strip would cut off. */}
@@ -198,10 +219,10 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
                 <Menu
                   key={tab.id}
                   opened={menuTabId === tab.id}
-                  // A click on another tab switches to it; only the active tab opens the menu.
+                  // A click on another tab shows it; only the shown tab opens the menu.
                   onChange={(isOpen) =>
                     setMenuTabId(
-                      isOpen && tab.id === activeTabId ? tab.id : null,
+                      isOpen && tab.id === shownTabId ? tab.id : null,
                     )
                   }
                   position="bottom-start"
@@ -209,22 +230,48 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
                 >
                   <Menu.Target>
                     <Tooltip
-                      label="Click for the scene menu"
-                      disabled={tab.id !== activeTabId || menuTabId === tab.id}
+                      label={
+                        tab.id === shownTabId
+                          ? "Click for the scene menu"
+                          : "Players see this scene. Click to go back to it."
+                      }
+                      disabled={
+                        (tab.id !== shownTabId && tab.id !== activeTabId) ||
+                        menuTabId === tab.id
+                      }
                     >
                       <Tabs.Tab
                         value={tab.id}
                         // Mantine gives its press effect to buttons, not tabs.
                         className="mantine-active"
                         c={tab.name === "" ? "dimmed" : undefined}
+                        style={
+                          tab.id === preparedId
+                            ? { outline: PRIVATE_OUTLINE, outlineOffset: 2 }
+                            : undefined
+                        }
+                        leftSection={
+                          tab.id === activeTabId && tabs.length > 1 ? (
+                            // What the players see, so it stays recognizable while another scene is prepared.
+                            <IconEye
+                              size={14}
+                              aria-label="Players see this scene"
+                              color={
+                                tab.id === shownTabId
+                                  ? undefined
+                                  : "var(--mantine-color-dimmed)"
+                              }
+                            />
+                          ) : undefined
+                        }
                         rightSection={
-                          tab.id === activeTabId ? (
+                          tab.id === shownTabId ? (
                             <IconChevronDown size={14} />
                           ) : undefined
                         }
                         onDoubleClick={() => startRenaming(tab)}
                         onContextMenu={
-                          tab.id === activeTabId
+                          tab.id === shownTabId
                             ? (event) => {
                                 event.preventDefault();
                                 setMenuTabId(tab.id);
@@ -254,6 +301,9 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
                     <MapMenuItems
                       actions={mapActions}
                       scene={{
+                        ...(tab.id === preparedId && {
+                          showToPlayers,
+                        }),
                         rename: () => startRenaming(tab),
                         deleteScene: () => confirmDelete(tab),
                         canDelete: tabs.length > 1,

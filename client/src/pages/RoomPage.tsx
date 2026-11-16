@@ -40,7 +40,7 @@ import {
   ShowCriticalContext,
   useCriticalRolls,
 } from "../dice/useCriticalRolls";
-import { RoomContext } from "../room/RoomContext";
+import { RoomContext, SharedRoomContext } from "../room/RoomContext";
 import { PlayerContext } from "../player/PlayerContext";
 import { FLOATING_GAP } from "../FloatingPanel";
 import { recordVisit } from "../recentRooms/useRecentRooms";
@@ -48,6 +48,7 @@ import { useLocalPlayer } from "../player/useLocalPlayer";
 import { usePresenceBroadcast } from "../room/connection/usePresenceBroadcast";
 import { useRoomConnection } from "../room/connection/useRoomConnection";
 import { SceneTabs } from "../scenes/SceneTabs";
+import { usePreparation } from "../scenes/usePreparation";
 import { DropTokenContext } from "../tokens/dropToken";
 import { FocusTokenContext } from "../tokens/focusToken";
 import { HoldTokensContext, type HeldToken } from "../tokens/holdTokens";
@@ -64,7 +65,7 @@ import { useHeaderCollapsed } from "./useHeaderCollapsed";
 import { TAB_WIDTH, TokenDrawer } from "../tokens/TokenDrawer";
 import { SHEET_WIDTH, TokenSheet } from "../tokens/TokenSheet";
 import { TOKENS_TOGGLE_SPACE, TokensToggle } from "../tokens/TokensToggle";
-import { useWideLayout } from "../theme";
+import { PRIVATE_OUTLINE, useWideLayout } from "../theme";
 import {
   fitsBesideToolbar,
   PANEL_COLUMN_EDGE_GAP,
@@ -110,6 +111,8 @@ function RoomView({ roomId }: { roomId: string }) {
   const { id, name, color } = localPlayer;
   const player = useMemo(() => ({ id, name, color }), [id, name, color]);
   usePresenceBroadcast(awareness, player);
+  const preparation = usePreparation(room, id);
+  const mapRoom = preparation.preparation?.room ?? room;
   const criticals = useCriticalRolls(room, isSynced);
   const board = useRef<BoardHandle>(null);
   const [selectedTokens, setSelectedTokens] = useState<readonly string[]>([]);
@@ -168,6 +171,11 @@ function RoomView({ roomId }: { roomId: string }) {
     };
   }, []);
   useEffect(() => tokenDetail.stopHover, [tokenDetail]);
+  // An open detail would come back with its map.
+  function changeMap(change: () => void) {
+    tokenDetail.hide();
+    change();
+  }
   // The detail, and on phones the token list, lie over the map, where the held tokens are to be
   // put down.
   const holdTokens = useCallback(
@@ -185,7 +193,7 @@ function RoomView({ roomId }: { roomId: string }) {
           <DropTokenContext value={dropToken}>
             <TokenDetailContext value={tokenDetail}>
               <HoldTokensContext value={holdTokens}>
-                <TokenPanel />
+                <TokenPanel key={mapRoom.doc.guid} />
               </HoldTokensContext>
             </TokenDetailContext>
           </DropTokenContext>
@@ -200,174 +208,208 @@ function RoomView({ roomId }: { roomId: string }) {
   }, [isSynced, roomId]);
 
   useHotkeys([
-    ["mod+Z", () => undoStep(room.undo)],
-    ["mod+Y", () => undoStep(room.redo)],
-    ["mod+shift+Z", () => undoStep(room.redo)],
+    ["mod+Z", () => undoStep(mapRoom.undo)],
+    ["mod+Y", () => undoStep(mapRoom.redo)],
+    ["mod+shift+Z", () => undoStep(mapRoom.redo)],
   ]);
 
   if (isFull) return <RoomFull />;
 
   return (
-    <RoomContext value={room}>
-      <PlayerContext value={player}>
-        <ShowCriticalContext value={criticals.show}>
-          <DiceProvider>
-            <ThrowDieContext value={throwDie}>
-              <AppShell header={{ height: 60, collapsed: header.isCollapsed }}>
-                <AppShell.Header>
-                  <Group h="100%" px="md" gap="sm" wrap="nowrap">
-                    <AleaMenu
-                      connection={connection}
-                      awareness={awareness}
-                      isSynced={isSynced}
-                      onEditName={editName}
-                    />
-                    {/* Before the sync, an export would hold an empty map and an import would mix with the loaded one. */}
-                    {isSynced && <SceneTabs onMapImageSet={alignMapImage} />}
-                    {connection === "disconnected" && (
-                      // Keeps its width, so the scene tabs give way and the warning stays readable.
-                      <Badge
-                        color="red"
-                        variant="light"
-                        style={{ flexShrink: 0 }}
-                      >
-                        {isWide
-                          ? "Not connected. Changes are not saved yet."
-                          : "Not connected"}
-                      </Badge>
-                    )}
-                    {header.canCollapse && (
-                      <HideHeaderButton
-                        onHide={() => header.setCollapsed(true)}
+    <SharedRoomContext value={room}>
+      <RoomContext value={mapRoom}>
+        <PlayerContext value={player}>
+          <ShowCriticalContext value={criticals.show}>
+            <DiceProvider>
+              <ThrowDieContext value={throwDie}>
+                <AppShell
+                  header={{ height: 60, collapsed: header.isCollapsed }}
+                >
+                  <AppShell.Header>
+                    <Group h="100%" px="md" gap="sm" wrap="nowrap">
+                      <AleaMenu
+                        connection={connection}
+                        awareness={awareness}
+                        isSynced={isSynced}
+                        onEditName={editName}
                       />
-                    )}
-                  </Group>
-                </AppShell.Header>
-                <AppShell.Main>
-                  <Stack
-                    gap={0}
-                    // The offset, unlike the header's height, drops to 0 while the header is hidden.
-                    h="calc(100dvh - var(--app-shell-header-offset, 0px))"
-                  >
-                    <Box ref={viewSizeRef} flex={1} mih={0} pos="relative">
-                      <ErrorBoundary
-                        FallbackComponent={MapError}
-                        // The broken map takes the toolbar and its button for the header with it.
-                        onError={() => header.setCollapsed(false)}
-                      >
-                        <Board
-                          ref={board}
-                          toolbarRef={toolbarSizeRef}
-                          toolbarEnd={
-                            header.isCollapsed && (
-                              <ShowHeaderButton
-                                isDisconnected={connection === "disconnected"}
-                                onShow={() => header.setCollapsed(false)}
-                              />
-                            )
+                      {/* Before the sync, an export would hold an empty map and an import would mix with the loaded one. */}
+                      {isSynced && (
+                        <SceneTabs
+                          preparedId={preparation.preparation?.sceneId ?? null}
+                          onPrepare={(sceneId) =>
+                            changeMap(() => preparation.prepare(sceneId))
                           }
-                          hint={
-                            localPlayer.isNameAssigned && (
-                              <NameHint
-                                name={name}
-                                onChange={editName}
-                                onClose={localPlayer.keepAssignedName}
-                              />
-                            )
+                          onLeavePreparation={() =>
+                            changeMap(preparation.leave)
                           }
-                          onSelectedTokensChange={setSelectedTokens}
-                          covered={covered}
-                          awareness={awareness}
-                          isSynced={isSynced}
-                          critical={criticals.critical}
-                          onCriticalDone={criticals.clear}
-                        />
-                      </ErrorBoundary>
-                      {!isWide && (
-                        <TokenSheet isOpen={isSheetOpen} ref={sheetRef}>
-                          {tokenPanel}
-                        </TokenSheet>
-                      )}
-                      {isSheetOpen && detailTokenId && (
-                        <TokenDetail
-                          tokenId={detailTokenId}
-                          listArea={tokenListArea}
-                          onClose={tokenDetail.hide}
-                          left={FLOATING_GAP}
-                          right={`calc(${SHEET_WIDTH} + ${2 * FLOATING_GAP}px)`}
-                          bottom={TOKENS_TOGGLE_SPACE}
-                          mah="50%"
+                          onShowToPlayers={() =>
+                            changeMap(preparation.showToPlayers)
+                          }
+                          onMapImageSet={alignMapImage}
                         />
                       )}
-                      {!isWide && (
-                        <TokensToggle
-                          isOpen={isTokensOpen}
-                          onToggle={() => {
-                            tokenDetail.hide();
-                            toggleTokens();
-                          }}
-                        />
-                      )}
-                      {isWide && (
-                        // Beside or below the toolbar, so no panel covers another.
-                        <Stack
-                          pos="absolute"
-                          top={
-                            isBesideToolbar
-                              ? PANEL_COLUMN_EDGE_GAP
-                              : TOOLBAR_SPACE
-                          }
-                          bottom={PANEL_COLUMN_EDGE_GAP}
-                          right={PANEL_COLUMN_EDGE_GAP}
-                          w={PANEL_COLUMN_WIDTH}
-                          gap={PANEL_GAP}
-                          style={{ pointerEvents: "none", zIndex: 10 }}
+                      {connection === "disconnected" && (
+                        // Keeps its width, so the scene tabs give way and the warning stays readable.
+                        <Badge
+                          color="red"
+                          variant="light"
+                          style={{ flexShrink: 0 }}
                         >
-                          <TokenDrawer
-                            onClose={tokenDetail.hide}
-                            ref={setTokenListArea}
-                          >
-                            {tokenPanel}
-                          </TokenDrawer>
-                          {detailTokenId && (
-                            // Left of the drawer's tab, which it must not cover.
-                            <TokenDetail
-                              tokenId={detailTokenId}
-                              listArea={tokenListArea}
-                              onClose={tokenDetail.hide}
-                              top={0}
-                              right={`calc(100% + ${TAB_WIDTH + PANEL_GAP}px)`}
-                              w={DETAIL_WIDTH}
-                              mah="100%"
-                            />
-                          )}
-                          <DiceTray
-                            mt="auto"
-                            style={{ pointerEvents: "auto", flexShrink: 0 }}
-                          />
-                        </Stack>
+                          {isWide
+                            ? "Not connected. Changes are not saved yet."
+                            : "Not connected"}
+                        </Badge>
                       )}
-                    </Box>
-                    {!isWide && <DiceBar />}
-                  </Stack>
-                </AppShell.Main>
-              </AppShell>
-            </ThrowDieContext>
-          </DiceProvider>
-          <PlayerNameModal
-            opened={isEditingName}
-            currentName={name}
-            currentColor={localPlayer.pickedColor}
-            onSave={(newName, newColor) => {
-              localPlayer.setName(newName);
-              localPlayer.setColor(newColor);
-              stopEditingName();
-            }}
-            onCancel={stopEditingName}
-          />
-        </ShowCriticalContext>
-      </PlayerContext>
-    </RoomContext>
+                      {header.canCollapse && (
+                        <HideHeaderButton
+                          onHide={() => header.setCollapsed(true)}
+                        />
+                      )}
+                    </Group>
+                  </AppShell.Header>
+                  <AppShell.Main>
+                    <Stack
+                      gap={0}
+                      // The offset, unlike the header's height, drops to 0 while the header is hidden.
+                      h="calc(100dvh - var(--app-shell-header-offset, 0px))"
+                    >
+                      <Box ref={viewSizeRef} flex={1} mih={0} pos="relative">
+                        <ErrorBoundary
+                          FallbackComponent={MapError}
+                          // The broken map takes the toolbar and its button for the header with it.
+                          onError={() => header.setCollapsed(false)}
+                        >
+                          <Board
+                            key={mapRoom.doc.guid}
+                            ref={board}
+                            toolbarRef={toolbarSizeRef}
+                            toolbarEnd={
+                              header.isCollapsed && (
+                                <ShowHeaderButton
+                                  isDisconnected={connection === "disconnected"}
+                                  onShow={() => header.setCollapsed(false)}
+                                />
+                              )
+                            }
+                            hint={
+                              localPlayer.isNameAssigned && (
+                                <NameHint
+                                  name={name}
+                                  onChange={editName}
+                                  onClose={localPlayer.keepAssignedName}
+                                />
+                              )
+                            }
+                            onSelectedTokensChange={setSelectedTokens}
+                            covered={covered}
+                            // Cursors and pings on a prepared map would point at nothing the others see.
+                            awareness={
+                              preparation.preparation ? null : awareness
+                            }
+                            isSynced={isSynced}
+                            critical={criticals.critical}
+                            onCriticalDone={criticals.clear}
+                          />
+                        </ErrorBoundary>
+                        {preparation.preparation && (
+                          // Drawn after the map and before the panels, so it marks only the map's edge.
+                          <Box
+                            pos="absolute"
+                            inset={0}
+                            style={{
+                              outline: PRIVATE_OUTLINE,
+                              outlineOffset: -2,
+                              pointerEvents: "none",
+                            }}
+                          />
+                        )}
+                        {!isWide && (
+                          <TokenSheet isOpen={isSheetOpen} ref={sheetRef}>
+                            {tokenPanel}
+                          </TokenSheet>
+                        )}
+                        {isSheetOpen && detailTokenId && (
+                          <TokenDetail
+                            tokenId={detailTokenId}
+                            listArea={tokenListArea}
+                            onClose={tokenDetail.hide}
+                            left={FLOATING_GAP}
+                            right={`calc(${SHEET_WIDTH} + ${2 * FLOATING_GAP}px)`}
+                            bottom={TOKENS_TOGGLE_SPACE}
+                            mah="50%"
+                          />
+                        )}
+                        {!isWide && (
+                          <TokensToggle
+                            isOpen={isTokensOpen}
+                            onToggle={() => {
+                              tokenDetail.hide();
+                              toggleTokens();
+                            }}
+                          />
+                        )}
+                        {isWide && (
+                          // Beside or below the toolbar, so no panel covers another.
+                          <Stack
+                            pos="absolute"
+                            top={
+                              isBesideToolbar
+                                ? PANEL_COLUMN_EDGE_GAP
+                                : TOOLBAR_SPACE
+                            }
+                            bottom={PANEL_COLUMN_EDGE_GAP}
+                            right={PANEL_COLUMN_EDGE_GAP}
+                            w={PANEL_COLUMN_WIDTH}
+                            gap={PANEL_GAP}
+                            style={{ pointerEvents: "none", zIndex: 10 }}
+                          >
+                            <TokenDrawer
+                              onClose={tokenDetail.hide}
+                              ref={setTokenListArea}
+                            >
+                              {tokenPanel}
+                            </TokenDrawer>
+                            {detailTokenId && (
+                              // Left of the drawer's tab, which it must not cover.
+                              <TokenDetail
+                                tokenId={detailTokenId}
+                                listArea={tokenListArea}
+                                onClose={tokenDetail.hide}
+                                top={0}
+                                right={`calc(100% + ${TAB_WIDTH + PANEL_GAP}px)`}
+                                w={DETAIL_WIDTH}
+                                mah="100%"
+                              />
+                            )}
+                            <DiceTray
+                              mt="auto"
+                              style={{ pointerEvents: "auto", flexShrink: 0 }}
+                            />
+                          </Stack>
+                        )}
+                      </Box>
+                      {!isWide && <DiceBar />}
+                    </Stack>
+                  </AppShell.Main>
+                </AppShell>
+              </ThrowDieContext>
+            </DiceProvider>
+            <PlayerNameModal
+              opened={isEditingName}
+              currentName={name}
+              currentColor={localPlayer.pickedColor}
+              onSave={(newName, newColor) => {
+                localPlayer.setName(newName);
+                localPlayer.setColor(newColor);
+                stopEditingName();
+              }}
+              onCancel={stopEditingName}
+            />
+          </ShowCriticalContext>
+        </PlayerContext>
+      </RoomContext>
+    </SharedRoomContext>
   );
 }
 

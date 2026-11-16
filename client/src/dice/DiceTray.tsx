@@ -11,7 +11,8 @@ import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import type { ComponentProps } from "react";
 import { FloatingPanel } from "../FloatingPanel";
 import { usePointerRaise } from "../usePointerRaise";
-import { DieButtons, SECRET_OUTLINE, SecretToggle } from "./DieButtons";
+import { PRIVATE_OUTLINE } from "../theme";
+import { DieButtons, SecretToggle } from "./DieButtons";
 import { HistoryArrow } from "./HistoryArrow";
 import { AllRolls, NewestRoll } from "./RollHistory";
 import { useDice } from "./useDice";
@@ -89,7 +90,7 @@ export function DiceTray(props: ComponentProps<typeof FloatingPanel>) {
           bg="var(--mantine-color-default-hover)"
           style={{
             boxShadow: "inset 0 2px 6px rgb(0 0 0 / 35%)",
-            outline: isSecret ? SECRET_OUTLINE : undefined,
+            outline: isSecret ? PRIVATE_OUTLINE : undefined,
           }}
         >
           <DieButtons columns={4} />

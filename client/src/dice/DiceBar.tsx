@@ -9,9 +9,9 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { IconChevronUp } from "@tabler/icons-react";
 import { DIE_SIDES } from "../room/dice";
-import { useLandscape } from "../theme";
+import { PRIVATE_OUTLINE, useLandscape } from "../theme";
 import { usePointerRaise } from "../usePointerRaise";
-import { DieButtons, SECRET_OUTLINE, SecretToggle } from "./DieButtons";
+import { DieButtons, SecretToggle } from "./DieButtons";
 import { HistoryArrow } from "./HistoryArrow";
 import { AllRolls, NewestRoll } from "./RollHistory";
 import { useDice } from "./useDice";
@@ -30,7 +30,7 @@ export function DiceBar() {
         <Box
           bdrs="md"
           style={{
-            outline: isSecret ? SECRET_OUTLINE : undefined,
+            outline: isSecret ? PRIVATE_OUTLINE : undefined,
             outlineOffset: 4,
           }}
         >

@@ -1,8 +1,8 @@
 import { MUSIC_KEY, validMusic } from "./music";
-import { useRoom } from "./RoomContext";
+import { useSharedRoom } from "./RoomContext";
 import { useY } from "./useY";
 
 export function useMusic() {
-  const room = useRoom();
+  const room = useSharedRoom();
   return validMusic(useY(room.musicMap)[MUSIC_KEY]);
 }

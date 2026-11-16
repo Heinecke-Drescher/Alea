@@ -6,7 +6,7 @@ import type { Awareness } from "../room/connection/connectRoom";
 import { DM_KEY, validDm } from "../room/dm";
 import { isPlayerPresent, toPlayerId } from "../room/connection/playerId";
 import type { DungeonMaster } from "../room/roomStore";
-import { useRoom } from "../room/RoomContext";
+import { useSharedRoom } from "../room/RoomContext";
 import { useAwareness } from "../room/connection/useAwareness";
 import { useDm } from "../room/useDm";
 import { usePlayer } from "../player/PlayerContext";
@@ -18,7 +18,7 @@ export type DmState =
 
 // Called where it stays mounted, as it keeps the DM's name in step with the player's.
 export function useDmControl(awareness: Awareness | null) {
-  const room = useRoom();
+  const room = useSharedRoom();
   const player = usePlayer();
   const dm = useDm();
   const presentPlayerIds = useAwareness(awareness, toPlayerId);

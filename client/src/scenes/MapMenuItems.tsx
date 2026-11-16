@@ -2,6 +2,7 @@ import { Menu } from "@mantine/core";
 import type { MapActions } from "./useMapActions";
 
 interface SceneItems {
+  showToPlayers?: () => void;
   rename: () => void;
   deleteScene: () => void;
   canDelete: boolean;
@@ -18,6 +19,9 @@ export function MapMenuItems({
     <>
       {scene && (
         <>
+          {scene.showToPlayers && (
+            <Menu.Item onClick={scene.showToPlayers}>Show to players</Menu.Item>
+          )}
           <Menu.Item onClick={scene.rename}>Rename</Menu.Item>
           <Menu.Divider />
         </>

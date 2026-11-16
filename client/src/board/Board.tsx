@@ -23,7 +23,7 @@ import type { DieSides } from "../room/dice";
 import { useCanAlignMapImage } from "../mapImage/useCanAlignMapImage";
 import { usePlayer } from "../player/PlayerContext";
 import type { Awareness } from "../room/connection/connectRoom";
-import { useRoom } from "../room/RoomContext";
+import { useIsPreparing, useRoom } from "../room/RoomContext";
 import { oneItem } from "../room/areaActions";
 import { CELL_SIZE, squareCenter } from "../room/grid";
 import { validToken } from "../room/tokens";
@@ -132,6 +132,7 @@ export function Board({
   hint,
 }: BoardProps) {
   const room = useRoom();
+  const isPreparing = useIsPreparing();
   const player = usePlayer();
   const { ref: sizeRef, width, height } = useElementSize();
   const theme = useMantineTheme();
@@ -438,7 +439,7 @@ export function Board({
             draggable={input.canDragItems}
             onMove={selection.moveArea}
           />
-          {isSynced && (
+          {isSynced && !isPreparing && (
             <ThrownDice viewCenter={viewCenter} landings={landings} />
           )}
           <CriticalScenes
