@@ -3,8 +3,8 @@ import type { IRect } from "konva/lib/types";
 import { Group, Rect } from "react-konva";
 import { isTouchedBy } from "../../room/areaActions";
 import { CELL_SIZE } from "../../room/grid";
-import { useRoom } from "../../room/RoomContext";
-import { useY } from "../../room/useY";
+import { cellKey } from "../../room/roomStore";
+import { useCells } from "../../room/useCells";
 import { HIGHLIGHT_OPACITY, highlightColor } from "../selection/highlight";
 
 interface CellsProps {
@@ -12,15 +12,14 @@ interface CellsProps {
 }
 
 export function Cells({ selection }: CellsProps) {
-  const room = useRoom();
   const theme = useMantineTheme();
-  const cells = Object.entries(useY(room.cellsMap));
+  const cells = useCells();
 
   return (
     <Group listening={false}>
-      {cells.map(([key, cell]) => (
+      {cells.map((cell) => (
         <Rect
-          key={key}
+          key={cellKey(cell.x, cell.y)}
           x={cell.x * CELL_SIZE}
           y={cell.y * CELL_SIZE}
           width={CELL_SIZE}
@@ -30,11 +29,11 @@ export function Cells({ selection }: CellsProps) {
       ))}
       {cells
         .filter(
-          ([, cell]) => selection && isTouchedBy(selection, cell.x, cell.y, 1),
+          (cell) => selection && isTouchedBy(selection, cell.x, cell.y, 1),
         )
-        .map(([key, cell]) => (
+        .map((cell) => (
           <Rect
-            key={`highlight-${key}`}
+            key={`highlight-${cellKey(cell.x, cell.y)}`}
             x={cell.x * CELL_SIZE}
             y={cell.y * CELL_SIZE}
             width={CELL_SIZE}

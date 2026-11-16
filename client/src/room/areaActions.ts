@@ -9,6 +9,7 @@ import {
   putCell,
   shiftStroke,
   strokeData,
+  validCell,
   validStroke,
 } from "./drawing";
 import type { MapActions } from "./map";
@@ -152,7 +153,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
   }
 
   function cellsIn(area: IRect) {
-    return Array.from(cellsMap.values()).filter((cell) =>
+    return validValues(cellsMap.entries(), validCell).filter((cell) =>
       isTouchedBy(area, cell.x, cell.y, 1),
     );
   }

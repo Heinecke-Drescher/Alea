@@ -1,6 +1,6 @@
 import { clamp } from "@mantine/hooks";
 import type { IRect, Vector2d } from "konva/lib/types";
-import { isInteger } from "./typeGuards";
+import { isInteger, isRecord } from "./typeGuards";
 
 export const CELL_SIZE = 50;
 export const FEET_PER_CELL = 5;
@@ -236,4 +236,13 @@ export function isValidMapBounds({ x, y, columns, rows }: MapBounds) {
         cells <= MAX_MAP_CELLS,
     )
   );
+}
+
+export function validMapBounds(value: unknown): MapBounds | null {
+  if (!isRecord(value)) return null;
+  const { x, y, columns, rows } = value;
+  if (!isInteger(x) || !isInteger(y)) return null;
+  if (!isInteger(columns) || !isInteger(rows)) return null;
+  const bounds = { x, y, columns, rows };
+  return isValidMapBounds(bounds) ? bounds : null;
 }

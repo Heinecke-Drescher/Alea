@@ -3,7 +3,6 @@ import type { DieSides } from "./dice";
 import type { Scene } from "./scenes";
 import type { TextFontSize } from "./texts";
 import type { StatusEffect } from "./effects";
-import type { MapBounds } from "./grid";
 import type { MapImagePlace } from "./mapImage";
 import type { Mark } from "./marks";
 import type { PlayerColor } from "./playerColors";
@@ -99,15 +98,15 @@ export function validValues<V, T>(
 export const OUTSIDE_UNDO = Symbol("outside undo");
 
 export function createRoomStore(doc: Y.Doc) {
-  // These hold what other players wrote, so they are read only through `validToken` and
-  // `validStroke`.
+  // These hold what other players wrote, so they are read only through `validToken`,
+  // `validCell`, `validStroke` and `validMapBounds`.
   const tokensMap = doc.getMap<unknown>("tokens");
   const imagesMap = doc.getMap<string>("images");
-  const cellsMap = doc.getMap<Cell>("cells");
+  const cellsMap = doc.getMap<unknown>("cells");
   const strokesMap = doc.getMap<unknown>("strokes");
   const textsMap = doc.getMap<MapText>("texts");
   const rollsArray = doc.getArray<Roll>("rolls");
-  const settingsMap = doc.getMap<MapBounds>("settings");
+  const settingsMap = doc.getMap<unknown>("settings");
   const mapImageMap = doc.getMap<MapImagePlace>("mapImage");
   const musicMap = doc.getMap<Music>("music");
   const rolesMap = doc.getMap<DungeonMaster>("roles");

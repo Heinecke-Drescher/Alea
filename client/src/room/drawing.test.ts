@@ -2,7 +2,13 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
 import { NO_ITEMS } from "./areaActions";
-import { hasShapes, isClosed, isOverFog, validStroke } from "./drawing";
+import {
+  hasShapes,
+  isClosed,
+  isOverFog,
+  validCell,
+  validStroke,
+} from "./drawing";
 import type { AreaShape } from "./shapes";
 import { validValues } from "./roomStore";
 import { IMAGE, only, strokeOf } from "./testRoom";
@@ -159,5 +165,34 @@ describe("strokes from other players", () => {
       room.copyItems({ ...NO_ITEMS, strokes: ["broken"] }).strokes,
     ).toEqual([]);
     expect(room.exportMap().strokes).toHaveLength(1);
+  });
+});
+
+describe("cells from other players", () => {
+  const CELL = { x: 1, y: 2, color: "#ff0000" };
+
+  it("reads a cell and keeps only its known fields", () => {
+    expect(validCell("1,2", { ...CELL, extra: 1 })).toEqual(CELL);
+  });
+
+  it.each<[string, string, unknown]>([
+    ["no object", "1,2", "#ff0000"],
+    ["a place between cells", "1.5,2", { ...CELL, x: 1.5 }],
+    ["a place that is no number", "1,2", { ...CELL, y: "2" }],
+    ["a color that is no text", "1,2", { ...CELL, color: 3 }],
+    ["a key of another cell", "5,5", CELL],
+  ])("rejects %s", (_, key, value) => {
+    expect(validCell(key, value)).toBeNull();
+  });
+
+  it("moves, copies, resizes and exports around a broken cell", () => {
+    room.paintCell(1, 1, "#ff0000");
+    room.cellsMap.set("2,1", { x: 40, y: 1, color: "#00ff00" });
+    const area = { x: 0, y: 0, width: 200, height: 100 };
+    room.moveArea(area, 0, 1);
+    expect(Object.keys(room.cellsMap.toJSON()).sort()).toEqual(["1,2", "2,1"]);
+    expect(room.copyArea(area).cells).toEqual([]);
+    expect(room.resize({ x: 0, y: 0, columns: 10, rows: 10 })).toBe(true);
+    expect(room.exportMap().cells).toEqual([{ x: 1, y: 2, color: "#ff0000" }]);
   });
 });

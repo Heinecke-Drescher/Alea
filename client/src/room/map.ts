@@ -3,8 +3,10 @@ import {
   containsSquare,
   DEFAULT_MAP_BOUNDS,
   isValidMapBounds,
+  validMapBounds,
   type MapBounds,
 } from "./grid";
+import { validCell } from "./drawing";
 import { OUTSIDE_UNDO, validValues, type RoomStore } from "./roomStore";
 import { validToken } from "./tokens";
 
@@ -21,7 +23,7 @@ export function createMapActions({
   tokensMap,
 }: RoomStore) {
   function mapBounds() {
-    return settingsMap.get(BOUNDS_KEY) ?? DEFAULT_MAP_BOUNDS;
+    return validMapBounds(settingsMap.get(BOUNDS_KEY)) ?? DEFAULT_MAP_BOUNDS;
   }
 
   function resize(bounds: MapBounds) {
@@ -36,7 +38,7 @@ export function createMapActions({
   // Strokes may stick out of the map, so only cells and tokens limit its bounds.
   function fitsInto(bounds: MapBounds) {
     return (
-      Array.from(cellsMap.values()).every((cell) =>
+      validValues(cellsMap.entries(), validCell).every((cell) =>
         containsCell(bounds, cell.x, cell.y),
       ) &&
       validValues(tokensMap.entries(), validToken).every((token) =>

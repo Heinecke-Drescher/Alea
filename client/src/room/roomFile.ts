@@ -6,6 +6,7 @@ import {
   isOverFog,
   newStroke,
   strokeData,
+  validCell,
   validStroke,
   validStrokeData,
 } from "./drawing";
@@ -15,7 +16,7 @@ import {
   containsCell,
   containsSquare,
   DEFAULT_MAP_BOUNDS,
-  isValidMapBounds,
+  validMapBounds,
   isTokenSize,
   type MapBounds,
 } from "./grid";
@@ -106,18 +107,6 @@ function cellOnMap(value: unknown, bounds: MapBounds, what: string) {
   return { x, y };
 }
 
-function parseBounds(value: unknown, what: string): MapBounds {
-  if (!isRecord(value)) invalid(what);
-  const bounds = {
-    x: integer(value.x, what),
-    y: integer(value.y, what),
-    columns: integer(value.columns, what),
-    rows: integer(value.rows, what),
-  };
-  if (!isValidMapBounds(bounds)) invalid(what);
-  return bounds;
-}
-
 function parseStroke(value: unknown): StrokeData {
   return validStrokeData(value) ?? invalid("stroke");
 }
@@ -179,7 +168,7 @@ export function parseMapFile(json: string): MapFile {
 export function parseMap(value: unknown): MapFile {
   if (!isRecord(value) || value.app !== APP) invalid("not made by Alea");
   if (value.version !== VERSION) invalid(`unknown version ${value.version}`);
-  const map = parseBounds(value.bounds, "map size");
+  const map = validMapBounds(value.bounds) ?? invalid("map size");
   return {
     app: APP,
     version: VERSION,
@@ -300,11 +289,7 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
       app: APP,
       version: VERSION,
       bounds: mapBounds(),
-      cells: Array.from(cellsMap.values(), ({ x, y, color }) => ({
-        x,
-        y,
-        color,
-      })),
+      cells: validValues(cellsMap.entries(), validCell),
       strokes: validValues(strokesMap.entries(), validStroke).map((stroke) =>
         strokeData(stroke, isOverFog(stroke)),
       ),

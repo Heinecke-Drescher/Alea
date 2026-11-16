@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
 import type { ItemType } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
+import { validCell } from "../../room/drawing";
 import { CELL_SIZE, cellAt } from "../../room/grid";
 import { cellKey } from "../../room/roomStore";
 import {
@@ -80,7 +81,8 @@ export function useSelection(room: Room) {
 
   function selectCellAt(point: Vector2d) {
     const cell = cellAt(point);
-    if (!room.cellsMap.has(cellKey(cell.x, cell.y))) return;
+    const key = cellKey(cell.x, cell.y);
+    if (!validCell(key, room.cellsMap.get(key))) return;
     if (fogGuard.hidesCell(cell.x, cell.y)) return;
     setSelection(areaSelection(cellRect(cell)));
   }

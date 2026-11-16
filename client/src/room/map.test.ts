@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
+import { BOUNDS_KEY } from "./map";
 import { IMAGE, moveOnlyTokenTo, only, tokenOf } from "./testRoom";
 
 let room: Room;
@@ -83,5 +84,17 @@ describe("map bounds", () => {
     room.undoManager.undo();
     expect(room.mapBounds()).toEqual(bounds(-5, 0, 60, 40));
     expect(room.cellsMap.size).toBe(0);
+  });
+});
+
+describe("map bounds from other players", () => {
+  it.each<[string, unknown]>([
+    ["no object", 30],
+    ["too many columns", { x: 0, y: 0, columns: 1e9, rows: 15 }],
+    ["a start between cells", { x: 0.5, y: 0, columns: 20, rows: 15 }],
+    ["rows that are no number", { x: 0, y: 0, columns: 20, rows: "15" }],
+  ])("uses the default size for %s", (_, value) => {
+    room.settingsMap.set(BOUNDS_KEY, value as never);
+    expect(room.mapBounds()).toEqual(DEFAULT_MAP_BOUNDS);
   });
 });

@@ -17,7 +17,7 @@ import {
   validShape,
   type AreaShape,
 } from "./shapes";
-import { isRecord } from "./typeGuards";
+import { isInteger, isRecord } from "./typeGuards";
 
 export function shiftPoints(points: number[], dx: number, dy: number) {
   return points.map((value, i) => value + (i % 2 === 0 ? dx : dy));
@@ -102,6 +102,15 @@ export function newStroke(
   return [id, { ...strokeData(data, overFog), id }];
 }
 
+// Cells come from other players. Moving and erasing find a cell by its place, so the key
+// has to match it.
+export function validCell(key: string, value: unknown): Cell | null {
+  if (!isRecord(value)) return null;
+  const { x, y, color } = value;
+  if (!isInteger(x) || !isInteger(y) || typeof color !== "string") return null;
+  return key === cellKey(x, y) ? { x, y, color } : null;
+}
+
 export function putCell(
   { cellsMap }: RoomStore,
   bounds: MapBounds,
@@ -126,7 +135,7 @@ export function createDrawing({
 }: RoomStore) {
   function paintCell(x: number, y: number, color: string) {
     const key = cellKey(x, y);
-    if (cellsMap.get(key)?.color === color) return;
+    if (validCell(key, cellsMap.get(key))?.color === color) return;
     cellsMap.set(key, { x, y, color });
   }
 
