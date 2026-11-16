@@ -12,7 +12,7 @@ import { TokenView } from "./TokenView";
 interface TokensProps {
   listening: boolean;
   selection: IRect | null;
-  selectedIds: string[];
+  selectedIds: readonly string[];
   draggable: boolean;
   onTokenPress: (id: string, event: KonvaEventObject<PointerEvent>) => void;
   onTokenClick: (id: string, event: KonvaEventObject<PointerEvent>) => void;

@@ -2,7 +2,7 @@ import type { KonvaEventObject, Node } from "konva/lib/Node";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
-import { existing, NO_ITEMS, type Items } from "../../room/areaActions";
+import { existing, oneItem, type Items } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
 import {
   hasShapes,
@@ -29,9 +29,9 @@ export function useItemDrag(room: Room, selected: Items) {
   const fogGuard = useFogGuard();
 
   function onlyItem(id: string): Items {
-    if (room.strokesMap.has(id)) return { ...NO_ITEMS, strokes: [id] };
-    if (room.tokensMap.has(id)) return { ...NO_ITEMS, tokens: [id] };
-    if (room.textsMap.has(id)) return { ...NO_ITEMS, texts: [id] };
+    if (room.strokesMap.has(id)) return oneItem("strokes", id);
+    if (room.tokensMap.has(id)) return oneItem("tokens", id);
+    if (room.textsMap.has(id)) return oneItem("texts", id);
     throw new Error(`Dragged unknown item ${id}`);
   }
 

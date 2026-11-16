@@ -38,7 +38,7 @@ interface StrokesProps {
   overFog: boolean;
   draft: StrokeLineProps | null;
   selection: IRect | null;
-  selectedIds: string[];
+  selectedIds: readonly string[];
   listening: boolean;
   draggable: boolean;
   onStrokePress: (id: string, event: KonvaEventObject<PointerEvent>) => void;

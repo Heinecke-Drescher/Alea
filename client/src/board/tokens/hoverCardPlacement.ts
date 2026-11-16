@@ -2,7 +2,7 @@ import type { IRect } from "konva/lib/types";
 
 const GAP = 12;
 
-export interface CardPlacement {
+interface CardPlacement {
   left: number;
   top?: number;
   bottom?: number;

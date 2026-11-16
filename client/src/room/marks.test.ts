@@ -4,6 +4,7 @@ import { CELL_SIZE } from "./grid";
 import { createRoom, type Room } from "./createRoom";
 import { MAX_MARK_LENGTH, MAX_MARKS, NEW_MARK, tokenMarks } from "./marks";
 import { IMAGE, only, tokenOf } from "./testRoom";
+import { oneItem } from "./areaActions";
 
 let room: Room;
 
@@ -104,7 +105,7 @@ describe("marks", () => {
       { ...NEW_MARK, text: "Blessed" },
     ];
     expect(tokenMarks(tokenOf(room, room.duplicateToken(id)))).toEqual(marks);
-    const clip = room.copyItems({ strokes: [], tokens: [id], texts: [] });
+    const clip = room.copyItems(oneItem("tokens", id));
     const [pastedId] = room.paste(clip, 0, 5 * CELL_SIZE).tokens;
     expect(tokenMarks(tokenOf(room, pastedId))).toEqual(marks);
   });

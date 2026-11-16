@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
-import { NO_ITEMS } from "./areaActions";
+import { NO_ITEMS, oneItem } from "./areaActions";
 import { createRoom, type Room } from "./createRoom";
 import { isClosed, isOverFog } from "./drawing";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS, mapRect } from "./grid";
@@ -50,7 +50,7 @@ function onlyToken() {
 describe("texts in area actions", () => {
   it("moves selected texts freely", () => {
     const id = room.addText(TRAP);
-    room.moveItems({ ...NO_ITEMS, texts: [id] }, 7, -3);
+    room.moveItems(oneItem("texts", id), 7, -3);
     expect(room.textsMap.get(id)).toMatchObject({ x: 107, y: 97 });
   });
 
@@ -91,7 +91,7 @@ describe("texts in area actions", () => {
   it("deletes selected texts and texts in an area", () => {
     const selected = room.addText(TRAP);
     const inArea = room.addText({ ...TRAP, x: 300 });
-    room.deleteItems({ ...NO_ITEMS, texts: [selected] });
+    room.deleteItems(oneItem("texts", selected));
     expect(texts().map((text) => text.id)).toEqual([inArea]);
     room.deleteArea({ x: 290, y: 90, width: 20, height: 20 });
     expect(texts()).toEqual([]);
@@ -106,7 +106,7 @@ describe("texts in area actions", () => {
 
   it("keeps only the known fields of a text when moving it", () => {
     room.textsMap.set("foreign", { ...TRAP, id: "foreign", extra: 1 } as never);
-    room.moveItems({ ...NO_ITEMS, texts: ["foreign"] }, 10, 0);
+    room.moveItems(oneItem("texts", "foreign"), 10, 0);
     expect(room.textsMap.get("foreign")).toEqual({
       ...TRAP,
       id: "foreign",
@@ -266,7 +266,7 @@ describe("copy, paste and delete", () => {
   it("pastes copied strokes by pixels", () => {
     room.addStroke("#000000", [10, 10, 20, 20]);
     const id = only(room.strokesMap.keys());
-    const clip = room.copyItems({ strokes: [id], tokens: [], texts: [] });
+    const clip = room.copyItems(oneItem("strokes", id));
     const [copyId] = room.paste(clip, 7, 3).strokes;
     if (!copyId) throw new Error("Expected a pasted stroke");
     expect(copyId).not.toBe(id);
@@ -275,7 +275,7 @@ describe("copy, paste and delete", () => {
 
   it("pastes shapes as shapes", () => {
     const id = room.addShape("#000000", SQUARE, false);
-    const clip = room.copyItems({ strokes: [id], tokens: [], texts: [] });
+    const clip = room.copyItems(oneItem("strokes", id));
     const [copyId] = room.paste(clip, 10, 0).strokes;
     const copy = strokeOf(room, copyId);
     expect(isClosed(copy)).toBe(true);
@@ -299,11 +299,7 @@ describe("copy, paste and delete", () => {
       points: [10, 10, 20, 20],
       extra: 1,
     });
-    const clip = room.copyItems({
-      strokes: ["foreign"],
-      tokens: [],
-      texts: [],
-    });
+    const clip = room.copyItems(oneItem("strokes", "foreign"));
     expect(clip.strokes).toEqual([
       { color: "#000000", points: [10, 10, 20, 20] },
     ]);
@@ -312,12 +308,12 @@ describe("copy, paste and delete", () => {
   it("marks pasted strokes by the one who pastes and keeps the mark when moved", () => {
     room.addStroke("#000000", [10, 10, 20, 20], true);
     const id = only(room.strokesMap.keys());
-    const clip = room.copyItems({ strokes: [id], tokens: [], texts: [] });
+    const clip = room.copyItems(oneItem("strokes", id));
     const [belowId] = room.paste(clip, 5, 5).strokes;
     const [aboveId] = room.paste(clip, 5, 5, true).strokes;
     expect(isOverFog(strokeOf(room, belowId))).toBe(false);
     expect(isOverFog(strokeOf(room, aboveId))).toBe(true);
-    room.moveItems({ strokes: [id], tokens: [], texts: [] }, 30, 0);
+    room.moveItems(oneItem("strokes", id), 30, 0);
     expect(isOverFog(strokeOf(room, id))).toBe(true);
   });
 
@@ -350,7 +346,7 @@ describe("copy, paste and delete", () => {
   it("stores a pasted token in the same form as an imported one", () => {
     room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const original = onlyToken();
-    const clip = room.copyItems({ ...NO_ITEMS, tokens: [original.id] });
+    const clip = room.copyItems(oneItem("tokens", original.id));
     const pastedId = only(room.paste(clip, CELL_SIZE, 0).tokens);
     const other = createRoom(new Y.Doc());
     other.importMap(room.exportMap());

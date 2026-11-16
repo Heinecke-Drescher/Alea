@@ -7,6 +7,7 @@ import { MAP_IMAGE_KEY } from "./mapImage";
 import { megabytes, ROOM_SPACE_BYTES } from "./roomSpace";
 import { OUTSIDE_UNDO } from "./roomStore";
 import { only } from "./testRoom";
+import { oneItem } from "./areaActions";
 
 function imageOf(bytes: number) {
   return `data:image/webp;base64,${"A".repeat(bytes)}`;
@@ -112,7 +113,7 @@ describe("room space when copying tokens", () => {
     room.addStroke("#000", [0, 0, 10, 10]);
     const strokeId = only(room.strokesMap.keys());
     fillOutsideUndo(TWO_MB);
-    const clip = room.copyItems({ strokes: [strokeId], tokens: [], texts: [] });
+    const clip = room.copyItems(oneItem("strokes", strokeId));
     expect(() => room.paste(clip, 10, 0)).not.toThrow();
   });
 });

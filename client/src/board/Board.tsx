@@ -24,6 +24,7 @@ import { useCanAlignMapImage } from "../mapImage/useCanSetMapImage";
 import { usePlayer } from "../player/PlayerContext";
 import type { Awareness } from "../room/connection/connectRoom";
 import { useRoom } from "../room/RoomContext";
+import { oneItem } from "../room/areaActions";
 import { CELL_SIZE, squareCenter } from "../room/grid";
 import { validToken } from "../room/tokens";
 import type { HeldToken } from "../tokens/holdTokens";
@@ -290,12 +291,12 @@ export function Board({
 
   function selectPlacedShape(id: string) {
     changeTool("select");
-    selection.set(itemsSelection({ strokes: [id], tokens: [], texts: [] }));
+    selection.set(itemsSelection(oneItem("strokes", id)));
   }
 
   function selectToken(id: string) {
     changeTool("select");
-    selection.set(itemsSelection({ strokes: [], tokens: [id], texts: [] }));
+    selection.set(itemsSelection(oneItem("tokens", id)));
   }
 
   function focusToken(id: string) {

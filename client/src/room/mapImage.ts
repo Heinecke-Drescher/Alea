@@ -6,6 +6,7 @@ import {
   mapRect,
   MAX_MAP_CELLS,
   MIN_MAP_CELLS,
+  snapToCorner,
   type MapBounds,
 } from "./grid";
 import { BOUNDS_KEY, type MapActions } from "./map";
@@ -81,13 +82,10 @@ export function snappedToCells({
   height,
   rotation,
 }: MapImagePlace): MapImagePlace {
-  const toCellLine = (value: number) =>
-    Math.round(value / CELL_SIZE) * CELL_SIZE;
   const toCellLength = (value: number) =>
     Math.max(1, Math.round(value / CELL_SIZE)) * CELL_SIZE;
   return {
-    x: toCellLine(x),
-    y: toCellLine(y),
+    ...snapToCorner({ x, y }),
     width: toCellLength(width),
     height: toCellLength(height),
     rotation,

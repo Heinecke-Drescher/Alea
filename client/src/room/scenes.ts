@@ -140,7 +140,7 @@ export function createScenes(store: RoomStore) {
   function renameScene(id: string, name: string) {
     const { name: current, order } = knownScene(store, id);
     if (name === current) return;
-    const { file } = scenesMap.get(id) as Partial<Scene>;
+    const file = scenesMap.get(id)?.file;
     undoManager.stopCapturing();
     scenesMap.set(id, { name, order, ...(file !== undefined && { file }) });
     undoManager.stopCapturing();

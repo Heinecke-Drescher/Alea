@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { NO_ITEMS } from "../../room/areaActions";
+import { NO_ITEMS, oneItem } from "../../room/areaActions";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS, mapRect } from "../../room/grid";
 import { TEXT_FONT_SIZES } from "../../room/texts";
 import {
@@ -56,7 +56,7 @@ describe("item selection rules", () => {
       strokes(["b"]),
     );
     expect(withPressedItem(strokes(["a"]), "tokens", "t", false)).toEqual(
-      itemsSelection({ ...NO_ITEMS, tokens: ["t"] }),
+      itemsSelection(oneItem("tokens", "t")),
     );
   });
 
@@ -95,9 +95,7 @@ describe("item selection rules", () => {
 
 describe("reshapableStrokeId", () => {
   it("allows reshaping only a single selected stroke", () => {
-    expect(reshapableStrokeId({ strokes: ["s"], tokens: [], texts: [] })).toBe(
-      "s",
-    );
+    expect(reshapableStrokeId(oneItem("strokes", "s"))).toBe("s");
     expect(
       reshapableStrokeId({ strokes: ["s", "r"], tokens: [], texts: [] }),
     ).toBeNull();

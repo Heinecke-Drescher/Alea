@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
-import { NO_ITEMS } from "./areaActions";
+import { NO_ITEMS, oneItem } from "./areaActions";
 import {
   hasShapes,
   isClosed,
@@ -161,9 +161,7 @@ describe("strokes from other players", () => {
     expect(room.copyArea(area).strokes).toHaveLength(1);
     room.moveItems({ ...NO_ITEMS, strokes: [id, "broken"] }, 5, 0);
     expect(strokeOf(room, id).points).toEqual([15, 10, 25, 20]);
-    expect(
-      room.copyItems({ ...NO_ITEMS, strokes: ["broken"] }).strokes,
-    ).toEqual([]);
+    expect(room.copyItems(oneItem("strokes", "broken")).strokes).toEqual([]);
     expect(room.exportMap().strokes).toHaveLength(1);
   });
 });

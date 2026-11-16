@@ -38,9 +38,13 @@ export interface Clip {
 
 export type ItemType = "strokes" | "tokens" | "texts";
 
-export type Items = Record<ItemType, string[]>;
+export type Items = Record<ItemType, readonly string[]>;
 
 export const NO_ITEMS: Items = { strokes: [], tokens: [], texts: [] };
+
+export function oneItem(type: ItemType, id: string): Items {
+  return { ...NO_ITEMS, [type]: [id] };
+}
 
 interface Content {
   cells: Cell[];
@@ -59,18 +63,13 @@ function isWholeCells(dx: number, dy: number) {
 
 export function existing<V, T>(
   map: Y.Map<V>,
-  ids: string[],
+  ids: readonly string[],
   valid: (id: string, value: V | undefined) => T | null,
 ) {
   return validValues(
     ids.map((id) => [id, map.get(id)]),
     valid,
   );
-}
-
-// Texts come from other players, so only their known fields are moved, copied or kept.
-function validTexts(values: unknown[]) {
-  return values.flatMap((value) => validMapText(value) ?? []);
 }
 
 // How far the area has to reach into a cell or token, so that only grazing it does not count.
@@ -143,36 +142,20 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     move(content, dx, dy);
   }
 
-  function cellsIn(area: IRect) {
-    return validValues(cellsMap.entries(), validCell).filter((cell) =>
-      isTouchedBy(area, cell.x, cell.y, 1),
-    );
-  }
-
-  function tokensIn(area: IRect) {
-    return validValues(tokensMap.entries(), validToken).filter((token) =>
-      isTouchedBy(area, token.x, token.y, token.size),
-    );
-  }
-
-  function strokesIn(area: IRect) {
-    return validValues(strokesMap.entries(), validStroke).filter((stroke) =>
-      strokeTouches(stroke, area),
-    );
-  }
-
-  function textsIn(area: IRect) {
-    return validTexts(Array.from(textsMap.values())).filter((text) =>
-      textTouches(text, area),
-    );
-  }
-
   function contentIn(area: IRect): Content {
     return {
-      cells: cellsIn(area),
-      tokens: tokensIn(area),
-      strokes: strokesIn(area),
-      texts: textsIn(area),
+      cells: validValues(cellsMap.entries(), validCell).filter((cell) =>
+        isTouchedBy(area, cell.x, cell.y, 1),
+      ),
+      tokens: validValues(tokensMap.entries(), validToken).filter((token) =>
+        isTouchedBy(area, token.x, token.y, token.size),
+      ),
+      strokes: validValues(strokesMap.entries(), validStroke).filter((stroke) =>
+        strokeTouches(stroke, area),
+      ),
+      texts: validValues(textsMap.entries(), (_, text) =>
+        validMapText(text),
+      ).filter((text) => textTouches(text, area)),
     };
   }
 
@@ -217,7 +200,11 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
       assertSpace(doc, imageBytes, "the copied tokens");
     }
     undoManager.stopCapturing();
-    const pasted: Items = { strokes: [], tokens: [], texts: [] };
+    const pasted: Record<ItemType, string[]> = {
+      strokes: [],
+      tokens: [],
+      texts: [],
+    };
     doc.transact(() => {
       for (const cell of clip.cells) {
         putCell(store, mapBounds(), cell, dx / CELL_SIZE, dy / CELL_SIZE);
@@ -271,7 +258,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     );
     if (!cell) return;
     const [copyId] = paste(
-      copyItems({ ...NO_ITEMS, tokens: [id] }),
+      copyItems(oneItem("tokens", id)),
       (cell.x - token.x) * CELL_SIZE,
       (cell.y - token.y) * CELL_SIZE,
     ).tokens;

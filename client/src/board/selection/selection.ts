@@ -10,6 +10,7 @@ import {
 import {
   CELL_SIZE,
   mapRect,
+  squareRect,
   toCells,
   type MapBounds,
   type Square,
@@ -32,12 +33,7 @@ export function isClickArea(area: IRect | null, clickDistance: number) {
 }
 
 export function cellRect({ x, y }: Vector2d): IRect {
-  return {
-    x: x * CELL_SIZE,
-    y: y * CELL_SIZE,
-    width: CELL_SIZE,
-    height: CELL_SIZE,
-  };
+  return squareRect({ x, y, size: 1 });
 }
 
 export function areaSelection(area: IRect | null): Selection {

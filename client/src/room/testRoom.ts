@@ -2,6 +2,7 @@ import type { Room } from "./createRoom";
 import { validStroke } from "./drawing";
 import { CELL_SIZE } from "./grid";
 import { validToken } from "./tokens";
+import { oneItem } from "./areaActions";
 
 export const IMAGE = "data:image/webp;base64,AAAA";
 
@@ -27,7 +28,7 @@ export function tokenOf(room: Room, id: string | undefined) {
 export function moveOnlyTokenTo(room: Room, x: number, y: number) {
   const token = tokenOf(room, only(room.tokensMap.keys()));
   room.moveItems(
-    { strokes: [], tokens: [token.id], texts: [] },
+    oneItem("tokens", token.id),
     (x - token.x) * CELL_SIZE,
     (y - token.y) * CELL_SIZE,
   );

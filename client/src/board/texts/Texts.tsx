@@ -64,7 +64,7 @@ interface TextsProps {
   // Hidden while its field is open, so it is not shown twice.
   editingId: string | null;
   selection: IRect | null;
-  selectedIds: string[];
+  selectedIds: readonly string[];
   draggable: boolean;
   onTextPress: (id: string, event: KonvaEventObject<PointerEvent>) => void;
   onTextClick: (id: string, event: KonvaEventObject<PointerEvent>) => void;

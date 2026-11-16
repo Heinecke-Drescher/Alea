@@ -4,7 +4,7 @@ import type { Awareness } from "./connectRoom";
 import { useAwareness } from "./useAwareness";
 import { isRecord } from "../typeGuards";
 
-export interface PresentPlayer {
+interface PresentPlayer {
   playerId: string;
   name: string;
   color: PlayerColor;

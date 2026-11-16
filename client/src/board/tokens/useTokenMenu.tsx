@@ -37,19 +37,15 @@ import {
   badgeIcon,
   markLabel,
 } from "../../tokens/badgeIcons";
-import { NO_ITEMS } from "../../room/areaActions";
+import { oneItem } from "../../room/areaActions";
 import { itemsSelection } from "../selection/selection";
 import { shortcut } from "../selection/useBoardMenu";
 import type { useClipboard } from "../selection/useClipboard";
 import { showMenuAt } from "./showMenuAt";
 import { TokenSizeControl } from "./TokenSizeControl";
-import { CELL_SIZE } from "../../room/grid";
+import { squareRect } from "../../room/grid";
 import { validToken } from "../../room/tokens";
 import type { SelectionControls } from "../selection/useSelection";
-
-function onlyToken(token: Token) {
-  return { ...NO_ITEMS, tokens: [token.id] };
-}
 
 export function useTokenMenu(
   room: Room,
@@ -84,7 +80,7 @@ export function useTokenMenu(
       return;
     }
     if (copyId) {
-      selection.set(itemsSelection({ ...NO_ITEMS, tokens: [copyId] }));
+      selection.set(itemsSelection(oneItem("tokens", copyId)));
     } else if (room.tokensMap.has(token.id)) {
       notifications.show({
         color: "red",
@@ -96,17 +92,17 @@ export function useTokenMenu(
   function open(token: Token, event: KonvaEventObject<MouseEvent>) {
     // The board has a menu of its own.
     event.cancelBubble = true;
-    selection.set(itemsSelection(onlyToken(token)));
+    selection.set(itemsSelection(oneItem("tokens", token.id)));
     showMenuAt(showContextMenu, content(token), event);
   }
 
   function openAt(token: Token, event: ReactMouseEvent) {
-    selection.set(itemsSelection(onlyToken(token)));
+    selection.set(itemsSelection(oneItem("tokens", token.id)));
     showContextMenu(content(token))(event);
   }
 
   function content(token: Token): ContextMenuContent {
-    const only = onlyToken(token);
+    const only = oneItem("tokens", token.id);
     const effects = tokenEffects(token);
     const marks = tokenMarks(token);
     return (close) => (
@@ -155,14 +151,7 @@ export function useTokenMenu(
         <TokenSizeControl
           room={room}
           tokenId={token.id}
-          allows={({ x, y, size }) =>
-            !fogGuard.hidesRect({
-              x: x * CELL_SIZE,
-              y: y * CELL_SIZE,
-              width: size * CELL_SIZE,
-              height: size * CELL_SIZE,
-            })
-          }
+          allows={(square) => !fogGuard.hidesRect(squareRect(square))}
         />
         <ContextMenuDivider />
         {STATUS_EFFECTS.map((effect) => {

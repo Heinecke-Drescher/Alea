@@ -33,6 +33,15 @@ export function isTokenSize(value: unknown): value is number {
   return isInteger(value) && value >= 1 && value <= MAX_TOKEN_SIZE;
 }
 
+export function squareRect({ x, y, size }: Square): IRect {
+  return {
+    x: x * CELL_SIZE,
+    y: y * CELL_SIZE,
+    width: size * CELL_SIZE,
+    height: size * CELL_SIZE,
+  };
+}
+
 export function mapRect({ x, y, columns, rows }: MapBounds): IRect {
   return {
     x: x * CELL_SIZE,

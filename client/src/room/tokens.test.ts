@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
-import { NO_ITEMS } from "./areaActions";
+import { oneItem } from "./areaActions";
 import { DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
 import { embeddedImage, validToken } from "./tokens";
@@ -199,9 +199,7 @@ describe("tokens from other players", () => {
     room.moveArea(area, 1, 0);
     expect(tokenOf(room, id)).toMatchObject({ x: 2, y: 1 });
     expect(room.copyArea(area).tokens).toHaveLength(1);
-    expect(room.copyItems({ ...NO_ITEMS, tokens: ["broken"] }).tokens).toEqual(
-      [],
-    );
+    expect(room.copyItems(oneItem("tokens", "broken")).tokens).toEqual([]);
     expect(room.resize({ x: 0, y: 0, columns: 10, rows: 10 })).toBe(true);
     expect(room.exportMap().tokens).toHaveLength(1);
   });

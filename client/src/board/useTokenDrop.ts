@@ -4,7 +4,8 @@ import type { DragEvent, RefObject } from "react";
 import { useFogGuard } from "../fog/useFogGuard";
 import { showRoomSpaceError } from "../images/showRoomSpaceError";
 import { usePlayer } from "../player/PlayerContext";
-import { CELL_SIZE, cellAt, containsCell } from "../room/grid";
+import { oneItem } from "../room/areaActions";
+import { CELL_SIZE, cellAt, containsCell, squareRect } from "../room/grid";
 import { useRoom } from "../room/RoomContext";
 import { validToken } from "../room/tokens";
 import { droppedTokenId, isTokenDrag } from "../tokens/tokenDrag";
@@ -47,17 +48,10 @@ export function useTokenDrop(
     const corner = Math.floor((token.size - 1) / 2);
     const x = cell.x - corner;
     const y = cell.y - corner;
-    const width = token.size * CELL_SIZE;
-    const landing = {
-      x: x * CELL_SIZE,
-      y: y * CELL_SIZE,
-      width,
-      height: width,
-    };
-    if (fogGuard.hidesRect(landing)) return;
+    if (fogGuard.hidesRect(squareRect({ x, y, size: token.size }))) return;
     try {
       const [copyId] = room.paste(
-        room.copyItems({ strokes: [], tokens: [id], texts: [] }),
+        room.copyItems(oneItem("tokens", id)),
         (x - token.x) * CELL_SIZE,
         (y - token.y) * CELL_SIZE,
         !isDm,
