@@ -1,7 +1,5 @@
 import type { IRect } from "konva/lib/types";
 import { nanoid } from "nanoid";
-import { tokenEffects, type StatusEffect } from "./effects";
-import { tokenMarks, type Mark } from "./marks";
 import { CELL_SIZE, nearestFreeSquare, placeToken, type Square } from "./grid";
 import {
   isOverFog,
@@ -23,24 +21,17 @@ import {
   type Stroke,
   type StrokeData,
   type Token,
+  type TokenData,
   validValues,
 } from "./roomStore";
 import { assertSpace } from "./roomSpace";
-import { validToken } from "./tokens";
+import { embeddedImage, newToken, tokenData, validToken } from "./tokens";
 import { strokeTouches } from "./strokeTouches";
 import { textData, textTouches, validMapText } from "./texts";
 
 export interface Clip {
   cells: Cell[];
-  tokens: {
-    name: string;
-    image: string;
-    x: number;
-    y: number;
-    size: number;
-    effects: StatusEffect[];
-    marks?: Mark[];
-  }[];
+  tokens: TokenData[];
   strokes: StrokeData[];
   texts: MapTextData[];
 }
@@ -198,22 +189,8 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
     return {
       cells,
       tokens: tokens.flatMap((token) => {
-        const { name, imageId, x, y, size } = token;
-        const image = imagesMap.get(imageId);
-        const marks = tokenMarks(token);
-        return image
-          ? [
-              {
-                name,
-                image,
-                x,
-                y,
-                size,
-                effects: tokenEffects(token),
-                ...(marks.length > 0 && { marks }),
-              },
-            ]
-          : [];
+        const image = embeddedImage(imagesMap.get(token.imageId));
+        return image ? [tokenData(token, image)] : [];
       }),
       strokes: strokes.map((stroke) => strokeData(stroke, isOverFog(stroke))),
       texts: texts.map(textData),
@@ -245,18 +222,17 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
       for (const cell of clip.cells) {
         putCell(store, mapBounds(), cell, dx / CELL_SIZE, dy / CELL_SIZE);
       }
-      for (const { image, ...token } of clip.tokens) {
-        const id = nanoid();
-        const imageId = nanoid();
+      for (const data of clip.tokens) {
         const position = placeToken(
           mapBounds(),
-          token,
+          data,
           dx / CELL_SIZE,
           dy / CELL_SIZE,
         );
-        imagesMap.set(imageId, image);
-        tokensMap.set(id, { ...token, ...position, id, imageId });
-        pasted.tokens.push(id);
+        const { token, image } = newToken({ ...data, ...position });
+        imagesMap.set(token.imageId, image);
+        tokensMap.set(token.id, token);
+        pasted.tokens.push(token.id);
       }
       for (const data of clip.strokes) {
         const [id, stroke] = newStroke(

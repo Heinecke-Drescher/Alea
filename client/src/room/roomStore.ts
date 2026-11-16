@@ -20,6 +20,17 @@ export interface Token {
   marks?: Mark[];
 }
 
+// A token together with its image, as it is copied, held or saved in a map file.
+export interface TokenData {
+  name: string;
+  x: number;
+  y: number;
+  size: number;
+  effects: StatusEffect[];
+  marks: Mark[];
+  image: string;
+}
+
 export interface Cell {
   x: number;
   y: number;

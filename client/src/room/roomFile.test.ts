@@ -83,14 +83,17 @@ describe("map files", () => {
           y: 2,
           size: 1,
           effects: ["dead"],
+          marks: [],
           image: IMAGE,
         },
       ],
       background: IMAGE,
+      mapImage: null,
       fog: expect.arrayContaining([
         { x: 0, y: 0 },
         { x: 1, y: 0 },
       ]),
+      texts: [],
     });
   });
 
@@ -120,7 +123,7 @@ describe("map files", () => {
     fillRoom(room);
     const token = tokenOf(room, only(room.tokensMap.keys()));
     room.tokensMap.set(token.id, { ...token, marks: [3] } as never);
-    expect(room.exportMap().tokens[0]).not.toHaveProperty("marks");
+    expect(room.exportMap().tokens[0]?.marks).toEqual([]);
   });
 
   it("exports only known stroke data from other players", () => {
@@ -228,7 +231,7 @@ describe("map files", () => {
     other.addText(TEXT);
     other.importMap(file);
     expect(other.textsMap.size).toBe(0);
-    expect(file.texts).toBeUndefined();
+    expect(file.texts).toEqual([]);
   });
 
   it("keeps only the known fields of texts", () => {
@@ -323,10 +326,6 @@ describe("map files", () => {
       (file) => ({ ...file, tokens: [{ ...file.tokens[0], marks: "Target" }] }),
     ],
     [
-      "an empty list of marks",
-      (file) => ({ ...file, tokens: [{ ...file.tokens[0], marks: [] }] }),
-    ],
-    [
       "a mark without text",
       (file) => ({ ...file, tokens: [{ ...file.tokens[0], marks: [3] }] }),
     ],
@@ -373,7 +372,16 @@ describe("map files", () => {
         ],
       }),
     ],
+    [
+      "a token without marks",
+      (file) => ({
+        ...file,
+        tokens: [{ ...file.tokens[0], marks: undefined }],
+      }),
+    ],
     ["fog off the map", (file) => ({ ...file, fog: [{ x: -10, y: 0 }] })],
+    ["no texts", (file) => ({ ...file, texts: undefined })],
+    ["no map image", (file) => ({ ...file, mapImage: undefined })],
     ["texts that are no list", (file) => ({ ...file, texts: "Hello" })],
     [
       "a text without words",

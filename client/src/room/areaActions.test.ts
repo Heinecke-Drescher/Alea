@@ -347,6 +347,25 @@ describe("copy, paste and delete", () => {
     expect(room.doc.toJSON()).toEqual(before);
   });
 
+  it("stores a pasted token in the same form as an imported one", () => {
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
+    const original = onlyToken();
+    const clip = room.copyItems({ ...NO_ITEMS, tokens: [original.id] });
+    const [pastedId] = room.paste(clip, CELL_SIZE, 0).tokens;
+    const other = createRoom(new Y.Doc());
+    other.importMap(room.exportMap());
+    const goblin = {
+      id: expect.any(String),
+      imageId: expect.any(String),
+      name: "Goblin",
+      x: 1,
+      y: 0,
+      size: 1,
+    };
+    expect(room.tokensMap.get(pastedId ?? "")).toEqual(goblin);
+    expect([...other.tokensMap.values()]).toContainEqual(goblin);
+  });
+
   it("copies the given items and skips ones that are gone", () => {
     fillFirstCell();
     const token = onlyToken();
@@ -357,7 +376,15 @@ describe("copy, paste and delete", () => {
     });
     expect(clip.cells).toEqual([]);
     expect(clip.tokens).toEqual([
-      { name: "Goblin", image: IMAGE, x: 0, y: 0, size: 1, effects: [] },
+      {
+        name: "Goblin",
+        image: IMAGE,
+        x: 0,
+        y: 0,
+        size: 1,
+        effects: [],
+        marks: [],
+      },
     ]);
     expect(clip.strokes).toEqual([]);
   });

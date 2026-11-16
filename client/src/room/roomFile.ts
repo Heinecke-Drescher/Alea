@@ -10,8 +10,8 @@ import {
   validStroke,
   validStrokeData,
 } from "./drawing";
-import { isStatusEffect, tokenEffects, type StatusEffect } from "./effects";
-import { isValidMark, MAX_MARKS, tokenMarks, type Mark } from "./marks";
+import { isStatusEffect } from "./effects";
+import { isValidMark, MAX_MARKS, type Mark } from "./marks";
 import {
   containsCell,
   containsSquare,
@@ -34,6 +34,7 @@ import {
   type MapTextData,
   type RoomStore,
   type StrokeData,
+  type TokenData,
   validValues,
 } from "./roomStore";
 import {
@@ -43,7 +44,7 @@ import {
   storedBytesAfter,
 } from "./roomSpace";
 import { textData, validMapText } from "./texts";
-import { embeddedImage, validToken } from "./tokens";
+import { embeddedImage, newToken, tokenData, validToken } from "./tokens";
 import { isRecord } from "./typeGuards";
 
 const APP = "alea";
@@ -59,19 +60,11 @@ export interface MapFile {
   bounds: MapBounds;
   cells: Cell[];
   strokes: StrokeData[];
-  tokens: {
-    name: string;
-    x: number;
-    y: number;
-    size: number;
-    effects: StatusEffect[];
-    marks?: Mark[];
-    image: string;
-  }[];
+  tokens: TokenData[];
   background: string | null;
-  mapImage?: MapImage;
+  mapImage: MapImage | null;
   fog: Vector2d[];
-  texts?: MapTextData[];
+  texts: MapTextData[];
 }
 
 function invalid(what: string): never {
@@ -119,7 +112,7 @@ function parseMapImage(value: unknown): MapImage {
   };
 }
 
-function parseToken(value: unknown, bounds: MapBounds) {
+function parseToken(value: unknown, bounds: MapBounds): TokenData {
   if (!isRecord(value)) invalid("token");
   const { x, y } = cellOnMap(value, bounds, "token");
   const { size } = value;
@@ -133,14 +126,14 @@ function parseToken(value: unknown, bounds: MapBounds) {
     y,
     size,
     effects,
-    ...(value.marks !== undefined && { marks: parseMarks(value.marks) }),
+    marks: parseMarks(value.marks),
     image: image(value.image, "token image"),
   };
 }
 
 function parseMarks(value: unknown): Mark[] {
   const marks = list(value, "token marks");
-  if (marks.length === 0 || marks.length > MAX_MARKS) invalid("token marks");
+  if (marks.length > MAX_MARKS) invalid("token marks");
   return marks.map((mark) =>
     isValidMark(mark)
       ? { text: mark.text, icon: mark.icon, color: mark.color }
@@ -181,13 +174,9 @@ export function parseMap(value: unknown): MapFile {
     tokens: list(value.tokens, "tokens").map((token) => parseToken(token, map)),
     background:
       value.background === null ? null : image(value.background, "background"),
-    ...(value.mapImage !== undefined && {
-      mapImage: parseMapImage(value.mapImage),
-    }),
+    mapImage: value.mapImage === null ? null : parseMapImage(value.mapImage),
     fog: list(value.fog, "fog").map((cell) => cellOnMap(cell, map, "fog")),
-    ...(value.texts !== undefined && {
-      texts: list(value.texts, "texts").map(parseText),
-    }),
+    texts: list(value.texts, "texts").map(parseText),
   };
 }
 
@@ -206,7 +195,9 @@ export function emptyMap(): MapFile {
     strokes: [],
     tokens: [],
     background: null,
+    mapImage: null,
     fog: [],
+    texts: [],
   };
 }
 
@@ -239,16 +230,10 @@ export function writeMap(
     for (const stroke of file.strokes) {
       strokesMap.set(...newStroke(stroke, isOverFog(stroke)));
     }
-    for (const { image: tokenImage, effects, ...token } of file.tokens) {
-      const id = nanoid();
-      const imageId = nanoid();
-      imagesMap.set(imageId, tokenImage);
-      tokensMap.set(id, {
-        ...token,
-        id,
-        imageId,
-        ...(effects.length > 0 && { effects }),
-      });
+    for (const data of file.tokens) {
+      const { token, image } = newToken(data);
+      imagesMap.set(token.imageId, image);
+      tokensMap.set(token.id, token);
     }
     if (file.background) imagesMap.set(BACKGROUND_IMAGE_ID, file.background);
     if (file.mapImage) {
@@ -256,7 +241,7 @@ export function writeMap(
       mapImageMap.set(MAP_IMAGE_PLACE_KEY, file.mapImage.place);
     }
     for (const { x, y } of file.fog) fogMap.set(cellKey(x, y), { x, y });
-    for (const text of file.texts ?? []) {
+    for (const text of file.texts) {
       const id = nanoid();
       textsMap.set(id, { ...text, id });
     }
@@ -294,26 +279,13 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
         strokeData(stroke, isOverFog(stroke)),
       ),
       tokens: validValues(tokensMap.entries(), validToken).flatMap((token) => {
-        const tokenImage = embeddedImage(imagesMap.get(token.imageId));
-        if (!tokenImage) return [];
-        const { name, x, y, size } = token;
-        const marks = tokenMarks(token);
-        return [
-          {
-            name,
-            x,
-            y,
-            size,
-            effects: tokenEffects(token),
-            ...(marks.length > 0 && { marks }),
-            image: tokenImage,
-          },
-        ];
+        const image = embeddedImage(imagesMap.get(token.imageId));
+        return image ? [tokenData(token, image)] : [];
       }),
       background: embeddedImage(imagesMap.get(BACKGROUND_IMAGE_ID)),
-      ...(mapImage && { mapImage }),
+      mapImage,
       fog: Array.from(fogMap.values(), ({ x, y }) => ({ x, y })),
-      ...(texts.length > 0 && { texts }),
+      texts,
     };
   }
 

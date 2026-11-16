@@ -15,6 +15,7 @@ export function heldTokensClip(tokens: HeldToken[]): Clip {
       y: Math.floor(i / columns),
       size: 1,
       effects: [],
+      marks: [],
     })),
   };
 }

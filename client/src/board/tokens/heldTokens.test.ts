@@ -42,6 +42,7 @@ describe("heldTokensClip", () => {
       y: 0,
       size: 1,
       effects: [],
+      marks: [],
     });
   });
 });

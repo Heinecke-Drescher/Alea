@@ -3,7 +3,7 @@ import { tokenEffects, type StatusEffect } from "./effects";
 import { isTokenSize, placeToken, type Square } from "./grid";
 import type { MapActions } from "./map";
 import { isValidMark, MAX_MARKS, tokenMarks, type Mark } from "./marks";
-import type { RoomStore, Token } from "./roomStore";
+import type { RoomStore, Token, TokenData } from "./roomStore";
 import { isInteger, isRecord } from "./typeGuards";
 
 export function embeddedImage(value: string | undefined) {
@@ -29,6 +29,31 @@ export function validToken(id: string, value: unknown): Token | null {
     ...(effects.length > 0 && { effects }),
     ...(marks.length > 0 && { marks }),
   };
+}
+
+export function tokenData(token: Token, image: string): TokenData {
+  const { name, x, y, size } = token;
+  return {
+    name,
+    x,
+    y,
+    size,
+    effects: tokenEffects(token),
+    marks: tokenMarks(token),
+    image,
+  };
+}
+
+// Leaves out empty effects and marks, so every token in the room has the same form.
+export function newToken({ image, effects, marks, ...token }: TokenData) {
+  const stored: Token = {
+    ...token,
+    id: nanoid(),
+    imageId: nanoid(),
+    ...(effects.length > 0 && { effects }),
+    ...(marks.length > 0 && { marks }),
+  };
+  return { token: stored, image };
 }
 
 export function createTokens(
