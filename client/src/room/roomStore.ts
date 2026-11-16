@@ -129,6 +129,10 @@ export function createRoomStore(doc: Y.Doc) {
   // Tracks only local changes, so undo never reverts other players' work. Rolls, music and roles
   // stay final. Map bounds are tracked only so an import or a map image can be undone as a whole;
   // resizing stays outside undo, as undoing it could push others' new content off the map.
+  // Changes mark their step with `stopCapturing` in one of three ways: before the change, so it
+  // becomes its own step that what follows quickly may join (most changes); before and after, so
+  // nothing joins it (scenes, the map image, the background, imports); or not at all, so a
+  // stroke of the paint brush or eraser is undone at once.
   const undoManager = new Y.UndoManager([
     tokensMap,
     imagesMap,

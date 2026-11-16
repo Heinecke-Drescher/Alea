@@ -88,6 +88,7 @@ export function createTokens(
   }
 
   function renameToken(id: string, name: string) {
+    undoManager.stopCapturing();
     updateToken(id, (token) => ({ ...token, name }));
   }
 

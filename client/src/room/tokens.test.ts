@@ -36,6 +36,16 @@ describe("addToken", () => {
 });
 
 describe("changing tokens", () => {
+  it("renames a token in its own undo step", () => {
+    room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
+    const { id } = onlyToken();
+    room.toggleEffect(id, "dead");
+    room.renameToken(id, "Hobgoblin");
+    expect(onlyToken().name).toBe("Hobgoblin");
+    room.undoManager.undo();
+    expect(onlyToken()).toMatchObject({ name: "Goblin", effects: ["dead"] });
+  });
+
   it("replaces a token's image and removes the old one in a single undo step", () => {
     const NEW_IMAGE = "data:image/webp;base64,BBBB";
     room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
