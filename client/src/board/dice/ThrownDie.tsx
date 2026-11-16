@@ -18,7 +18,7 @@ import {
 import { tokenHits } from "./tokenHits";
 import { rollDie } from "../../room/dice";
 import { CELL_SIZE, type MapBounds } from "../../room/grid";
-import { rollColor, rollPath } from "../../room/rolls";
+import { rollColor } from "../../room/rolls";
 import { useRoom } from "../../room/RoomContext";
 import { validValues, type Roll } from "../../room/roomStore";
 import { validToken } from "../../room/tokens";
@@ -103,8 +103,7 @@ export function ThrownDie({
   // Fixed when the die appears, so later renders cannot restart the roll.
   const [rollingPath] = useState(
     () =>
-      rollPath(roll) ??
-      randomThrow(roll.position ?? viewCenter(), room.mapBounds()),
+      roll.path ?? randomThrow(roll.position ?? viewCenter(), room.mapBounds()),
   );
   const [hits] = useState(() =>
     tokenHits(

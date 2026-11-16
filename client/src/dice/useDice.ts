@@ -2,7 +2,7 @@ import { createContext, useContext, useState } from "react";
 import { usePlayer } from "../player/PlayerContext";
 import { rollDie, type DieSides } from "../room/dice";
 import { useRoom } from "../room/RoomContext";
-import { useY } from "../room/useY";
+import { useRolls } from "../room/useRolls";
 import { rollSecretly, type SecretRoll } from "./secretRoll";
 import { useShowCritical } from "./useCriticalRolls";
 
@@ -12,7 +12,7 @@ const MAX_SECRET_ROLLS = 20;
 export function useDiceState() {
   const room = useRoom();
   const player = usePlayer();
-  const rolls = [...useY(room.rollsArray)].reverse();
+  const rolls = [...useRolls()].reverse();
   const [isSecret, setSecret] = useState(false);
   const [secretRolls, setSecretRolls] = useState<SecretRoll[]>([]);
   const showCritical = useShowCritical();

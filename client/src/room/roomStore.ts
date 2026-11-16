@@ -99,13 +99,13 @@ export const OUTSIDE_UNDO = Symbol("outside undo");
 
 export function createRoomStore(doc: Y.Doc) {
   // These hold what other players wrote, so they are read only through `validToken`,
-  // `validCell`, `validStroke` and `validMapBounds`.
+  // `validCell`, `validStroke`, `validMapBounds` and `validRoll`.
   const tokensMap = doc.getMap<unknown>("tokens");
   const imagesMap = doc.getMap<string>("images");
   const cellsMap = doc.getMap<unknown>("cells");
   const strokesMap = doc.getMap<unknown>("strokes");
   const textsMap = doc.getMap<MapText>("texts");
-  const rollsArray = doc.getArray<Roll>("rolls");
+  const rollsArray = doc.getArray<unknown>("rolls");
   const settingsMap = doc.getMap<unknown>("settings");
   const mapImageMap = doc.getMap<MapImagePlace>("mapImage");
   const musicMap = doc.getMap<Music>("music");

@@ -2,7 +2,8 @@ import type { Vector2d } from "konva/lib/types";
 import { useCallback, useState } from "react";
 import { Group } from "react-konva";
 import { useRoom } from "../../room/RoomContext";
-import { useY } from "../../room/useY";
+import { validRoll } from "../../room/rolls";
+import { useRolls } from "../../room/useRolls";
 import { ThrownDie } from "./ThrownDie";
 
 interface ThrownDiceProps {
@@ -13,9 +14,12 @@ interface ThrownDiceProps {
 // Mounted once the room is synced, so rolls loaded from the server are not thrown again.
 export function ThrownDice({ viewCenter, landings }: ThrownDiceProps) {
   const room = useRoom();
-  const rolls = useY(room.rollsArray);
+  const rolls = useRolls();
   const [earlierRollIds] = useState(
-    () => new Set(room.rollsArray.toArray().map((roll) => roll.id)),
+    () =>
+      new Set(
+        room.rollsArray.toArray().flatMap((roll) => validRoll(roll)?.id ?? []),
+      ),
   );
   const [doneRollIds, setDoneRollIds] = useState<ReadonlySet<string>>(
     new Set(),
