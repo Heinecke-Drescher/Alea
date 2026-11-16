@@ -1,7 +1,7 @@
 import { Text } from "@mantine/core";
 import { useFileDialog } from "@mantine/hooks";
 import { modals } from "@mantine/modals";
-import { notifications } from "@mantine/notifications";
+import { notifyError } from "../notifyError";
 import { usePlayer } from "../player/PlayerContext";
 import type { Room } from "../room/createRoom";
 import { useRoom } from "../room/RoomContext";
@@ -45,14 +45,6 @@ export function useMapFiles() {
     },
   });
 
-  function showImportError(file: File, error: unknown) {
-    notifications.show({
-      color: "red",
-      title: `Could not import ${file.name}`,
-      message: error instanceof Error ? error.message : String(error),
-    });
-  }
-
   async function importFile(file: File) {
     let map: MapFile;
     try {
@@ -60,7 +52,7 @@ export function useMapFiles() {
       map = parseMapFile(await file.text());
       room.assertSpaceForMap(map);
     } catch (error) {
-      showImportError(file, error);
+      notifyError(`Could not import ${file.name}`, error);
       return;
     }
     // Checked again on import: others may have filled the room while the dialog was open.
@@ -68,7 +60,7 @@ export function useMapFiles() {
       try {
         room.importMap(map);
       } catch (error) {
-        showImportError(file, error);
+        notifyError(`Could not import ${file.name}`, error);
       }
     });
   }

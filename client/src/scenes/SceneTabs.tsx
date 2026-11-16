@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { modals } from "@mantine/modals";
-import { notifications } from "@mantine/notifications";
+import { notifyError } from "../notifyError";
 import {
   IconChevronDown,
   IconPencil,
@@ -37,12 +37,12 @@ function sceneName(tab: SceneTab) {
   return tab.name === "" ? "Unnamed" : tab.name;
 }
 
-function showSceneError(title: string, error: unknown) {
-  notifications.show({
-    color: "red",
-    title,
-    message: error instanceof Error ? error.message : String(error),
-  });
+function attempt(title: string, action: () => void) {
+  try {
+    action();
+  } catch (error) {
+    notifyError(title, error);
+  }
 }
 
 // The name is written once at the end, so renaming is one undo step and Escape keeps the old name.
@@ -120,11 +120,9 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
   }
 
   function switchTo(tab: SceneTab) {
-    try {
-      room.switchScene(tab.id);
-    } catch (error) {
-      showSceneError(`Could not switch to ${sceneName(tab)}`, error);
-    }
+    attempt(`Could not switch to ${sceneName(tab)}`, () =>
+      room.switchScene(tab.id),
+    );
   }
 
   function addScene() {
@@ -140,11 +138,9 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
   }
 
   function rename(tab: SceneTab, name: string) {
-    try {
-      room.renameScene(tab.id, name);
-    } catch (error) {
-      showSceneError(`Could not rename ${sceneName(tab)}`, error);
-    }
+    attempt(`Could not rename ${sceneName(tab)}`, () =>
+      room.renameScene(tab.id, name),
+    );
   }
 
   function confirmDelete(tab: SceneTab) {
@@ -156,13 +152,10 @@ export function SceneTabs({ onMapImageSet }: { onMapImageSet: () => void }) {
       ),
       labels: { confirm: "Delete scene", cancel: "Cancel" },
       confirmProps: { color: "red" },
-      onConfirm: () => {
-        try {
-          room.deleteScene(tab.id);
-        } catch (error) {
-          showSceneError(`Could not delete ${sceneName(tab)}`, error);
-        }
-      },
+      onConfirm: () =>
+        attempt(`Could not delete ${sceneName(tab)}`, () =>
+          room.deleteScene(tab.id),
+        ),
     });
   }
 

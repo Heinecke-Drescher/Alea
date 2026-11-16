@@ -26,7 +26,7 @@ import {
   type Icon,
 } from "@tabler/icons-react";
 import { useState } from "react";
-import { notifyError } from "../images/imageFiles";
+import { notifyError } from "../notifyError";
 import { PlayerColorPicker } from "../player/PlayerColorPicker";
 import { usePlayer } from "../player/PlayerContext";
 import type { PlayerColor } from "../room/playerColors";

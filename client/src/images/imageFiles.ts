@@ -1,4 +1,4 @@
-import { notifications } from "@mantine/notifications";
+import { notifyError } from "../notifyError";
 
 export const IMAGE_TYPES = [
   "image/png",
@@ -29,15 +29,6 @@ export function validImages(files: File[], maxMegabytes: number) {
 
 function notifyFileError(file: File, error: unknown) {
   notifyError(`Could not add ${file.name}`, error);
-}
-
-export function notifyError(title: string, error: unknown) {
-  console.error(error);
-  notifications.show({
-    color: "red",
-    title,
-    message: error instanceof Error ? error.message : String(error),
-  });
 }
 
 export async function handleImageFile(
