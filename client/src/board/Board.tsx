@@ -48,8 +48,8 @@ import {
   clipBounds,
   itemsSelection,
   reshapableStrokeId,
-  TAP_SCREEN_DISTANCE,
 } from "./selection/selection";
+import { TAP_SCREEN_DISTANCE } from "../tap";
 import { SelectionFrame } from "./selection/SelectionFrame";
 import { ShapeResizer } from "./selection/ShapeResizer";
 import { useBoardMenu } from "./selection/useBoardMenu";

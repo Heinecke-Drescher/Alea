@@ -15,10 +15,10 @@ export type Tool =
   | "reveal"
   | "hide";
 
-const FOG_TOOLS: Tool[] = ["reveal", "hide"];
+const FOG_TOOL_NAMES: Tool[] = ["reveal", "hide"];
 
 export function isFogTool(tool: Tool) {
-  return FOG_TOOLS.includes(tool);
+  return FOG_TOOL_NAMES.includes(tool);
 }
 
 export interface ToolPointer {

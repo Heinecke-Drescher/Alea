@@ -1,5 +1,6 @@
 import { useRef, useState, type PointerEvent } from "react";
 import { PRIMARY_BUTTON } from "./pointerButtons";
+import { isBeyondTap } from "./tap";
 
 // Where the pointer was, in pixels of the browser window.
 export interface ScreenSample {
@@ -8,8 +9,6 @@ export interface ScreenSample {
   time: number;
 }
 
-// Below this a press clicks; beyond it, it drags.
-const DRAG_DISTANCE = 10;
 // Only the end of a drag gives a throw its swing.
 const KEPT_SAMPLES_MS = 200;
 export const GHOST_SIZE = 48;
@@ -77,9 +76,8 @@ export function useScreenDrag(
         ),
         sample,
       ];
-      const { start } = current;
-      const moved = Math.hypot(sample.x - start.x, sample.y - start.y);
-      if (!current.isDragging && moved > DRAG_DISTANCE) {
+      // Below a tap a press clicks; beyond it, it drags.
+      if (!current.isDragging && isBeyondTap(current.start, sample)) {
         current.isDragging = true;
         event.currentTarget.setPointerCapture(event.pointerId);
         setGhostStart(sample);

@@ -7,6 +7,7 @@ import { Rect, Transformer } from "react-konva";
 import { useRoom } from "../../room/RoomContext";
 import { useMapBounds } from "../../room/useMapBounds";
 import { mapRect, snapMapBounds, type MapBounds } from "../../room/grid";
+import { scaledRect } from "./scaledRect";
 import { CONTENT_OUTSIDE_MESSAGE } from "../../room/map";
 import { highlightColor } from "../selection/highlight";
 
@@ -37,15 +38,7 @@ export function MapResizer() {
     const { rect, transformer } = mountedNodes();
     const anchor = transformer.getActiveAnchor();
     if (!anchor) throw new Error("Map is resized without an anchor");
-    return snapMapBounds(
-      {
-        x: rect.x(),
-        y: rect.y(),
-        width: rect.width() * rect.scaleX(),
-        height: rect.height() * rect.scaleY(),
-      },
-      anchor,
-    );
+    return snapMapBounds(scaledRect(rect), anchor);
   }
 
   return (

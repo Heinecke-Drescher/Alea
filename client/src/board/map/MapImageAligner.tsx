@@ -16,6 +16,7 @@ import {
 } from "../../room/mapImage";
 import { useRoom } from "../../room/RoomContext";
 import { useMapImage } from "../../room/useMapImage";
+import { scaledRect } from "./scaledRect";
 import { highlightColor } from "../selection/highlight";
 import { MAP_IMAGE_NAME, mapImageNode, placeOfNode } from "./mapImageNode";
 
@@ -66,15 +67,7 @@ function PlaceAligner({ place }: { place: MapImagePlace }) {
 
   function framedPlace() {
     const { frame } = mountedNodes();
-    return placeOfNode(
-      {
-        x: frame.x(),
-        y: frame.y(),
-        width: frame.width() * frame.scaleX(),
-        height: frame.height() * frame.scaleY(),
-      },
-      rotation,
-    );
+    return placeOfNode(scaledRect(frame), rotation);
   }
 
   function showPlace(next: MapImagePlace) {

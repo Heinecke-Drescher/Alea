@@ -3,7 +3,8 @@ import type { Stage } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
 import { useContextMenu } from "mantine-contextmenu";
 import { useRef } from "react";
-import { CLICK_DISTANCE, TAP_SCREEN_DISTANCE } from "../selection/selection";
+import { isBeyondTap, TAP_SCREEN_DISTANCE } from "../../tap";
+import { CLICK_DISTANCE } from "../selection/selection";
 import type { SelectionControls } from "../selection/useSelection";
 import type { BoardTool } from "./tool";
 
@@ -16,7 +17,7 @@ interface FingerPress {
   isDrawing: boolean;
 }
 
-function hasPanned({ stage, view }: FingerPress) {
+export function hasPanned({ stage, view }: { stage: Stage; view: Vector2d }) {
   const { x, y } = stage.position();
   return x !== view.x || y !== view.y;
 }
@@ -59,11 +60,9 @@ export function useSelectTool(selection: SelectionControls): BoardTool {
       }
       if (!press.held) return;
       if (!press.isDrawing) {
-        const moved = Math.hypot(
-          event.evt.clientX - press.held.evt.clientX,
-          event.evt.clientY - press.held.evt.clientY,
-        );
-        if (moved <= TAP_SCREEN_DISTANCE) return;
+        const from = { x: press.held.evt.clientX, y: press.held.evt.clientY };
+        const to = { x: event.evt.clientX, y: event.evt.clientY };
+        if (!isBeyondTap(from, to)) return;
         press.isDrawing = true;
         hideContextMenu();
         selection.beginArea(

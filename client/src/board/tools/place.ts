@@ -1,14 +1,15 @@
 import type { Stage } from "konva/lib/Stage";
 import type { Vector2d } from "konva/lib/types";
 import { useRef } from "react";
-import { TAP_SCREEN_DISTANCE } from "../selection/selection";
+import { isBeyondTap } from "../../tap";
+import { hasPanned } from "./select";
 import type { BoardTool } from "./tool";
 
 interface Press {
   point: Vector2d;
   screen: Vector2d;
-  stage: Stage | null;
-  view: Vector2d | undefined;
+  stage: Stage;
+  view: Vector2d;
   hasMoved: boolean;
 }
 
@@ -25,11 +26,12 @@ export function usePlaceTool(
     listensToDrawings: false,
     onDown({ point, event }) {
       const stage = event.target.getStage();
+      if (!stage) throw new Error("Pressed outside a stage");
       press.current = {
         point,
         screen: { x: event.evt.clientX, y: event.evt.clientY },
         stage,
-        view: stage?.position(),
+        view: stage.position(),
         hasMoved: false,
       };
     },
@@ -37,20 +39,14 @@ export function usePlaceTool(
       onAim(point);
       const current = press.current;
       if (!current) return;
-      const moved = Math.hypot(
-        event.evt.clientX - current.screen.x,
-        event.evt.clientY - current.screen.y,
-      );
-      if (moved > TAP_SCREEN_DISTANCE) current.hasMoved = true;
+      const to = { x: event.evt.clientX, y: event.evt.clientY };
+      if (isBeyondTap(current.screen, to)) current.hasMoved = true;
     },
     onUp() {
       const current = press.current;
       press.current = null;
       if (!current || current.hasMoved) return;
-      const view = current.stage?.position();
-      const hasPanned =
-        view?.x !== current.view?.x || view?.y !== current.view?.y;
-      if (!hasPanned) onPlace(current.point);
+      if (!hasPanned(current)) onPlace(current.point);
     },
     onCancel() {
       press.current = null;

@@ -1,5 +1,5 @@
 import type { Vector2d } from "konva/lib/types";
-import { TAP_SCREEN_DISTANCE } from "../selection/selection";
+import { TAP_SCREEN_DISTANCE } from "../../tap";
 import type { ToolPointer } from "./tool";
 
 // A finger hides what lies under it, so the end of a ruler or shape it drags sits this many

@@ -144,10 +144,14 @@ export function useBoardInput({
     if (toolPointer.current !== null) endTool();
   }
 
-  function endTool() {
+  function forgetPress() {
     longPress.cancel();
     toolPointer.current = null;
     selectionBeforePress.current = null;
+  }
+
+  function endTool() {
+    forgetPress();
     activeTool.onUp();
   }
 
@@ -179,9 +183,7 @@ export function useBoardInput({
   }
 
   function dropTool() {
-    longPress.cancel();
-    toolPointer.current = null;
-    selectionBeforePress.current = null;
+    forgetPress();
     activeTool.onCancel();
   }
 

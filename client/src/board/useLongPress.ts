@@ -2,7 +2,7 @@ import { useTimeout } from "@mantine/hooks";
 import type { KonvaEventObject } from "konva/lib/Node";
 import type { Vector2d } from "konva/lib/types";
 import { useRef } from "react";
-import { TAP_SCREEN_DISTANCE } from "./selection/selection";
+import { isBeyondTap } from "../tap";
 
 // As in Excalidraw and tldraw.
 const LONG_PRESS_MS = 500;
@@ -30,11 +30,8 @@ export function useLongPress(
     move(event: KonvaEventObject<PointerEvent>) {
       const from = start.current;
       if (!from) return;
-      const moved = Math.hypot(
-        event.evt.clientX - from.x,
-        event.evt.clientY - from.y,
-      );
-      if (moved > TAP_SCREEN_DISTANCE) cancel();
+      const to = { x: event.evt.clientX, y: event.evt.clientY };
+      if (isBeyondTap(from, to)) cancel();
     },
     cancel,
   };
