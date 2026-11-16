@@ -1,4 +1,5 @@
 import type { Token } from "./roomStore";
+import { isRecord } from "./typeGuards";
 
 export const MAX_MARK_LENGTH = 40;
 export const MAX_MARKS = 10;
@@ -42,14 +43,10 @@ export const NEW_MARK: Mark = { text: "", icon: "flag", color: "orange" };
 
 export function isValidMark(value: unknown): value is Mark {
   return (
-    typeof value === "object" &&
-    value !== null &&
-    "text" in value &&
+    isRecord(value) &&
     typeof value.text === "string" &&
     value.text.length <= MAX_MARK_LENGTH &&
-    "icon" in value &&
     MARK_ICONS.some((icon) => icon === value.icon) &&
-    "color" in value &&
     MARK_COLORS.some((color) => color === value.color)
   );
 }

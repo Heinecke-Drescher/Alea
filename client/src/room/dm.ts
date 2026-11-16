@@ -1,11 +1,12 @@
 import type { DungeonMaster, RoomStore } from "./roomStore";
+import { isRecord } from "./typeGuards";
 
 export const DM_KEY = "dm";
 
 // The DM entry comes from other players, so its shape is checked first.
 export function validDm(value: unknown): DungeonMaster | null {
-  if (typeof value !== "object" || value === null) return null;
-  const { playerId, name } = value as Partial<DungeonMaster>;
+  if (!isRecord(value)) return null;
+  const { playerId, name } = value;
   if (typeof playerId !== "string" || playerId === "") return null;
   if (typeof name !== "string") return null;
   return { playerId, name };

@@ -9,7 +9,7 @@ import {
   type MapBounds,
 } from "./grid";
 import { BOUNDS_KEY, type MapActions } from "./map";
-import { isFiniteNumber } from "./numbers";
+import { isFiniteNumber, isRecord } from "./typeGuards";
 import type { RoomStore } from "./roomStore";
 import { embeddedImage } from "./tokens";
 
@@ -104,10 +104,8 @@ export function isMapImageSize(value: unknown): value is number {
 
 // The place comes from other players or a file, so only its known fields are used.
 export function validMapImagePlace(value: unknown): MapImagePlace | null {
-  if (typeof value !== "object" || value === null) return null;
-  const { x, y, width, height, rotation } = value as Partial<
-    Record<keyof MapImagePlace, unknown>
-  >;
+  if (!isRecord(value)) return null;
+  const { x, y, width, height, rotation } = value;
   if (!isFiniteNumber(x) || !isFiniteNumber(y)) return null;
   if (!isMapImageSize(width) || !isMapImageSize(height)) return null;
   if (!isMapImageRotation(rotation)) return null;

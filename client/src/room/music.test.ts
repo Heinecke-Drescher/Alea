@@ -34,7 +34,11 @@ describe("validMusic", () => {
   const music = { videoId: ID, playing: true, position: 3, at: 1000 };
 
   it("accepts well-formed music", () => {
-    expect(validMusic(music)).toBe(music);
+    expect(validMusic(music)).toEqual(music);
+  });
+
+  it("keeps only the known fields of other players' music", () => {
+    expect(validMusic({ ...music, extra: "x" })).toEqual(music);
   });
 
   it("rejects music that could break the iframe address", () => {

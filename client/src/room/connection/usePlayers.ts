@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { isPlayerColor, type PlayerColor } from "../playerColors";
 import type { Awareness } from "./connectRoom";
 import { useAwareness } from "./useAwareness";
+import { isRecord } from "../typeGuards";
 
 export interface PresentPlayer {
   playerId: string;
@@ -14,10 +15,7 @@ export function toPresentPlayer(
   _clientId: number,
   state: unknown,
 ): PresentPlayer | null {
-  if (typeof state !== "object" || state === null) return null;
-  if (!("playerId" in state) || !("name" in state) || !("color" in state)) {
-    return null;
-  }
+  if (!isRecord(state)) return null;
   const { playerId, name, color } = state;
   if (typeof playerId !== "string" || playerId === "") return null;
   if (typeof name !== "string" || !isPlayerColor(color)) return null;

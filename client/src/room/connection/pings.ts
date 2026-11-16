@@ -1,4 +1,4 @@
-import { isFiniteNumber } from "../numbers";
+import { isFiniteNumber, isRecord } from "../typeGuards";
 import { isPlayerColor, type PlayerColor } from "../playerColors";
 
 export interface Ping {
@@ -12,12 +12,10 @@ export interface Ping {
 
 // Awareness states come from other players, so their shape is not trusted.
 export function toPing(clientId: number, state: unknown): Ping | null {
-  if (typeof state !== "object" || state === null) return null;
-  if (!("color" in state) || !("ping" in state)) return null;
+  if (!isRecord(state)) return null;
   const { color, ping } = state;
   if (!isPlayerColor(color)) return null;
-  if (typeof ping !== "object" || ping === null) return null;
-  if (!("x" in ping) || !("y" in ping) || !("at" in ping)) return null;
+  if (!isRecord(ping)) return null;
   const { x, y, at } = ping;
   if (!isFiniteNumber(x) || !isFiniteNumber(y) || !isFiniteNumber(at)) {
     return null;

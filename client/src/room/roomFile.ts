@@ -37,6 +37,7 @@ import {
 import { isShapeKind, shapeCells, type AreaShape } from "./shapes";
 import { textData, validMapText } from "./texts";
 import { embeddedImage } from "./tokens";
+import { isFiniteNumber, isRecord } from "./typeGuards";
 
 const APP = "alea";
 const VERSION = 1;
@@ -68,10 +69,6 @@ export interface MapFile {
 
 function invalid(what: string): never {
   throw new Error(`This is not a valid map file (${what}).`);
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 function list(value: unknown, what: string) {
@@ -106,8 +103,7 @@ function cellOnMap(value: unknown, bounds: MapBounds, what: string) {
 function point(value: unknown, what: string): Vector2d {
   if (!isRecord(value)) invalid(what);
   const { x, y } = value;
-  if (typeof x !== "number" || typeof y !== "number") invalid(what);
-  if (!Number.isFinite(x) || !Number.isFinite(y)) invalid(what);
+  if (!isFiniteNumber(x) || !isFiniteNumber(y)) invalid(what);
   return { x, y };
 }
 

@@ -1,4 +1,5 @@
 import type { Awareness } from "./connectRoom";
+import { isRecord } from "../typeGuards";
 
 export function isPlayerPresent(awareness: Awareness, playerId: string) {
   return Array.from(awareness.getStates()).some(
@@ -9,9 +10,6 @@ export function isPlayerPresent(awareness: Awareness, playerId: string) {
 }
 
 export function toPlayerId(_clientId: number, state: unknown) {
-  if (typeof state !== "object" || state === null) return null;
-  if (!("playerId" in state) || typeof state.playerId !== "string") {
-    return null;
-  }
+  if (!isRecord(state) || typeof state.playerId !== "string") return null;
   return state.playerId;
 }

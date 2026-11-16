@@ -14,6 +14,7 @@ import {
   RoomSpaceError,
   storedBytesAfter,
 } from "./roomSpace";
+import { isFiniteNumber, isRecord } from "./typeGuards";
 
 export const ACTIVE_SCENE_KEY = "id";
 export const FIRST_SCENE_NAME = "Scene 1";
@@ -41,10 +42,10 @@ export const ONLY_SCENE: SceneTab = {
 // Scenes come from other players, so only their known fields are used. Their files are
 // checked when they are put on the map.
 export function sceneTab(id: string, value: unknown): SceneTab | null {
-  if (typeof value !== "object" || value === null) return null;
-  const { name, order } = value as Partial<Scene>;
+  if (!isRecord(value)) return null;
+  const { name, order } = value;
   if (typeof name !== "string") return null;
-  if (typeof order !== "number" || !Number.isFinite(order)) return null;
+  if (!isFiniteNumber(order)) return null;
   return { id, name, order };
 }
 

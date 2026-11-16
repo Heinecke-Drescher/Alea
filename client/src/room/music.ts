@@ -1,4 +1,5 @@
 import type { Music, RoomStore } from "./roomStore";
+import { isFiniteNumber, isRecord } from "./typeGuards";
 
 export const MUSIC_KEY = "current";
 const VIDEO_ID = /^[\w-]{11}$/;
@@ -21,12 +22,12 @@ export function videoIdFromUrl(text: string) {
 
 // Music comes from other players and ends up in an iframe address, so it is checked first.
 export function validMusic(value: unknown): Music | null {
-  if (typeof value !== "object" || value === null) return null;
-  const { videoId, playing, position, at } = value as Partial<Music>;
+  if (!isRecord(value)) return null;
+  const { videoId, playing, position, at } = value;
   if (typeof videoId !== "string" || !VIDEO_ID.test(videoId)) return null;
   if (typeof playing !== "boolean") return null;
-  if (!Number.isFinite(position) || !Number.isFinite(at)) return null;
-  return value as Music;
+  if (!isFiniteNumber(position) || !isFiniteNumber(at)) return null;
+  return { videoId, playing, position, at };
 }
 
 export function currentPosition(music: Music, now: number) {

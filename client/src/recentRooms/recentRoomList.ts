@@ -1,4 +1,5 @@
 import { isValidRoomId } from "../../../shared/roomId";
+import { isRecord } from "../room/typeGuards";
 
 interface RecentRoom {
   id: string;
@@ -37,10 +38,6 @@ export function removeRoom(recent: RecentRooms, id: string): RecentRooms {
     ...recent,
     rooms: recent.rooms.filter((room) => room.id !== id),
   };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
 }
 
 // The largest time a JavaScript date can hold; later ones cannot be formatted.

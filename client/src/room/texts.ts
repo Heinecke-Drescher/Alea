@@ -1,6 +1,6 @@
 import type { IRect } from "konva/lib/types";
 import { nanoid } from "nanoid";
-import { isFiniteNumber } from "./numbers";
+import { isFiniteNumber, isRecord } from "./typeGuards";
 import type { MapText, MapTextData, RoomStore } from "./roomStore";
 
 // Keeps a pasted document from filling the room, which would disconnect everyone.
@@ -26,9 +26,8 @@ function isSize(value: unknown): value is number {
 
 // Texts come from other players, so only their known fields are used.
 export function validMapText(value: unknown): MapText | null {
-  if (typeof value !== "object" || value === null) return null;
-  const { id, text, x, y, width, height, color, fontSize, overFog } =
-    value as Partial<Record<keyof MapText, unknown>>;
+  if (!isRecord(value)) return null;
+  const { id, text, x, y, width, height, color, fontSize, overFog } = value;
   if (typeof id !== "string" || typeof text !== "string") return null;
   if (text === "" || text.length > MAX_TEXT_LENGTH) return null;
   if (!isFiniteNumber(x) || !isFiniteNumber(y)) return null;
