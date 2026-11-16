@@ -9,7 +9,7 @@ import type { Critical } from "../../dice/criticalRoll";
 import { ROLL_SECONDS } from "../dice/throwPath";
 import { mapRect } from "../../room/grid";
 import { useRoom } from "../../room/RoomContext";
-import { PRIMARY_BUTTON } from "../pointer";
+import { PRIMARY_BUTTON } from "../../pointerButtons";
 
 const FADE_SECONDS = 0.5;
 const DARKENING = 0.4;

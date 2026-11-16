@@ -159,3 +159,38 @@ describe("room space on undo and redo", () => {
     expect(() => room.redo()).not.toThrow();
   });
 });
+
+describe("taking back own steps since a depth", () => {
+  it("takes back every own step since the depth and clears redo", () => {
+    room.paintCell(0, 0, "#000");
+    const depth = room.undoDepth();
+    room.paintCell(1, 0, "#000");
+    room.addStroke("#000", [0, 0, 10, 10]);
+    room.undoBackTo(depth);
+    expect(Object.keys(room.cellsMap.toJSON())).toEqual(["0,0"]);
+    expect(room.strokesMap.size).toBe(0);
+    room.redo();
+    expect(room.cellsMap.size).toBe(1);
+    expect(room.strokesMap.size).toBe(0);
+  });
+
+  it("keeps redo when nothing happened since the depth", () => {
+    room.paintCell(0, 0, "#000");
+    room.undo();
+    room.undoBackTo(room.undoDepth());
+    room.redo();
+    expect(room.cellsMap.size).toBe(1);
+  });
+
+  it("clears redo even when the room is too full to take everything back", () => {
+    room.setBackground(THREE_MB);
+    const depth = room.undoDepth();
+    room.removeBackground();
+    room.paintCell(0, 0, "#000");
+    fillOutsideUndo(TWO_MB);
+    expect(() => room.undoBackTo(depth)).toThrow("to bring this back");
+    expect(room.cellsMap.size).toBe(0);
+    room.redo();
+    expect(room.cellsMap.size).toBe(0);
+  });
+});

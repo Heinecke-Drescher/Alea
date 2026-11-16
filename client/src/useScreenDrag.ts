@@ -1,5 +1,5 @@
 import { useRef, useState, type PointerEvent } from "react";
-import { PRIMARY_BUTTON } from "./board/pointer";
+import { PRIMARY_BUTTON } from "./pointerButtons";
 
 // Where the pointer was, in pixels of the browser window.
 export interface ScreenSample {

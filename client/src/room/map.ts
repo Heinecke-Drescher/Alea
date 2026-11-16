@@ -16,15 +16,12 @@ export const CONTENT_OUTSIDE_MESSAGE =
 
 export type MapActions = ReturnType<typeof createMapActions>;
 
-export function createMapActions({
-  doc,
-  settingsMap,
-  cellsMap,
-  tokensMap,
-}: RoomStore) {
-  function mapBounds() {
-    return validMapBounds(settingsMap.get(BOUNDS_KEY)) ?? DEFAULT_MAP_BOUNDS;
-  }
+export function mapBounds({ settingsMap }: RoomStore) {
+  return validMapBounds(settingsMap.get(BOUNDS_KEY)) ?? DEFAULT_MAP_BOUNDS;
+}
+
+export function createMapActions(store: RoomStore) {
+  const { doc, settingsMap, cellsMap, tokensMap } = store;
 
   function resize(bounds: MapBounds) {
     if (!isValidMapBounds(bounds)) {
@@ -47,5 +44,5 @@ export function createMapActions({
     );
   }
 
-  return { mapBounds, resize, fitsInto };
+  return { mapBounds: () => mapBounds(store), resize, fitsInto };
 }

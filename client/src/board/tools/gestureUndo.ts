@@ -9,8 +9,7 @@ export function useGestureUndo(room: Room) {
 
   return {
     begin() {
-      room.undoManager.stopCapturing();
-      startDepth.current = room.undoManager.undoStack.length;
+      startDepth.current = room.undoDepth();
     },
     finish() {
       startDepth.current = null;
@@ -19,14 +18,8 @@ export function useGestureUndo(room: Room) {
       const start = startDepth.current;
       startDepth.current = null;
       if (start === null) return;
-      const steps = room.undoManager.undoStack.length - start;
-      if (steps === 0) return;
       // One message at most if the room is too full to bring erased items back.
-      undoStep(() => {
-        for (let step = 0; step < steps; step++) room.undo();
-      });
-      // Otherwise Redo would bring back what the press only started.
-      room.undoManager.clear(false, true);
+      undoStep(() => room.undoBackTo(start));
     },
   };
 }

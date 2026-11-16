@@ -6,7 +6,7 @@ import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef, type RefObject } from "react";
 import type { Room } from "../room/createRoom";
 import { clampToMap, mapRect } from "../room/grid";
-import { PRIMARY_BUTTON } from "./pointer";
+import { PRIMARY_BUTTON } from "../pointerButtons";
 import { TOOLBAR_SPACE } from "./Toolbar";
 
 // Keeps the fitted map clear of the toolbar and the fit button; the same on every side, so the map stays centered.

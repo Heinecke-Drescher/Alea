@@ -32,7 +32,7 @@ export function createRoom(doc: Y.Doc) {
     ...createMusic(store),
     ...createDm(store),
     ...createFog(store),
-    ...createMapFiles(store, map),
+    ...createMapFiles(store),
     ...createRoomSpace(store),
     ...createScenes(store),
     ...createTexts(store),

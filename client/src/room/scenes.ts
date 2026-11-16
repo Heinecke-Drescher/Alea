@@ -1,8 +1,7 @@
 import { nanoid } from "nanoid";
-import { createMapActions } from "./map";
 import {
-  createMapFiles,
   emptyMap,
+  exportMap,
   parseMap,
   writeMap,
   type MapFile,
@@ -75,14 +74,13 @@ function switchIn(
 ) {
   const { doc, scenesMap, activeSceneMap } = store;
   const to = knownScene(store, toId);
-  const { exportMap } = createMapFiles(store, createMapActions(store));
   doc.transact(() => {
     if (fromId !== null) {
       const from = knownScene(store, fromId);
       scenesMap.set(fromId, {
         name: from.name,
         order: from.order,
-        file: exportMap(),
+        file: exportMap(store),
       });
     }
     writeMap(store, file);

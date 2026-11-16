@@ -20,7 +20,7 @@ import {
   isTokenSize,
   type MapBounds,
 } from "./grid";
-import { BOUNDS_KEY, type MapActions } from "./map";
+import { BOUNDS_KEY, mapBounds } from "./map";
 import {
   MAP_IMAGE_KEY,
   MAP_IMAGE_PLACE_KEY,
@@ -248,9 +248,8 @@ export function writeMap(
   });
 }
 
-export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
+export function exportMap(store: RoomStore): MapFile {
   const {
-    doc,
     tokensMap,
     imagesMap,
     cellsMap,
@@ -258,36 +257,36 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
     textsMap,
     fogMap,
     mapImageMap,
-    undoManager,
   } = store;
+  const mapImage = validMapImage(
+    imagesMap.get(MAP_IMAGE_KEY),
+    mapImageMap.get(MAP_IMAGE_PLACE_KEY),
+  );
+  const texts = Array.from(textsMap.values()).flatMap((value) => {
+    const text = validMapText(value);
+    return text ? [textData(text)] : [];
+  });
+  return {
+    app: APP,
+    version: VERSION,
+    bounds: mapBounds(store),
+    cells: validValues(cellsMap.entries(), validCell),
+    strokes: validValues(strokesMap.entries(), validStroke).map((stroke) =>
+      strokeData(stroke, isOverFog(stroke)),
+    ),
+    tokens: validValues(tokensMap.entries(), validToken).flatMap((token) => {
+      const image = embeddedImage(imagesMap.get(token.imageId));
+      return image ? [tokenData(token, image)] : [];
+    }),
+    background: embeddedImage(imagesMap.get(BACKGROUND_IMAGE_ID)),
+    mapImage,
+    fog: Array.from(fogMap.values(), ({ x, y }) => ({ x, y })),
+    texts,
+  };
+}
 
-  function exportMap(): MapFile {
-    const mapImage = validMapImage(
-      imagesMap.get(MAP_IMAGE_KEY),
-      mapImageMap.get(MAP_IMAGE_PLACE_KEY),
-    );
-    const texts = Array.from(textsMap.values()).flatMap((value) => {
-      const text = validMapText(value);
-      return text ? [textData(text)] : [];
-    });
-    return {
-      app: APP,
-      version: VERSION,
-      bounds: mapBounds(),
-      cells: validValues(cellsMap.entries(), validCell),
-      strokes: validValues(strokesMap.entries(), validStroke).map((stroke) =>
-        strokeData(stroke, isOverFog(stroke)),
-      ),
-      tokens: validValues(tokensMap.entries(), validToken).flatMap((token) => {
-        const image = embeddedImage(imagesMap.get(token.imageId));
-        return image ? [tokenData(token, image)] : [];
-      }),
-      background: embeddedImage(imagesMap.get(BACKGROUND_IMAGE_ID)),
-      mapImage,
-      fog: Array.from(fogMap.values(), ({ x, y }) => ({ x, y })),
-      texts,
-    };
-  }
+export function createMapFiles(store: RoomStore) {
+  const { doc, undoManager } = store;
 
   function assertSpaceForMap(file: MapFile) {
     const bytes = storedBytesAfter(doc, (copy) => writeMap(copy, file));
@@ -305,5 +304,9 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
     undoManager.stopCapturing();
   }
 
-  return { exportMap, importMap, assertSpaceForMap };
+  return {
+    exportMap: () => exportMap(store),
+    importMap,
+    assertSpaceForMap,
+  };
 }

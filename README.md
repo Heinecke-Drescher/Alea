@@ -111,6 +111,7 @@ sync server together.
 | `scripts/`                     | Tools for developers, such as the load test                    |
 
 `board/` and the feature folders may import `room/`, never the other way round.
+Feature folders do not import `board/`; code both need lives directly in `client/src/`.
 Components change the room only through the functions `createRoom` returns.
 Panels that float over the map use `FloatingPanel`, so they share one look.
 

@@ -3,12 +3,8 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { Vector2d } from "konva/lib/types";
 import { useEffect, useRef, useState } from "react";
 import type { ItemType } from "../room/areaActions";
-import {
-  pointerOnMap,
-  pointsOnMap,
-  PRIMARY_BUTTON,
-  PRIMARY_BUTTON_FLAG,
-} from "./pointer";
+import { PRIMARY_BUTTON, PRIMARY_BUTTON_FLAG } from "../pointerButtons";
+import { pointerOnMap, pointsOnMap } from "./pointer";
 import { selectedItems, type Selection } from "./selection/selection";
 import type { SelectionControls } from "./selection/useSelection";
 import type { BoardTool } from "./tools/tool";

@@ -81,5 +81,30 @@ export function createRoomSpace({ doc, imagesMap, undoManager }: RoomStore) {
     );
   }
 
-  return { assertSpaceForImage, assertSpaceForImages, undo, redo };
+  // Starts a new step, so what follows can be taken back on its own.
+  function undoDepth() {
+    undoManager.stopCapturing();
+    return undoManager.undoStack.length;
+  }
+
+  // Redo is cleared even when the room is too full to take back everything, as it would
+  // otherwise bring back what was only started.
+  function undoBackTo(depth: number) {
+    const steps = undoManager.undoStack.length - depth;
+    if (steps <= 0) return;
+    try {
+      for (let step = 0; step < steps; step++) undo();
+    } finally {
+      undoManager.clear(false, true);
+    }
+  }
+
+  return {
+    assertSpaceForImage,
+    assertSpaceForImages,
+    undo,
+    redo,
+    undoDepth,
+    undoBackTo,
+  };
 }
