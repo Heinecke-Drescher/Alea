@@ -5,6 +5,7 @@ import { isTouchedBy } from "../../room/areaActions";
 import type { Token } from "../../room/roomStore";
 import { embeddedImage } from "../../room/tokens";
 import { useRoom } from "../../room/RoomContext";
+import { useTokens } from "../../room/useTokens";
 import { useY } from "../../room/useY";
 import { TokenView } from "./TokenView";
 
@@ -31,7 +32,7 @@ export function Tokens({
   onTokenContextMenu,
 }: TokensProps) {
   const room = useRoom();
-  const tokens = Object.values(useY(room.tokensMap));
+  const tokens = useTokens();
   const images = useY(room.imagesMap);
   // A move racing a remove can bring a token back without its image, and
   // only embedded images are shown so no one can inject third-party URLs.

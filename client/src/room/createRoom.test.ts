@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
-import { IMAGE, moveOnlyTokenTo, only } from "./testRoom";
+import { IMAGE, moveOnlyTokenTo, only, tokenOf } from "./testRoom";
 
 const SPOT = { x: 120, y: 80 };
 
@@ -12,7 +12,7 @@ beforeEach(() => {
 });
 
 function onlyToken() {
-  return only(room.tokensMap.values());
+  return tokenOf(room, only(room.tokensMap.keys()));
 }
 
 describe("undo and redo", () => {

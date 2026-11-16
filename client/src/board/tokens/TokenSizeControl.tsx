@@ -1,8 +1,8 @@
 import { ActionIcon, Group, Text } from "@mantine/core";
 import { IconArrowsDiagonal, IconMinus, IconPlus } from "@tabler/icons-react";
 import type { Room } from "../../room/createRoom";
-import { MAX_TOKEN_SIZE, type Square } from "../../room/grid";
-import { placeToken } from "../../room/map";
+import { MAX_TOKEN_SIZE, placeToken, type Square } from "../../room/grid";
+import { validToken } from "../../room/tokens";
 import { useY } from "../../room/useY";
 
 interface TokenSizeControlProps {
@@ -17,7 +17,7 @@ export function TokenSizeControl({
   tokenId,
   allows,
 }: TokenSizeControlProps) {
-  const token = useY(room.tokensMap)[tokenId];
+  const token = validToken(tokenId, useY(room.tokensMap)[tokenId]);
   if (!token) return null;
   const { x, y } = token;
   const bounds = room.mapBounds();

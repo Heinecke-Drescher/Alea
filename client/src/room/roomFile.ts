@@ -16,7 +16,7 @@ import {
   containsSquare,
   DEFAULT_MAP_BOUNDS,
   isValidMapBounds,
-  MAX_TOKEN_SIZE,
+  isTokenSize,
   type MapBounds,
 } from "./grid";
 import { BOUNDS_KEY, type MapActions } from "./map";
@@ -42,7 +42,7 @@ import {
   storedBytesAfter,
 } from "./roomSpace";
 import { textData, validMapText } from "./texts";
-import { embeddedImage } from "./tokens";
+import { embeddedImage, validToken } from "./tokens";
 import { isRecord } from "./typeGuards";
 
 const APP = "alea";
@@ -133,8 +133,8 @@ function parseMapImage(value: unknown): MapImage {
 function parseToken(value: unknown, bounds: MapBounds) {
   if (!isRecord(value)) invalid("token");
   const { x, y } = cellOnMap(value, bounds, "token");
-  const size = integer(value.size, "token size");
-  if (size < 1 || size > MAX_TOKEN_SIZE) invalid("token size");
+  const { size } = value;
+  if (!isTokenSize(size)) invalid("token size");
   if (!containsSquare(bounds, { x, y, size })) invalid("token off the map");
   const effects = list(value.effects, "token effects");
   if (!effects.every(isStatusEffect)) invalid("token effects");
@@ -308,7 +308,7 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
       strokes: validValues(strokesMap.entries(), validStroke).map((stroke) =>
         strokeData(stroke, isOverFog(stroke)),
       ),
-      tokens: Array.from(tokensMap.values()).flatMap((token) => {
+      tokens: validValues(tokensMap.entries(), validToken).flatMap((token) => {
         const tokenImage = embeddedImage(imagesMap.get(token.imageId));
         if (!tokenImage) return [];
         const { name, x, y, size } = token;

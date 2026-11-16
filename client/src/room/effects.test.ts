@@ -3,7 +3,7 @@ import * as Y from "yjs";
 import { createRoom, type Room } from "./createRoom";
 import { tokenEffects } from "./effects";
 import type { Token } from "./roomStore";
-import { IMAGE, only } from "./testRoom";
+import { IMAGE, only, tokenOf } from "./testRoom";
 
 let room: Room;
 
@@ -11,14 +11,8 @@ beforeEach(() => {
   room = createRoom(new Y.Doc());
 });
 
-function tokenOf(id: string | undefined) {
-  const token = id && room.tokensMap.get(id);
-  if (!token) throw new Error(`Expected token ${id}`);
-  return token;
-}
-
 function onlyToken() {
-  return only(room.tokensMap.values());
+  return tokenOf(room, only(room.tokensMap.keys()));
 }
 
 describe("status effects", () => {
@@ -58,7 +52,7 @@ describe("status effects", () => {
     room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const { id } = onlyToken();
     room.toggleEffect(id, "unconscious");
-    const copy = tokenOf(room.duplicateToken(id));
+    const copy = tokenOf(room, room.duplicateToken(id));
     expect(tokenEffects(copy)).toEqual(["unconscious"]);
   });
 

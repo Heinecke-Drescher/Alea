@@ -4,10 +4,11 @@ import { NO_ITEMS } from "./areaActions";
 import { createRoom, type Room } from "./createRoom";
 import { isClosed, isOverFog } from "./drawing";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS, mapRect } from "./grid";
-import type { MapTextData } from "./roomStore";
+import { validValues, type MapTextData } from "./roomStore";
 import type { AreaShape } from "./shapes";
 import { TEXT_FONT_SIZES } from "./texts";
-import { IMAGE, moveOnlyTokenTo, only, strokeOf } from "./testRoom";
+import { validToken } from "./tokens";
+import { IMAGE, moveOnlyTokenTo, only, strokeOf, tokenOf } from "./testRoom";
 
 const TRAP: MapTextData = {
   text: "Trap",
@@ -43,7 +44,7 @@ function textOf(id: string | undefined) {
 }
 
 function onlyToken() {
-  return only(room.tokensMap.values());
+  return tokenOf(room, only(room.tokensMap.keys()));
 }
 
 describe("texts in area actions", () => {
@@ -245,7 +246,7 @@ describe("copy, paste and delete", () => {
     const pasted = room.paste(clip, 2 * CELL_SIZE, CELL_SIZE);
 
     expect(room.cellsMap.get("2,1")).toEqual({ x: 2, y: 1, color: "#ff0000" });
-    const copy = Array.from(room.tokensMap.values()).find(
+    const copy = validValues(room.tokensMap.entries(), validToken).find(
       (token) => token.id !== original.id,
     );
     if (!copy) throw new Error("Expected a pasted token");

@@ -1,13 +1,11 @@
 import { useFogGuard } from "../fog/useFogGuard";
 import type { Token } from "../room/roomStore";
-import { useRoom } from "../room/RoomContext";
-import { useY } from "../room/useY";
+import { useToken } from "../room/useTokens";
 
 // Someone may have removed it or hidden it under the fog meanwhile.
 export function useShownToken(tokenId: string): Token | null {
-  const room = useRoom();
   const fogGuard = useFogGuard();
-  const token = useY(room.tokensMap)[tokenId];
+  const token = useToken(tokenId);
   if (!token || fogGuard.hidesSquare(token)) return null;
   return token;
 }

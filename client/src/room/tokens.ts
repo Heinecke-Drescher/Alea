@@ -1,12 +1,34 @@
 import { nanoid } from "nanoid";
 import { tokenEffects, type StatusEffect } from "./effects";
-import { MAX_TOKEN_SIZE, type Square } from "./grid";
-import { placeToken, type MapActions } from "./map";
+import { isTokenSize, placeToken, type Square } from "./grid";
+import type { MapActions } from "./map";
 import { isValidMark, MAX_MARKS, tokenMarks, type Mark } from "./marks";
 import type { RoomStore, Token } from "./roomStore";
+import { isInteger, isRecord } from "./typeGuards";
 
 export function embeddedImage(value: string | undefined) {
   return value?.startsWith("data:image/") ? value : null;
+}
+
+// Tokens come from other players, so only their known fields are used. Unknown effects and
+// broken marks are left out instead of hiding the whole token.
+export function validToken(id: string, value: unknown): Token | null {
+  if (!isRecord(value)) return null;
+  const { name, imageId, x, y, size } = value;
+  if (typeof name !== "string" || typeof imageId !== "string") return null;
+  if (!isInteger(x) || !isInteger(y) || !isTokenSize(size)) return null;
+  const effects = tokenEffects(value);
+  const marks = tokenMarks(value);
+  return {
+    id,
+    name,
+    imageId,
+    x,
+    y,
+    size,
+    ...(effects.length > 0 && { effects }),
+    ...(marks.length > 0 && { marks }),
+  };
 }
 
 export function createTokens(
@@ -29,7 +51,7 @@ export function createTokens(
   }
 
   function setTokenImage(id: string, imageDataUrl: string) {
-    const token = tokensMap.get(id);
+    const token = validToken(id, tokensMap.get(id));
     if (!token) return;
     const imageId = nanoid();
     undoManager.stopCapturing();
@@ -93,7 +115,7 @@ export function createTokens(
 
   function resizeToken(id: string, square: Square) {
     const { size } = square;
-    if (!Number.isInteger(size) || size < 1 || size > MAX_TOKEN_SIZE) {
+    if (!isTokenSize(size)) {
       throw new Error(`Invalid token size ${size}`);
     }
     undoManager.stopCapturing();
@@ -106,7 +128,7 @@ export function createTokens(
 
   function removeToken(id: string) {
     undoManager.stopCapturing();
-    const token = tokensMap.get(id);
+    const token = validToken(id, tokensMap.get(id));
     if (!token) return;
     doc.transact(() => {
       tokensMap.delete(id);
@@ -115,7 +137,7 @@ export function createTokens(
   }
 
   function updateToken(id: string, change: (token: Token) => Token) {
-    const token = tokensMap.get(id);
+    const token = validToken(id, tokensMap.get(id));
     if (!token) return;
     tokensMap.set(id, change(token));
   }

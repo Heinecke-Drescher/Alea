@@ -17,6 +17,7 @@ import { isOutOfFight } from "../room/effects";
 import type { Token } from "../room/roomStore";
 import { embeddedImage } from "../room/tokens";
 import { useRoom } from "../room/RoomContext";
+import { useTokens } from "../room/useTokens";
 import { useY } from "../room/useY";
 import { GHOST_SIZE, useScreenDrag } from "../useScreenDrag";
 import { useDropToken } from "./dropToken";
@@ -33,9 +34,7 @@ import { usePointerRaise } from "../usePointerRaise";
 export function TokenList() {
   const room = useRoom();
   const fogGuard = useFogGuard();
-  const tokens = Object.values(useY(room.tokensMap)).filter(
-    (token) => !fogGuard.hidesSquare(token),
-  );
+  const tokens = useTokens().filter((token) => !fogGuard.hidesSquare(token));
   const images = useY(room.imagesMap);
   const selected = useSelectedTokens();
   const [editingId, setEditingId] = useState<string | null>(null);

@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
-import { IMAGE, moveOnlyTokenTo, only } from "./testRoom";
+import { IMAGE, moveOnlyTokenTo, only, tokenOf } from "./testRoom";
 
 let room: Room;
 
@@ -11,7 +11,7 @@ beforeEach(() => {
 });
 
 function onlyToken() {
-  return only(room.tokensMap.values());
+  return tokenOf(room, only(room.tokensMap.keys()));
 }
 
 describe("map bounds", () => {

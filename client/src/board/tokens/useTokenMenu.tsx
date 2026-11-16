@@ -44,6 +44,7 @@ import type { useClipboard } from "../selection/useClipboard";
 import { showMenuAt } from "./showMenuAt";
 import { TokenSizeControl } from "./TokenSizeControl";
 import { CELL_SIZE } from "../../room/grid";
+import { validToken } from "../../room/tokens";
 import type { SelectionControls } from "../selection/useSelection";
 
 function onlyToken(token: Token) {
@@ -66,7 +67,7 @@ export function useTokenMenu(
     onFile: async (file) => {
       const id = imageTokenId.current;
       // Someone may have removed it while the file dialog was open.
-      const token = id === null ? undefined : room.tokensMap.get(id);
+      const token = id === null ? null : validToken(id, room.tokensMap.get(id));
       if (!token) return;
       const image = await createImage(file, TOKEN_IMAGE_SIZE);
       room.assertSpaceForImage(image, token.imageId);

@@ -12,6 +12,7 @@ import {
 } from "../../room/drawing";
 import { CELL_SIZE } from "../../room/grid";
 import { validMapText } from "../../room/texts";
+import { validToken } from "../../room/tokens";
 import { cellOffset, roundToCells, squaresBounds } from "./selection";
 
 interface Drag {
@@ -42,11 +43,7 @@ export function useItemDrag(room: Room, selected: Items) {
     const isSelection = Object.values(selected).some((ids) => ids.includes(id));
     const items = isSelection ? selected : onlyItem(id);
     // The same tokens that moveItems will move, also those whose image is missing.
-    const tokens = existing(
-      room.tokensMap,
-      items.tokens,
-      (_, token) => token ?? null,
-    );
+    const tokens = existing(room.tokensMap, items.tokens, validToken);
     const ids = new Set(Object.values(items).flat());
     // Highlights and shape fills carry the id of their item as name.
     const others = stage.find(
@@ -120,14 +117,13 @@ export function useItemDrag(room: Room, selected: Items) {
     dy: number,
   ) {
     return (
-      existing(room.tokensMap, tokens, (_, token) => token ?? null).some(
-        (token) =>
-          fogGuard.hidesRect({
-            x: token.x * CELL_SIZE + dx,
-            y: token.y * CELL_SIZE + dy,
-            width: token.size * CELL_SIZE,
-            height: token.size * CELL_SIZE,
-          }),
+      existing(room.tokensMap, tokens, validToken).some((token) =>
+        fogGuard.hidesRect({
+          x: token.x * CELL_SIZE + dx,
+          y: token.y * CELL_SIZE + dy,
+          width: token.size * CELL_SIZE,
+          height: token.size * CELL_SIZE,
+        }),
       ) ||
       existing(room.strokesMap, strokes, validStroke).some(
         (stroke) =>

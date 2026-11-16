@@ -1,10 +1,11 @@
 import { modals } from "@mantine/modals";
 import type { Room } from "../room/createRoom";
 import { NEW_MARK, tokenMarks } from "../room/marks";
+import { validToken } from "../room/tokens";
 import { MarkForm } from "./MarkForm";
 
 export function openMarkDialog(room: Room, tokenId: string, index?: number) {
-  const token = room.tokensMap.get(tokenId);
+  const token = validToken(tokenId, room.tokensMap.get(tokenId));
   if (!token) return;
   const current = index === undefined ? undefined : tokenMarks(token)[index];
   if (index !== undefined && !current) return;

@@ -2,6 +2,7 @@ import type { MantineTheme } from "@mantine/core";
 import { modals } from "@mantine/modals";
 import type { Room } from "../room/createRoom";
 import type { PlayerColor } from "../room/playerColors";
+import { validToken } from "../room/tokens";
 import { placeholderOf } from "./placeholders";
 import { createPlaceholderImage } from "./placeholderImage";
 import { PlaceholderForm } from "./PlaceholderModal";
@@ -22,7 +23,7 @@ export function openPlaceholderImageDialog(
         errorTitle="Could not change the image"
         onSubmit={async ({ color, icon }) => {
           // Someone may have removed it while the dialog was open.
-          const token = room.tokensMap.get(tokenId);
+          const token = validToken(tokenId, room.tokensMap.get(tokenId));
           if (!token) return;
           const { label, number } = placeholderOf(token.name);
           const image = await createPlaceholderImage(

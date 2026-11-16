@@ -8,8 +8,11 @@ export function isStatusEffect(value: unknown): value is StatusEffect {
   return STATUS_EFFECTS.some((effect) => effect === value);
 }
 
-export function tokenEffects(token: Token): StatusEffect[] {
-  const { effects } = token;
+export function tokenEffects({
+  effects,
+}: {
+  effects?: unknown;
+}): StatusEffect[] {
   if (!Array.isArray(effects)) return [];
   return STATUS_EFFECTS.filter((effect) => effects.includes(effect));
 }

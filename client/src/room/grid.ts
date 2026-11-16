@@ -1,5 +1,6 @@
 import { clamp } from "@mantine/hooks";
 import type { IRect, Vector2d } from "konva/lib/types";
+import { isInteger } from "./typeGuards";
 
 export const CELL_SIZE = 50;
 export const FEET_PER_CELL = 5;
@@ -27,6 +28,10 @@ export const DEFAULT_MAP_BOUNDS: MapBounds = {
 export const MIN_MAP_CELLS = 10;
 export const MAX_TOKEN_SIZE = 10;
 export const MAX_MAP_CELLS = 100;
+
+export function isTokenSize(value: unknown): value is number {
+  return isInteger(value) && value >= 1 && value <= MAX_TOKEN_SIZE;
+}
 
 export function mapRect({ x, y, columns, rows }: MapBounds): IRect {
   return {
@@ -89,6 +94,19 @@ export function toCells(pixels: number) {
 
 export function snapToCorner({ x, y }: Vector2d): Vector2d {
   return { x: toCells(x) * CELL_SIZE, y: toCells(y) * CELL_SIZE };
+}
+
+export function placeToken(
+  bounds: MapBounds,
+  token: Square,
+  dx: number,
+  dy: number,
+) {
+  const { x, y, columns, rows } = bounds;
+  return {
+    x: clamp(token.x + dx, x, x + columns - token.size),
+    y: clamp(token.y + dy, y, y + rows - token.size),
+  };
 }
 
 export function clampCellToMap(cell: Vector2d, map: MapBounds): Vector2d {

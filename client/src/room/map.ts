@@ -1,32 +1,18 @@
-import { clamp } from "@mantine/hooks";
 import {
   containsCell,
   containsSquare,
   DEFAULT_MAP_BOUNDS,
   isValidMapBounds,
   type MapBounds,
-  type Square,
 } from "./grid";
-import { OUTSIDE_UNDO, type RoomStore } from "./roomStore";
+import { OUTSIDE_UNDO, validValues, type RoomStore } from "./roomStore";
+import { validToken } from "./tokens";
 
 export const BOUNDS_KEY = "bounds";
 export const CONTENT_OUTSIDE_MESSAGE =
   "Move or delete what is outside the new size first.";
 
 export type MapActions = ReturnType<typeof createMapActions>;
-
-export function placeToken(
-  bounds: MapBounds,
-  token: Square,
-  dx: number,
-  dy: number,
-) {
-  const { x, y, columns, rows } = bounds;
-  return {
-    x: clamp(token.x + dx, x, x + columns - token.size),
-    y: clamp(token.y + dy, y, y + rows - token.size),
-  };
-}
 
 export function createMapActions({
   doc,
@@ -53,7 +39,7 @@ export function createMapActions({
       Array.from(cellsMap.values()).every((cell) =>
         containsCell(bounds, cell.x, cell.y),
       ) &&
-      Array.from(tokensMap.values()).every((token) =>
+      validValues(tokensMap.entries(), validToken).every((token) =>
         containsSquare(bounds, token),
       )
     );

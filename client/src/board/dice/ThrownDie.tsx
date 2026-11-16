@@ -20,7 +20,8 @@ import { rollDie } from "../../room/dice";
 import { CELL_SIZE, type MapBounds } from "../../room/grid";
 import { rollColor, rollPath } from "../../room/rolls";
 import { useRoom } from "../../room/RoomContext";
-import type { Roll } from "../../room/roomStore";
+import { validValues, type Roll } from "../../room/roomStore";
+import { validToken } from "../../room/tokens";
 import { knockToken } from "./knockToken";
 
 const FADE_SECONDS = 0.5;
@@ -106,7 +107,11 @@ export function ThrownDie({
       randomThrow(roll.position ?? viewCenter(), room.mapBounds()),
   );
   const [hits] = useState(() =>
-    tokenHits(rollingPath, Array.from(room.tokensMap.values()), DIE_RADIUS),
+    tokenHits(
+      rollingPath,
+      validValues(room.tokensMap.entries(), validToken),
+      DIE_RADIUS,
+    ),
   );
   const groupRef = useRef<GroupNode>(null);
   const textRef = useRef<TextNode>(null);

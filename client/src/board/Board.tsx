@@ -25,6 +25,7 @@ import { usePlayer } from "../player/PlayerContext";
 import type { Awareness } from "../room/connection/connectRoom";
 import { useRoom } from "../room/RoomContext";
 import { CELL_SIZE, squareCenter } from "../room/grid";
+import { validToken } from "../room/tokens";
 import type { HeldToken } from "../tokens/holdTokens";
 import { useBackgroundImage } from "../room/useBackgroundImage";
 import { cursorArrowCss } from "./cursorArrow";
@@ -298,14 +299,14 @@ export function Board({
   }
 
   function focusToken(id: string) {
-    const token = room.tokensMap.get(id);
+    const token = validToken(id, room.tokensMap.get(id));
     if (!token) return;
     selectToken(id);
     centerOn(squareCenter(token.x, token.y, token.size));
   }
 
   function openTokenMenu(id: string, event: ReactMouseEvent) {
-    const token = room.tokensMap.get(id);
+    const token = validToken(id, room.tokensMap.get(id));
     if (!token) return;
     changeTool("select");
     tokenMenu.openAt(token, event);

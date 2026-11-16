@@ -1,9 +1,10 @@
 import { modals } from "@mantine/modals";
 import type { Room } from "../room/createRoom";
+import { validToken } from "../room/tokens";
 import { TokenTextForm } from "./TokenTextForm";
 
 export function openRenameDialog(room: Room, tokenId: string) {
-  const token = room.tokensMap.get(tokenId);
+  const token = validToken(tokenId, room.tokensMap.get(tokenId));
   if (!token) return;
   const modalId = modals.open({
     title: "Rename token",

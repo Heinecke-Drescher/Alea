@@ -6,6 +6,7 @@ import { showRoomSpaceError } from "../images/showRoomSpaceError";
 import { usePlayer } from "../player/PlayerContext";
 import { CELL_SIZE, cellAt, containsCell } from "../room/grid";
 import { useRoom } from "../room/RoomContext";
+import { validToken } from "../room/tokens";
 import { droppedTokenId, isTokenDrag } from "../tokens/tokenDrag";
 import { dropPointOnMap, isOverMap, screenPointOnMap } from "./dropPoint";
 
@@ -38,7 +39,7 @@ export function useTokenDrop(
 
   function copyTokenAt(id: string, point: Vector2d) {
     // Someone may have removed it while it was being dragged.
-    const token = room.tokensMap.get(id);
+    const token = validToken(id, room.tokensMap.get(id));
     if (!token) return;
     const cell = cellAt(point);
     if (!containsCell(room.mapBounds(), cell.x, cell.y)) return;

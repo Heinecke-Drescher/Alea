@@ -4,7 +4,7 @@ import { CELL_SIZE } from "./grid";
 import { createRoom, type Room } from "./createRoom";
 import { MAX_MARK_LENGTH, MAX_MARKS, NEW_MARK, tokenMarks } from "./marks";
 import type { Token } from "./roomStore";
-import { IMAGE, only } from "./testRoom";
+import { IMAGE, only, tokenOf } from "./testRoom";
 
 let room: Room;
 
@@ -12,14 +12,8 @@ beforeEach(() => {
   room = createRoom(new Y.Doc());
 });
 
-function tokenOf(id: string | undefined) {
-  const token = id && room.tokensMap.get(id);
-  if (!token) throw new Error(`Expected token ${id}`);
-  return token;
-}
-
 function onlyToken() {
-  return only(room.tokensMap.values());
+  return tokenOf(room, only(room.tokensMap.keys()));
 }
 
 describe("marks", () => {
@@ -110,15 +104,15 @@ describe("marks", () => {
       { ...NEW_MARK, text: "Target" },
       { ...NEW_MARK, text: "Blessed" },
     ];
-    expect(tokenMarks(tokenOf(room.duplicateToken(id)))).toEqual(marks);
+    expect(tokenMarks(tokenOf(room, room.duplicateToken(id)))).toEqual(marks);
     const clip = room.copyItems({ strokes: [], tokens: [id], texts: [] });
     const [pastedId] = room.paste(clip, 0, 5 * CELL_SIZE).tokens;
-    expect(tokenMarks(tokenOf(pastedId))).toEqual(marks);
+    expect(tokenMarks(tokenOf(room, pastedId))).toEqual(marks);
   });
 
   it("copies no marks onto an unmarked token", () => {
     room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
-    const copy = tokenOf(room.duplicateToken(onlyToken().id));
+    const copy = tokenOf(room, room.duplicateToken(onlyToken().id));
     expect(copy).not.toHaveProperty("marks");
   });
 

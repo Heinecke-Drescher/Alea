@@ -8,6 +8,7 @@ import type { MapImagePlace } from "./mapImage";
 import type { Mark } from "./marks";
 import type { PlayerColor } from "./playerColors";
 import type { AreaShape } from "./shapes";
+import { isRecord } from "./typeGuards";
 
 export interface Token {
   id: string;
@@ -98,10 +99,11 @@ export function validValues<V, T>(
 export const OUTSIDE_UNDO = Symbol("outside undo");
 
 export function createRoomStore(doc: Y.Doc) {
-  const tokensMap = doc.getMap<Token>("tokens");
+  // These hold what other players wrote, so they are read only through `validToken` and
+  // `validStroke`.
+  const tokensMap = doc.getMap<unknown>("tokens");
   const imagesMap = doc.getMap<string>("images");
   const cellsMap = doc.getMap<Cell>("cells");
-  // Holds what other players wrote, so it is read only through `validStroke`.
   const strokesMap = doc.getMap<unknown>("strokes");
   const textsMap = doc.getMap<MapText>("texts");
   const rollsArray = doc.getArray<Roll>("rolls");
@@ -134,8 +136,11 @@ export function createRoomStore(doc: Y.Doc) {
   // Undo can restore a token that another player deleted together with its image.
   undoManager.on("stack-item-popped", () => {
     doc.transact(() => {
-      for (const token of tokensMap.values()) {
-        if (!imagesMap.has(token.imageId)) tokensMap.delete(token.id);
+      for (const [id, token] of tokensMap.entries()) {
+        const imageId = isRecord(token) ? token.imageId : undefined;
+        if (typeof imageId === "string" && !imagesMap.has(imageId)) {
+          tokensMap.delete(id);
+        }
       }
     }, OUTSIDE_UNDO);
   });

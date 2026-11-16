@@ -2,7 +2,7 @@ import type { IRect } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import { tokenEffects, type StatusEffect } from "./effects";
 import { tokenMarks, type Mark } from "./marks";
-import { CELL_SIZE, nearestFreeSquare, type Square } from "./grid";
+import { CELL_SIZE, nearestFreeSquare, placeToken, type Square } from "./grid";
 import {
   isOverFog,
   newStroke,
@@ -11,7 +11,7 @@ import {
   strokeData,
   validStroke,
 } from "./drawing";
-import { placeToken, type MapActions } from "./map";
+import type { MapActions } from "./map";
 import type * as Y from "yjs";
 import {
   cellKey,
@@ -25,6 +25,7 @@ import {
   validValues,
 } from "./roomStore";
 import { assertSpace } from "./roomSpace";
+import { validToken } from "./tokens";
 import { strokeTouches } from "./strokeTouches";
 import { textData, textTouches, validMapText } from "./texts";
 
@@ -157,7 +158,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
   }
 
   function tokensIn(area: IRect) {
-    return Array.from(tokensMap.values()).filter((token) =>
+    return validValues(tokensMap.entries(), validToken).filter((token) =>
       isTouchedBy(area, token.x, token.y, token.size),
     );
   }
@@ -186,7 +187,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
   function contentOf(items: Items): Content {
     return {
       cells: [],
-      tokens: existing(tokensMap, items.tokens, (_, token) => token ?? null),
+      tokens: existing(tokensMap, items.tokens, validToken),
       strokes: existing(strokesMap, items.strokes, validStroke),
       texts: existing(textsMap, items.texts, (_, text) => validMapText(text)),
     };
@@ -284,11 +285,11 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
   }
 
   function duplicateToken(id: string, blocked: Square[] = []) {
-    const token = tokensMap.get(id);
+    const token = validToken(id, tokensMap.get(id));
     if (!token) return;
     const cell = nearestFreeSquare(
       token,
-      [...tokensMap.values(), ...blocked],
+      [...validValues(tokensMap.entries(), validToken), ...blocked],
       mapBounds(),
     );
     if (!cell) return;

@@ -1,4 +1,3 @@
-import type { Token } from "./roomStore";
 import { isRecord } from "./typeGuards";
 
 export const MAX_MARK_LENGTH = 40;
@@ -52,8 +51,7 @@ export function isValidMark(value: unknown): value is Mark {
 }
 
 // Other players' data may hold anything, so only valid marks are read, and only their known fields.
-export function tokenMarks(token: Token): Mark[] {
-  const { marks } = token;
+export function tokenMarks({ marks }: { marks?: unknown }): Mark[] {
   if (!Array.isArray(marks)) return [];
   return marks
     .filter(isValidMark)

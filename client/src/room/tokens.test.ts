@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
+import { NO_ITEMS } from "./areaActions";
 import { DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
-import { embeddedImage } from "./tokens";
-import { IMAGE, moveOnlyTokenTo, only } from "./testRoom";
+import { embeddedImage, validToken } from "./tokens";
+import { IMAGE, moveOnlyTokenTo, only, tokenOf } from "./testRoom";
 
 const { columns, rows } = DEFAULT_MAP_BOUNDS;
 
@@ -13,14 +14,8 @@ beforeEach(() => {
   room = createRoom(new Y.Doc());
 });
 
-function tokenOf(id: string | undefined) {
-  const token = id && room.tokensMap.get(id);
-  if (!token) throw new Error(`Expected token ${id}`);
-  return token;
-}
-
 function onlyToken() {
-  return only(room.tokensMap.values());
+  return tokenOf(room, only(room.tokensMap.keys()));
 }
 
 describe("addToken", () => {
@@ -104,7 +99,7 @@ describe("changing tokens", () => {
   it("duplicates a token next to it with its own image", () => {
     room.addToken("Goblin", IMAGE, { x: 0, y: 0 });
     const original = onlyToken();
-    const copy = tokenOf(room.duplicateToken(original.id));
+    const copy = tokenOf(room, room.duplicateToken(original.id));
     expect(copy).toMatchObject({
       name: "Goblin",
       size: 1,
@@ -135,7 +130,7 @@ describe("changing tokens", () => {
     room.addToken("Goblin", IMAGE, { x: 5, y: 5 });
     const original = onlyToken();
     const copyId = room.duplicateToken(original.id, [{ x: 6, y: 5, size: 1 }]);
-    expect(tokenOf(copyId)).toMatchObject({ x: 5, y: 6 });
+    expect(tokenOf(room, copyId)).toMatchObject({ x: 5, y: 6 });
   });
 });
 
@@ -151,5 +146,61 @@ describe("embeddedImage", () => {
     "data:text/html,x",
   ])("rejects %j", (value) => {
     expect(embeddedImage(value)).toBeNull();
+  });
+});
+
+describe("tokens from other players", () => {
+  const GOBLIN = { name: "Goblin", imageId: "i", x: 2, y: 3, size: 1 };
+
+  it("reads a token under its key and keeps only its known fields", () => {
+    expect(validToken("t", { ...GOBLIN, id: "other", extra: 1 })).toEqual({
+      ...GOBLIN,
+      id: "t",
+    });
+  });
+
+  it("leaves out unknown effects and broken marks but keeps the token", () => {
+    const token = { ...GOBLIN, effects: ["dead", "flying"], marks: [3] };
+    expect(validToken("t", token)).toEqual({
+      ...GOBLIN,
+      id: "t",
+      effects: ["dead"],
+    });
+  });
+
+  it.each<[string, unknown]>([
+    ["no object", "Goblin"],
+    ["a name that is no text", { ...GOBLIN, name: 3 }],
+    ["an image id that is no text", { ...GOBLIN, imageId: null }],
+    ["a place between cells", { ...GOBLIN, x: 1.5 }],
+    ["a place that is no number", { ...GOBLIN, y: "3" }],
+    ["no size", { ...GOBLIN, size: undefined }],
+    ["a size too small", { ...GOBLIN, size: 0 }],
+    ["a size too large", { ...GOBLIN, size: 11 }],
+  ])("rejects %s", (_, value) => {
+    expect(validToken("t", value)).toBeNull();
+  });
+
+  it("moves, copies, resizes and exports around a broken token", () => {
+    room.addToken("Goblin", IMAGE, { x: 1, y: 1 });
+    const { id } = onlyToken();
+    room.tokensMap.set("broken", { ...GOBLIN, id: "broken", x: "1", y: 1 });
+    const area = { x: 0, y: 0, width: 200, height: 200 };
+    room.moveArea(area, 1, 0);
+    expect(tokenOf(room, id)).toMatchObject({ x: 2, y: 1 });
+    expect(room.copyArea(area).tokens).toHaveLength(1);
+    expect(room.copyItems({ ...NO_ITEMS, tokens: ["broken"] }).tokens).toEqual(
+      [],
+    );
+    expect(room.resize({ x: 0, y: 0, columns: 10, rows: 10 })).toBe(true);
+    expect(room.exportMap().tokens).toHaveLength(1);
+  });
+
+  it("keeps unknown fields of other players out of the room when moving", () => {
+    room.addToken("Goblin", IMAGE, { x: 1, y: 1 });
+    const token = onlyToken();
+    room.tokensMap.set(token.id, { ...token, extra: 1 });
+    moveOnlyTokenTo(room, 2, 2);
+    expect(room.tokensMap.get(token.id)).not.toHaveProperty("extra");
   });
 });

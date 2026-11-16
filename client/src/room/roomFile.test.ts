@@ -16,7 +16,7 @@ import {
 import { megabytes } from "./roomSpace";
 import type { AreaShape } from "./shapes";
 import { TEXT_FONT_SIZES } from "./texts";
-import { IMAGE, only } from "./testRoom";
+import { IMAGE, only, tokenOf } from "./testRoom";
 
 const PLACE = { x: 0, y: 0, width: 1000, height: 750, rotation: 0 };
 const TEXT = {
@@ -53,7 +53,7 @@ function fillRoom(target: Room) {
   target.addStroke("#00ff00", [5, 5, 20, 20], true);
   target.addShape("#0000ff", SQUARE, false);
   target.addToken("Goblin", IMAGE, { x: 3, y: 2 });
-  const token = only(target.tokensMap.values());
+  const token = tokenOf(target, only(target.tokensMap.keys()));
   target.toggleEffect(token.id, "dead");
   target.setBackground(IMAGE);
   target.hideCells({ x: 0, y: 0 }, { x: 1, y: 0 });
@@ -103,7 +103,7 @@ describe("map files", () => {
 
   it("brings a token's marks into another room", () => {
     fillRoom(room);
-    const token = only(room.tokensMap.values());
+    const token = tokenOf(room, only(room.tokensMap.keys()));
     room.addMark(token.id, { ...NEW_MARK, text: "Bloodied" });
     room.addMark(token.id, { ...NEW_MARK, text: "" });
     const file = parseMapFile(JSON.stringify(room.exportMap()));
@@ -118,7 +118,7 @@ describe("map files", () => {
 
   it("exports no marks that another player's data holds wrongly", () => {
     fillRoom(room);
-    const token = only(room.tokensMap.values());
+    const token = tokenOf(room, only(room.tokensMap.keys()));
     room.tokensMap.set(token.id, { ...token, marks: [3] } as never);
     expect(room.exportMap().tokens[0]).not.toHaveProperty("marks");
   });
@@ -152,9 +152,9 @@ describe("map files", () => {
     other.addToken("Orc", "data:image/webp;base64,BBBB", { x: 0, y: 0 });
     other.importMap(file);
     expect(other.cellsMap.has("5,5")).toBe(false);
-    expect(Array.from(other.tokensMap.values(), (t) => t.name)).toEqual([
-      "Goblin",
-    ]);
+    expect(
+      Array.from(other.tokensMap.keys(), (id) => tokenOf(other, id).name),
+    ).toEqual(["Goblin"]);
     expect(other.imagesMap.size).toBe(2);
   });
 
