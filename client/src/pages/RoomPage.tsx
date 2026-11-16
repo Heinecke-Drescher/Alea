@@ -127,10 +127,13 @@ function RoomView({ roomId }: { roomId: string }) {
       board.current?.dropToken(tokenId, point),
     [],
   );
-  const alignMapImage = () => board.current?.alignMapImage();
+  const alignMapImage = useCallback(() => board.current?.alignMapImage(), []);
   // Without a board, e.g. while the map shows an error, there is no map to throw onto.
-  const throwDie = (sides: DieSides, samples: ScreenSample[]) =>
-    board.current?.throwDie(sides, samples);
+  const throwDie = useCallback(
+    (sides: DieSides, samples: ScreenSample[]) =>
+      board.current?.throwDie(sides, samples),
+    [],
+  );
   const isWide = useWideLayout();
   const isSheetOpen = isTokensOpen && !isWide;
   const covered = {
@@ -166,11 +169,14 @@ function RoomView({ roomId }: { roomId: string }) {
   useEffect(() => tokenDetail.stopHover, [tokenDetail]);
   // The detail, and on phones the token list, lie over the map, where the held tokens are to be
   // put down.
-  const holdTokens = (tokens: HeldToken[]) => {
-    tokenDetail.hide();
-    if (!isWide) closeTokens();
-    board.current?.holdTokens(tokens);
-  };
+  const holdTokens = useCallback(
+    (tokens: HeldToken[]) => {
+      tokenDetail.hide();
+      if (!isWide) closeTokens();
+      board.current?.holdTokens(tokens);
+    },
+    [tokenDetail, isWide, closeTokens],
+  );
   const tokenPanel = (
     <FocusTokenContext value={focusToken}>
       <TokenMenuContext value={openTokenMenu}>
