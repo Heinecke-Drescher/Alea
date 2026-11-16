@@ -44,6 +44,7 @@ import { RoomContext } from "../room/RoomContext";
 import { PlayerContext } from "../player/PlayerContext";
 import { recordVisit } from "../recentRooms/useRecentRooms";
 import { useLocalPlayer } from "../player/useLocalPlayer";
+import { usePresenceBroadcast } from "../room/connection/usePresenceBroadcast";
 import { useRoomConnection } from "../room/connection/useRoomConnection";
 import { SceneTabs } from "../scenes/SceneTabs";
 import { DropTokenContext } from "../tokens/dropToken";
@@ -107,6 +108,7 @@ function RoomView({ roomId }: { roomId: string }) {
   const localPlayer = useLocalPlayer();
   const { id, name, color } = localPlayer;
   const player = useMemo(() => ({ id, name, color }), [id, name, color]);
+  usePresenceBroadcast(awareness, player);
   const criticals = useCriticalRolls(room, isSynced);
   const board = useRef<BoardHandle>(null);
   const [selectedTokens, setSelectedTokens] = useState<readonly string[]>([]);

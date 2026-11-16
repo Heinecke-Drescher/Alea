@@ -102,7 +102,7 @@ sync server together.
 | ------------------------------ | -------------------------------------------------------------- |
 | `client/`                      | The website: React, Mantine and Konva                          |
 | `client/src/room/`             | Room state in Yjs and its rules; the only code that changes it |
-| `client/src/room/connection/`  | Connection to the sync server, cursors and pings               |
+| `client/src/room/connection/`  | Connection to the sync server, presence, cursors and pings     |
 | `client/src/board/`            | Everything drawn on the map (Konva) and map input, by feature  |
 | `client/src/dice/`, `tokens/`… | One feature off the map: its panels, bars, menus and hooks     |
 | `client/src/pages/`            | Start page, room page and the parts of its header              |
