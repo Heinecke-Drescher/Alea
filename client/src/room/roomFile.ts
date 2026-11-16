@@ -2,7 +2,13 @@ import type { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import { MAX_ROOM_BYTES } from "../../../shared/roomLimits";
 import { BACKGROUND_IMAGE_ID } from "./background";
-import { isOverFog, newStroke, shapeStroke, strokeData } from "./drawing";
+import {
+  isOverFog,
+  newStroke,
+  strokeData,
+  validStroke,
+  validStrokeData,
+} from "./drawing";
 import { isStatusEffect, tokenEffects, type StatusEffect } from "./effects";
 import { isValidMark, MAX_MARKS, tokenMarks, type Mark } from "./marks";
 import {
@@ -27,6 +33,7 @@ import {
   type MapTextData,
   type RoomStore,
   type StrokeData,
+  validValues,
 } from "./roomStore";
 import {
   megabytes,
@@ -34,10 +41,9 @@ import {
   RoomSpaceError,
   storedBytesAfter,
 } from "./roomSpace";
-import { isShapeKind, shapeCells, type AreaShape } from "./shapes";
 import { textData, validMapText } from "./texts";
 import { embeddedImage } from "./tokens";
-import { isFiniteNumber, isRecord } from "./typeGuards";
+import { isRecord } from "./typeGuards";
 
 const APP = "alea";
 const VERSION = 1;
@@ -100,13 +106,6 @@ function cellOnMap(value: unknown, bounds: MapBounds, what: string) {
   return { x, y };
 }
 
-function point(value: unknown, what: string): Vector2d {
-  if (!isRecord(value)) invalid(what);
-  const { x, y } = value;
-  if (!isFiniteNumber(x) || !isFiniteNumber(y)) invalid(what);
-  return { x, y };
-}
-
 function parseBounds(value: unknown, what: string): MapBounds {
   if (!isRecord(value)) invalid(what);
   const bounds = {
@@ -119,42 +118,8 @@ function parseBounds(value: unknown, what: string): MapBounds {
   return bounds;
 }
 
-function parseShape(value: unknown): AreaShape {
-  if (!isRecord(value) || !isShapeKind(value.kind)) invalid("shape kind");
-  const shape = {
-    kind: value.kind,
-    from: point(value.from, "shape origin"),
-    to: point(value.to, "shape end"),
-  };
-  if (shapeCells(shape) === 0) invalid("shape size");
-  return shape;
-}
-
 function parseStroke(value: unknown): StrokeData {
-  if (!isRecord(value)) invalid("stroke");
-  const color = text(value.color, "stroke color");
-  const points = list(value.points, "stroke points");
-  const isPointList = points.length >= 4 && points.length % 2 === 0;
-  if (!isPointList || !points.every(Number.isFinite)) invalid("stroke points");
-  if (value.overFog !== undefined && value.overFog !== true) {
-    invalid("stroke above the fog");
-  }
-  if (value.closed !== undefined && value.closed !== true) {
-    invalid("closed stroke");
-  }
-  const shape =
-    value.shape === undefined ? null : shapeStroke(parseShape(value.shape));
-  if (shape && !shape.points.every(Number.isFinite)) invalid("shape size");
-  return strokeData(
-    {
-      color,
-      points: points as number[],
-      ...(value.closed === true && { closed: true }),
-      // The outline follows from the shape, so both cannot disagree.
-      ...shape,
-    },
-    value.overFog === true,
-  );
+  return validStrokeData(value) ?? invalid("stroke");
 }
 
 function parseMapImage(value: unknown): MapImage {
@@ -340,7 +305,7 @@ export function createMapFiles(store: RoomStore, { mapBounds }: MapActions) {
         y,
         color,
       })),
-      strokes: Array.from(strokesMap.values(), (stroke) =>
+      strokes: validValues(strokesMap.entries(), validStroke).map((stroke) =>
         strokeData(stroke, isOverFog(stroke)),
       ),
       tokens: Array.from(tokensMap.values()).flatMap((token) => {

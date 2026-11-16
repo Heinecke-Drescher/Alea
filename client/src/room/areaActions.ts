@@ -9,6 +9,7 @@ import {
   putCell,
   shiftStroke,
   strokeData,
+  validStroke,
 } from "./drawing";
 import { placeToken, type MapActions } from "./map";
 import type * as Y from "yjs";
@@ -21,6 +22,7 @@ import {
   type Stroke,
   type StrokeData,
   type Token,
+  validValues,
 } from "./roomStore";
 import { assertSpace } from "./roomSpace";
 import { strokeTouches } from "./strokeTouches";
@@ -62,11 +64,15 @@ function isWholeCells(dx: number, dy: number) {
   return Number.isInteger(dx / CELL_SIZE) && Number.isInteger(dy / CELL_SIZE);
 }
 
-export function existing<T>(map: Y.Map<T>, ids: string[]) {
-  return ids.flatMap((id) => {
-    const value = map.get(id);
-    return value ? [value] : [];
-  });
+export function existing<V, T>(
+  map: Y.Map<V>,
+  ids: string[],
+  valid: (id: string, value: V | undefined) => T | null,
+) {
+  return validValues(
+    ids.map((id) => [id, map.get(id)]),
+    valid,
+  );
 }
 
 // Texts come from other players, so only their known fields are moved, copied or kept.
@@ -157,7 +163,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
   }
 
   function strokesIn(area: IRect) {
-    return Array.from(strokesMap.values()).filter((stroke) =>
+    return validValues(strokesMap.entries(), validStroke).filter((stroke) =>
       strokeTouches(stroke, area),
     );
   }
@@ -180,9 +186,9 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
   function contentOf(items: Items): Content {
     return {
       cells: [],
-      tokens: existing(tokensMap, items.tokens),
-      strokes: existing(strokesMap, items.strokes),
-      texts: validTexts(existing(textsMap, items.texts)),
+      tokens: existing(tokensMap, items.tokens, (_, token) => token ?? null),
+      strokes: existing(strokesMap, items.strokes, validStroke),
+      texts: existing(textsMap, items.texts, (_, text) => validMapText(text)),
     };
   }
 

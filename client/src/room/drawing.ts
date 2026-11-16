@@ -1,6 +1,7 @@
 import type { Vector2d } from "konva/lib/types";
 import { nanoid } from "nanoid";
 import { containsCell, type MapBounds } from "./grid";
+import { isPointList } from "./points";
 import {
   cellKey,
   type Cell,
@@ -13,8 +14,10 @@ import {
   fitShape,
   shapeOutline,
   shiftShape,
+  validShape,
   type AreaShape,
 } from "./shapes";
+import { isRecord } from "./typeGuards";
 
 export function shiftPoints(points: number[], dx: number, dy: number) {
   return points.map((value, i) => value + (i % 2 === 0 ? dx : dy));
@@ -56,6 +59,39 @@ export function shapeStroke(
   const points = shapeOutline(fitted);
   if (!points) throw new Error("A shape needs a size");
   return { points, closed: true, shape: fitted };
+}
+
+function validShapeStroke(value: unknown) {
+  const shape = validShape(value);
+  if (!shape) return null;
+  const stroke = shapeStroke(shape);
+  return stroke.points.every(Number.isFinite) ? stroke : null;
+}
+
+// Strokes come from other players and files, so only their known fields are used.
+export function validStrokeData(value: unknown): StrokeData | null {
+  if (!isRecord(value)) return null;
+  const { color, points, overFog, closed, shape } = value;
+  if (typeof color !== "string" || !isPointList(points)) return null;
+  if (overFog !== undefined && overFog !== true) return null;
+  if (closed !== undefined && closed !== true) return null;
+  const outline = shape === undefined ? null : validShapeStroke(shape);
+  if (shape !== undefined && !outline) return null;
+  return strokeData(
+    {
+      color,
+      points,
+      ...(closed === true && { closed: true }),
+      // The outline follows from the shape, so both cannot disagree.
+      ...outline,
+    },
+    overFog === true,
+  );
+}
+
+export function validStroke(id: string, value: unknown): Stroke | null {
+  const data = validStrokeData(value);
+  return data && { ...data, id };
 }
 
 export function newStroke(
@@ -111,7 +147,7 @@ export function createDrawing({
   }
 
   function reshapeStroke(id: string, to: Vector2d) {
-    const stroke = strokesMap.get(id);
+    const stroke = validStroke(id, strokesMap.get(id));
     if (!stroke?.shape) {
       throw new Error(`Stroke ${id} is not an editable shape`);
     }

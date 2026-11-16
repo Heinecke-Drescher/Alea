@@ -1,5 +1,7 @@
 import type { Vector2d } from "konva/lib/types";
 import { CELL_SIZE, toCells } from "./grid";
+import { validPoint } from "./points";
+import { isRecord } from "./typeGuards";
 
 export type ShapeKind = "cone" | "square" | "circle";
 
@@ -11,6 +13,15 @@ export interface AreaShape {
 
 export function isShapeKind(value: unknown): value is ShapeKind {
   return value === "cone" || value === "square" || value === "circle";
+}
+
+export function validShape(value: unknown): AreaShape | null {
+  if (!isRecord(value) || !isShapeKind(value.kind)) return null;
+  const from = validPoint(value.from);
+  const to = validPoint(value.to);
+  if (!from || !to) return null;
+  const shape = { kind: value.kind, from, to };
+  return shapeCells(shape) > 0 ? shape : null;
 }
 
 export function shiftShape(

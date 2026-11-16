@@ -7,7 +7,7 @@ import { CELL_SIZE, DEFAULT_MAP_BOUNDS, mapRect } from "./grid";
 import type { MapTextData } from "./roomStore";
 import type { AreaShape } from "./shapes";
 import { TEXT_FONT_SIZES } from "./texts";
-import { IMAGE, moveOnlyTokenTo, only } from "./testRoom";
+import { IMAGE, moveOnlyTokenTo, only, strokeOf } from "./testRoom";
 
 const TRAP: MapTextData = {
   text: "Trap",
@@ -40,12 +40,6 @@ function textOf(id: string | undefined) {
   const text = id && room.textsMap.get(id);
   if (!text) throw new Error(`Expected text ${id}`);
   return text;
-}
-
-function strokeOf(id: string | undefined) {
-  const stroke = id && room.strokesMap.get(id);
-  if (!stroke) throw new Error(`Expected stroke ${id}`);
-  return stroke;
 }
 
 function onlyToken() {
@@ -160,9 +154,9 @@ describe("moveArea", () => {
     const [inner, crossing, outer] = room.strokesMap.keys();
     if (!inner || !crossing || !outer) throw new Error("Expected 3 strokes");
     room.moveArea(oneCell, 1, 0);
-    expect(room.strokesMap.get(inner)?.points).toEqual([110, 60, 140, 90]);
-    expect(room.strokesMap.get(crossing)?.points).toEqual([50, 75, 200, 75]);
-    expect(room.strokesMap.get(outer)?.points).toEqual([200, 200, 250, 250]);
+    expect(strokeOf(room, inner).points).toEqual([110, 60, 140, 90]);
+    expect(strokeOf(room, crossing).points).toEqual([50, 75, 200, 75]);
+    expect(strokeOf(room, outer).points).toEqual([200, 200, 250, 250]);
   });
 
   it("is undone in a single step", () => {
@@ -186,8 +180,8 @@ describe("moveItems", () => {
     const [first, second] = room.strokesMap.keys();
     if (!first || !second) throw new Error("Expected two strokes");
     room.moveItems(strokes([first]), 5, -3);
-    expect(room.strokesMap.get(first)?.points).toEqual([15, 7, 25, 17]);
-    expect(room.strokesMap.get(second)?.points).toEqual([30, 30, 40, 40]);
+    expect(strokeOf(room, first).points).toEqual([15, 7, 25, 17]);
+    expect(strokeOf(room, second).points).toEqual([30, 30, 40, 40]);
   });
 
   it("moves strokes and tokens together in a single undo step", () => {
@@ -202,7 +196,7 @@ describe("moveItems", () => {
       CELL_SIZE,
     );
     expect(onlyToken()).toMatchObject({ x: 2, y: 1 });
-    expect(room.strokesMap.get(strokeId)?.points).toEqual([110, 60, 120, 70]);
+    expect(strokeOf(room, strokeId).points).toEqual([110, 60, 120, 70]);
     room.undoManager.undo();
     expect(room.doc.toJSON()).toEqual(before);
   });
@@ -218,13 +212,13 @@ describe("moveItems", () => {
     const id = only(room.strokesMap.keys());
     room.moveItems(strokes([id, "gone"]), 5, 5);
     expect(room.strokesMap.size).toBe(1);
-    expect(room.strokesMap.get(id)?.points).toEqual([15, 15, 25, 25]);
+    expect(strokeOf(room, id).points).toEqual([15, 15, 25, 25]);
   });
 
   it("moves a shape together with its outline", () => {
     const id = room.addShape("#000000", SQUARE, false);
     room.moveItems(strokes([id]), 50, 100);
-    expect(room.strokesMap.get(id)).toMatchObject({
+    expect(strokeOf(room, id)).toMatchObject({
       points: [50, 100, 150, 100, 150, 200, 50, 200],
       shape: {
         kind: "square",
@@ -261,7 +255,7 @@ describe("copy, paste and delete", () => {
     const [strokeId, ...rest] = pasted.strokes;
     if (!strokeId) throw new Error("Expected a pasted stroke");
     expect(rest).toEqual([]);
-    expect(room.strokesMap.get(strokeId)?.points).toEqual([110, 60, 120, 70]);
+    expect(strokeOf(room, strokeId).points).toEqual([110, 60, 120, 70]);
     expect(pasted.tokens).toEqual([copy.id]);
     expect(room.cellsMap.size).toBe(2);
     expect(room.tokensMap.size).toBe(2);
@@ -275,14 +269,14 @@ describe("copy, paste and delete", () => {
     const [copyId] = room.paste(clip, 7, 3).strokes;
     if (!copyId) throw new Error("Expected a pasted stroke");
     expect(copyId).not.toBe(id);
-    expect(room.strokesMap.get(copyId)?.points).toEqual([17, 13, 27, 23]);
+    expect(strokeOf(room, copyId).points).toEqual([17, 13, 27, 23]);
   });
 
   it("pastes shapes as shapes", () => {
     const id = room.addShape("#000000", SQUARE, false);
     const clip = room.copyItems({ strokes: [id], tokens: [], texts: [] });
     const [copyId] = room.paste(clip, 10, 0).strokes;
-    const copy = strokeOf(copyId);
+    const copy = strokeOf(room, copyId);
     expect(isClosed(copy)).toBe(true);
     expect(copy.shape).toEqual({
       kind: "square",
@@ -302,7 +296,6 @@ describe("copy, paste and delete", () => {
       id: "foreign",
       color: "#000000",
       points: [10, 10, 20, 20],
-      overFog: "yes",
       extra: 1,
     } as never);
     const clip = room.copyItems({
@@ -321,10 +314,10 @@ describe("copy, paste and delete", () => {
     const clip = room.copyItems({ strokes: [id], tokens: [], texts: [] });
     const [belowId] = room.paste(clip, 5, 5).strokes;
     const [aboveId] = room.paste(clip, 5, 5, true).strokes;
-    expect(isOverFog(strokeOf(belowId))).toBe(false);
-    expect(isOverFog(strokeOf(aboveId))).toBe(true);
+    expect(isOverFog(strokeOf(room, belowId))).toBe(false);
+    expect(isOverFog(strokeOf(room, aboveId))).toBe(true);
     room.moveItems({ strokes: [id], tokens: [], texts: [] }, 30, 0);
-    expect(isOverFog(strokeOf(id))).toBe(true);
+    expect(isOverFog(strokeOf(room, id))).toBe(true);
   });
 
   it("refuses to paste cells off the grid", () => {

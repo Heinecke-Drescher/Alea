@@ -1,4 +1,21 @@
 import type { Vector2d } from "konva/lib/types";
+import { isFiniteNumber, isRecord } from "./typeGuards";
+
+export function validPoint(value: unknown): Vector2d | null {
+  if (!isRecord(value)) return null;
+  const { x, y } = value;
+  return isFiniteNumber(x) && isFiniteNumber(y) ? { x, y } : null;
+}
+
+// A line needs at least two points.
+export function isPointList(value: unknown): value is number[] {
+  return (
+    Array.isArray(value) &&
+    value.length >= 4 &&
+    value.length % 2 === 0 &&
+    value.every(isFiniteNumber)
+  );
+}
 
 export function toPoints(flat: number[]): Vector2d[] {
   if (flat.length < 2 || flat.length % 2 !== 0) {

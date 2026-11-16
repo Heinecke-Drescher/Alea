@@ -3,9 +3,8 @@ import type { KonvaEventObject } from "konva/lib/Node";
 import type { IRect } from "konva/lib/types";
 import { Group, Line } from "react-konva";
 import { isClosed, isOverFog } from "../room/drawing";
-import { useRoom } from "../room/RoomContext";
 import { strokeTouches } from "../room/strokeTouches";
-import { useY } from "../room/useY";
+import { useStrokes } from "../room/useStrokes";
 import {
   OUTLINE_OUTSIDE,
   OUTLINE_WIDTH,
@@ -121,8 +120,7 @@ export function Strokes({
   onStrokePress,
   onStrokeClick,
 }: StrokesProps) {
-  const room = useRoom();
-  const strokes = Object.values(useY(room.strokesMap)).filter(
+  const strokes = useStrokes().filter(
     (stroke) => isOverFog(stroke) === overFog,
   );
   const selected = strokes.filter(

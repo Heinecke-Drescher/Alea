@@ -2,11 +2,11 @@ import { useMantineTheme } from "@mantine/core";
 import { useState } from "react";
 import { Circle, Group } from "react-konva";
 import { useFogGuard } from "../../fog/useFogGuard";
-import { isOverFog } from "../../room/drawing";
+import { isOverFog, validStroke } from "../../room/drawing";
 import type { Stroke } from "../../room/roomStore";
 import { useRoom } from "../../room/RoomContext";
 import { shapeOutline, type AreaShape } from "../../room/shapes";
-import { useY } from "../../room/useY";
+import { useStroke } from "../../room/useStrokes";
 import { ShapePreview } from "../tools/ShapePreview";
 import { ShapeSizeLabel } from "../tools/ShapeSizeLabel";
 import { useStageZoom } from "../useStageZoom";
@@ -22,11 +22,10 @@ interface ShapeResizerProps {
 export function ShapeResizer({ strokeId, draggable }: ShapeResizerProps) {
   const room = useRoom();
   const theme = useMantineTheme();
-  const strokes = useY(room.strokesMap);
   const fogGuard = useFogGuard();
   const { groupRef, zoom } = useStageZoom();
   const [draft, setDraft] = useState<AreaShape | null>(null);
-  const stroke = strokes[strokeId];
+  const stroke = useStroke(strokeId);
   const shape = stroke?.shape;
 
   // Players' strokes lie above the fog, so only the DM's are kept out of it.
@@ -64,7 +63,7 @@ export function ShapeResizer({ strokeId, draggable }: ShapeResizerProps) {
           event.target.position(shape.to);
           setDraft(null);
           // Another player may have removed the shape in the meantime.
-          const current = room.strokesMap.get(strokeId);
+          const current = validStroke(strokeId, room.strokesMap.get(strokeId));
           if (!current?.shape) return;
           const outline = shapeOutline({ ...current.shape, to });
           if (!outline || reachesFog(current, outline)) return;

@@ -4,8 +4,14 @@ import { useRef } from "react";
 import { useFogGuard } from "../../fog/useFogGuard";
 import { existing, NO_ITEMS, type Items } from "../../room/areaActions";
 import type { Room } from "../../room/createRoom";
-import { hasShapes, isOverFog, shiftPoints } from "../../room/drawing";
+import {
+  hasShapes,
+  isOverFog,
+  shiftPoints,
+  validStroke,
+} from "../../room/drawing";
 import { CELL_SIZE } from "../../room/grid";
+import { validMapText } from "../../room/texts";
 import { cellOffset, roundToCells, squaresBounds } from "./selection";
 
 interface Drag {
@@ -36,7 +42,11 @@ export function useItemDrag(room: Room, selected: Items) {
     const isSelection = Object.values(selected).some((ids) => ids.includes(id));
     const items = isSelection ? selected : onlyItem(id);
     // The same tokens that moveItems will move, also those whose image is missing.
-    const tokens = existing(room.tokensMap, items.tokens);
+    const tokens = existing(
+      room.tokensMap,
+      items.tokens,
+      (_, token) => token ?? null,
+    );
     const ids = new Set(Object.values(items).flat());
     // Highlights and shape fills carry the id of their item as name.
     const others = stage.find(
@@ -47,7 +57,9 @@ export function useItemDrag(room: Room, selected: Items) {
       items,
       start: node.position(),
       gridBounds: tokens.length > 0 ? squaresBounds(tokens) : null,
-      roundsToCells: hasShapes(existing(room.strokesMap, items.strokes)),
+      roundsToCells: hasShapes(
+        existing(room.strokesMap, items.strokes, validStroke),
+      ),
       others: others.map((other) => ({ node: other, start: other.position() })),
     };
   }
@@ -108,20 +120,21 @@ export function useItemDrag(room: Room, selected: Items) {
     dy: number,
   ) {
     return (
-      existing(room.tokensMap, tokens).some((token) =>
-        fogGuard.hidesRect({
-          x: token.x * CELL_SIZE + dx,
-          y: token.y * CELL_SIZE + dy,
-          width: token.size * CELL_SIZE,
-          height: token.size * CELL_SIZE,
-        }),
+      existing(room.tokensMap, tokens, (_, token) => token ?? null).some(
+        (token) =>
+          fogGuard.hidesRect({
+            x: token.x * CELL_SIZE + dx,
+            y: token.y * CELL_SIZE + dy,
+            width: token.size * CELL_SIZE,
+            height: token.size * CELL_SIZE,
+          }),
       ) ||
-      existing(room.strokesMap, strokes).some(
+      existing(room.strokesMap, strokes, validStroke).some(
         (stroke) =>
           !isOverFog(stroke) &&
           fogGuard.hidesPoints(shiftPoints(stroke.points, dx, dy)),
       ) ||
-      existing(room.textsMap, texts).some(
+      existing(room.textsMap, texts, (_, text) => validMapText(text)).some(
         (text) =>
           text.overFog !== true &&
           fogGuard.hidesRect({ ...text, x: text.x + dx, y: text.y + dy }),

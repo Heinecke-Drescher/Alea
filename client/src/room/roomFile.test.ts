@@ -128,7 +128,6 @@ describe("map files", () => {
       id: "foreign",
       color: "#000000",
       points: [0, 0, 10, 10],
-      overFog: "yes",
       extra: 1,
     } as never);
     const file = room.exportMap();

@@ -86,6 +86,14 @@ export function cellKey(x: number, y: number) {
   return `${x},${y}`;
 }
 
+// Entries come from other players, so each is checked and broken ones are skipped.
+export function validValues<V, T>(
+  entries: Iterable<[string, V]>,
+  valid: (key: string, value: V) => T | null,
+) {
+  return Array.from(entries).flatMap(([key, value]) => valid(key, value) ?? []);
+}
+
 // Changes made with this origin stay out of undo.
 export const OUTSIDE_UNDO = Symbol("outside undo");
 
@@ -93,7 +101,8 @@ export function createRoomStore(doc: Y.Doc) {
   const tokensMap = doc.getMap<Token>("tokens");
   const imagesMap = doc.getMap<string>("images");
   const cellsMap = doc.getMap<Cell>("cells");
-  const strokesMap = doc.getMap<Stroke>("strokes");
+  // Holds what other players wrote, so it is read only through `validStroke`.
+  const strokesMap = doc.getMap<unknown>("strokes");
   const textsMap = doc.getMap<MapText>("texts");
   const rollsArray = doc.getArray<Roll>("rolls");
   const settingsMap = doc.getMap<MapBounds>("settings");
