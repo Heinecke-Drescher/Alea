@@ -11,7 +11,8 @@ import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import type { ComponentProps } from "react";
 import { FloatingPanel } from "../FloatingPanel";
 import { usePointerRaise } from "../usePointerRaise";
-import { PRIVATE_OUTLINE } from "../theme";
+import { PRIVATE_OUTLINE, usePhoneLayout } from "../theme";
+import { useCloseWatcher } from "../useCloseWatcher";
 import { DieButtons, SecretToggle } from "./DieButtons";
 import { HistoryArrow } from "./HistoryArrow";
 import { AllRolls, NewestRoll } from "./RollHistory";
@@ -24,6 +25,8 @@ const HISTORY_HEIGHT = "min(480px, 60dvh)";
 // The newest roll below the tray. All rolls open beside the tray, so it keeps its size.
 function TrayHistory() {
   const [isOpen, history] = useDisclosure();
+  // On a phone held sideways, which is wide enough for the tray.
+  useCloseWatcher(usePhoneLayout() && isOpen, history.close);
   const arrowRaise = usePointerRaise(false);
   return (
     <Group wrap="nowrap" gap="xs" p="xs" pt={4}>

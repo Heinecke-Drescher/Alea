@@ -62,12 +62,12 @@ import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
 import { HideHeaderButton, ShowHeaderButton } from "./HeaderToggle";
 import { useHeaderCollapsed } from "./useHeaderCollapsed";
-import { useLeaveGuard } from "./useLeaveGuard";
+import { LeaveGuard } from "./LeaveGuard";
 import { useCloseWatcher } from "../useCloseWatcher";
 import { TAB_WIDTH, TokenDrawer } from "../tokens/TokenDrawer";
 import { SHEET_WIDTH, TokenSheet } from "../tokens/TokenSheet";
 import { TOKENS_TOGGLE_SPACE, TokensToggle } from "../tokens/TokensToggle";
-import { PRIVATE_OUTLINE, useWideLayout } from "../theme";
+import { PRIVATE_OUTLINE, usePhoneLayout, useWideLayout } from "../theme";
 import {
   fitsBesideToolbar,
   PANEL_COLUMN_EDGE_GAP,
@@ -173,16 +173,22 @@ function RoomView({ roomId }: { roomId: string }) {
     };
   }, []);
   useEffect(() => tokenDetail.stopHover, [tokenDetail]);
-  const isDetailOverMap = !isWide && detailTokenId !== null;
-  useCloseWatcher(isSheetOpen, closeTokens);
-  useCloseWatcher(isDetailOverMap, tokenDetail.hide);
-  // Steps back while the sheet or the detail is open, so the back gesture closes them first.
-  useLeaveGuard(!isWide && !isSheetOpen && !isDetailOverMap);
   // An open detail would come back with its map.
   function changeMap(change: () => void) {
     tokenDetail.hide();
     change();
   }
+  // On a phone, the back gesture steps back to the plain view of the live map, newest change
+  // first, before it asks to leave the room.
+  const isPhone = usePhoneLayout();
+  const isDetailOpen = detailTokenId !== null;
+  const isPreparing = preparation.preparation !== null;
+  useCloseWatcher(isSheetOpen, closeTokens);
+  useCloseWatcher(isPhone && isDetailOpen, tokenDetail.hide);
+  useCloseWatcher(header.isCollapsed, () => header.setCollapsed(false));
+  useCloseWatcher(isPhone && isPreparing, () => changeMap(preparation.leave));
+  const isPlainView =
+    !isSheetOpen && !isDetailOpen && !header.isCollapsed && !isPreparing;
   // The detail, and on phones the token list, lie over the map, where the held tokens are to be
   // put down.
   const holdTokens = useCallback(
@@ -229,6 +235,10 @@ function RoomView({ roomId }: { roomId: string }) {
           <ShowCriticalContext value={criticals.show}>
             <DiceProvider>
               <ThrowDieContext value={throwDie}>
+                <LeaveGuard
+                  isActive={isPhone && isPlainView}
+                  isDisconnected={connection === "disconnected"}
+                />
                 <AppShell
                   header={{ height: 60, collapsed: header.isCollapsed }}
                 >

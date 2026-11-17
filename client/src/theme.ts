@@ -61,6 +61,18 @@ export function useWideLayout() {
   });
 }
 
+// Phones held sideways are about 360 to 430 pixels high, desktop windows hardly ever this low.
+const LOW_WINDOW = "(max-height: 500px)";
+
+// Narrow or low: a phone in either orientation.
+export function usePhoneLayout() {
+  const isWide = useWideLayout();
+  const isLow = useMediaQuery(LOW_WINDOW, undefined, {
+    getInitialValueInEffect: false,
+  });
+  return !isWide || isLow;
+}
+
 // Only both together: a narrow window on a monitor lies on a landscape screen, and a phone held
 // upright with its on-screen keyboard open shows a landscape page.
 export function useLandscape() {

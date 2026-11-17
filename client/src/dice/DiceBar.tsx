@@ -7,6 +7,7 @@ import {
   UnstyledButton,
 } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
+import { useCloseWatcher } from "../useCloseWatcher";
 import { IconChevronUp } from "@tabler/icons-react";
 import { DIE_SIDES } from "../room/dice";
 import { PRIVATE_OUTLINE, useLandscape } from "../theme";
@@ -21,6 +22,7 @@ import { useDice } from "./useDice";
 export function DiceBar() {
   const { isSecret } = useDice();
   const [isOpen, history] = useDisclosure();
+  useCloseWatcher(isOpen, history.close);
   const isLandscape = useLandscape();
   const arrowRaise = usePointerRaise(false);
 
