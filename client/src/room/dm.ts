@@ -17,6 +17,12 @@ export function createDm({ rolesMap }: RoomStore) {
     rolesMap.set(DM_KEY, player);
   }
 
+  // Another player may have taken the role meanwhile; then it stays theirs.
+  function becomeDmIfNone(player: DungeonMaster) {
+    if (validDm(rolesMap.get(DM_KEY))) return;
+    rolesMap.set(DM_KEY, player);
+  }
+
   function releaseDm(playerId: string) {
     if (validDm(rolesMap.get(DM_KEY))?.playerId !== playerId) {
       throw new Error("Only the DM can release the role");
@@ -24,5 +30,5 @@ export function createDm({ rolesMap }: RoomStore) {
     rolesMap.delete(DM_KEY);
   }
 
-  return { becomeDm, releaseDm };
+  return { becomeDm, becomeDmIfNone, releaseDm };
 }

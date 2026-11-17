@@ -26,6 +26,18 @@ describe("DM role", () => {
     expect(validDm(room.rolesMap.get(DM_KEY))).toEqual(BEN);
   });
 
+  it("gives the role to a player only while no one has it", () => {
+    room.becomeDmIfNone(ANNA);
+    room.becomeDmIfNone(BEN);
+    expect(validDm(room.rolesMap.get(DM_KEY))).toEqual(ANNA);
+  });
+
+  it("gives the role in place of a broken entry", () => {
+    room.rolesMap.set(DM_KEY, { playerId: "", name: "Anna" });
+    room.becomeDmIfNone(BEN);
+    expect(validDm(room.rolesMap.get(DM_KEY))).toEqual(BEN);
+  });
+
   it("lets only the DM release the role", () => {
     room.becomeDm(ANNA);
     expect(() => room.releaseDm(BEN.playerId)).toThrow();

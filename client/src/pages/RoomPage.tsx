@@ -63,6 +63,7 @@ import { AleaMenu } from "./AleaMenu";
 import { HideHeaderButton, ShowHeaderButton } from "./HeaderToggle";
 import { useHeaderCollapsed } from "./useHeaderCollapsed";
 import { LeaveGuard } from "./LeaveGuard";
+import { useCreatorBecomesDm } from "./newRoom";
 import { useCloseWatcher } from "../useCloseWatcher";
 import { TAB_WIDTH, TokenDrawer } from "../tokens/TokenDrawer";
 import { SHEET_WIDTH, TokenSheet } from "../tokens/TokenSheet";
@@ -113,6 +114,7 @@ function RoomView({ roomId }: { roomId: string }) {
   const { id, name, color } = localPlayer;
   const player = useMemo(() => ({ id, name, color }), [id, name, color]);
   usePresenceBroadcast(awareness, player);
+  useCreatorBecomesDm(room, isSynced, { playerId: id, name });
   const preparation = usePreparation(room, id);
   const mapRoom = preparation.preparation?.room ?? room;
   const criticals = useCriticalRolls(room, isSynced);
