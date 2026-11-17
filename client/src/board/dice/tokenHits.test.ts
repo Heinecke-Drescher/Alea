@@ -3,7 +3,7 @@ import type { Token } from "../../room/roomStore";
 import { tokenHits } from "./tokenHits";
 
 function token(id: string, x: number, y: number, size = 1): Token {
-  return { id, name: id, imageId: `${id}-image`, x, y, size };
+  return { id, name: id, imageId: `${id}-image`, x, y, size, order: 0 };
 }
 
 const DIE_RADIUS = 10;

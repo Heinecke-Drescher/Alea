@@ -357,6 +357,7 @@ describe("copy, paste and delete", () => {
       x: 1,
       y: 0,
       size: 1,
+      order: expect.any(Number),
     };
     expect(room.tokensMap.get(pastedId)).toEqual(goblin);
     expect([...other.tokensMap.values()]).toContainEqual(goblin);

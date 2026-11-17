@@ -25,7 +25,14 @@ import {
   validValues,
 } from "./roomStore";
 import { assertSpace } from "./roomSpace";
-import { embeddedImage, newToken, tokenData, validToken } from "./tokens";
+import {
+  byListOrder,
+  embeddedImage,
+  endOfList,
+  newToken,
+  tokenData,
+  validToken,
+} from "./tokens";
 import { strokeTouches } from "./strokeTouches";
 import { textData, textTouches, validMapText } from "./texts";
 
@@ -171,7 +178,7 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
   function copy({ cells, tokens, strokes, texts }: Content): Clip {
     return {
       cells,
-      tokens: tokens.flatMap((token) => {
+      tokens: [...tokens].sort(byListOrder).flatMap((token) => {
         const image = embeddedImage(imagesMap.get(token.imageId));
         return image ? [tokenData(token, image)] : [];
       }),
@@ -206,17 +213,21 @@ export function createAreaActions(store: RoomStore, { mapBounds }: MapActions) {
       texts: [],
     };
     doc.transact(() => {
+      const end = endOfList(tokensMap);
       for (const cell of clip.cells) {
         putCell(store, mapBounds(), cell, dx / CELL_SIZE, dy / CELL_SIZE);
       }
-      for (const data of clip.tokens) {
+      for (const [index, data] of clip.tokens.entries()) {
         const position = placeToken(
           mapBounds(),
           data,
           dx / CELL_SIZE,
           dy / CELL_SIZE,
         );
-        const { token, image } = newToken({ ...data, ...position });
+        const { token, image } = newToken(
+          { ...data, ...position },
+          end + index,
+        );
         imagesMap.set(token.imageId, image);
         tokensMap.set(token.id, token);
         pasted.tokens.push(token.id);

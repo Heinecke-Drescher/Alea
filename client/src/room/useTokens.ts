@@ -1,13 +1,13 @@
 import { useMemo } from "react";
 import { useRoom } from "./RoomContext";
 import { validValues } from "./roomStore";
-import { validToken } from "./tokens";
+import { byListOrder, validToken } from "./tokens";
 import { useY } from "./useY";
 
 export function useTokens() {
   const tokens = useY(useRoom().tokensMap);
   return useMemo(
-    () => validValues(Object.entries(tokens), validToken),
+    () => validValues(Object.entries(tokens), validToken).sort(byListOrder),
     [tokens],
   );
 }

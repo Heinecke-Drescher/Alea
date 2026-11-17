@@ -1,10 +1,16 @@
 import { nanoid } from "nanoid";
+import type * as Y from "yjs";
 import { tokenEffects, type StatusEffect } from "./effects";
 import { isTokenSize, placeToken, type Square } from "./grid";
 import type { MapActions } from "./map";
 import { isValidMark, MAX_MARKS, tokenMarks, type Mark } from "./marks";
-import type { RoomStore, Token, TokenData } from "./roomStore";
-import { isInteger, isRecord } from "./typeGuards";
+import {
+  validValues,
+  type RoomStore,
+  type Token,
+  type TokenData,
+} from "./roomStore";
+import { isFiniteNumber, isInteger, isRecord } from "./typeGuards";
 
 export function embeddedImage(value: string | undefined) {
   return value?.startsWith("data:image/") ? value : null;
@@ -14,9 +20,10 @@ export function embeddedImage(value: string | undefined) {
 // broken marks are left out instead of hiding the whole token.
 export function validToken(id: string, value: unknown): Token | null {
   if (!isRecord(value)) return null;
-  const { name, imageId, x, y, size } = value;
+  const { name, imageId, x, y, size, order } = value;
   if (typeof name !== "string" || typeof imageId !== "string") return null;
   if (!isInteger(x) || !isInteger(y) || !isTokenSize(size)) return null;
+  if (!isFiniteNumber(order)) return null;
   const effects = tokenEffects(value);
   const marks = tokenMarks(value);
   return {
@@ -26,9 +33,38 @@ export function validToken(id: string, value: unknown): Token | null {
     x,
     y,
     size,
+    order,
     ...(effects.length > 0 && { effects }),
     ...(marks.length > 0 && { marks }),
   };
+}
+
+// Tokens added by two players at the same time can share an order; their ids then decide, so
+// everyone sees the same list.
+export function byListOrder(a: Token, b: Token) {
+  return a.order - b.order || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0);
+}
+
+export function listedTokens(tokensMap: Y.Map<unknown>) {
+  return validValues(tokensMap.entries(), validToken).sort(byListOrder);
+}
+
+export function endOfList(tokensMap: Y.Map<unknown>) {
+  return listedTokens(tokensMap).reduce(
+    (end, token) => Math.max(end, token.order + 1),
+    0,
+  );
+}
+
+// Null when the two orders lie too close together to fit another number between them.
+export function orderBetween(
+  lower: number | undefined,
+  upper: number | undefined,
+) {
+  if (lower === undefined) return upper === undefined ? 0 : upper - 1;
+  if (upper === undefined) return lower + 1;
+  const middle = (lower + upper) / 2;
+  return lower < middle && middle < upper ? middle : null;
 }
 
 export function tokenData(token: Token, image: string): TokenData {
@@ -45,11 +81,15 @@ export function tokenData(token: Token, image: string): TokenData {
 }
 
 // Leaves out empty effects and marks, so every token in the room has the same form.
-export function newToken({ image, effects, marks, ...token }: TokenData) {
+export function newToken(
+  { image, effects, marks, ...token }: TokenData,
+  order: number,
+) {
   const stored: Token = {
     ...token,
     id: nanoid(),
     imageId: nanoid(),
+    order,
     ...(effects.length > 0 && { effects }),
     ...(marks.length > 0 && { marks }),
   };
@@ -71,7 +111,15 @@ export function createTokens(
     undoManager.stopCapturing();
     doc.transact(() => {
       imagesMap.set(imageId, imageDataUrl);
-      tokensMap.set(id, { id, name, imageId, x, y, size: 1 });
+      tokensMap.set(id, {
+        id,
+        name,
+        imageId,
+        x,
+        y,
+        size: 1,
+        order: endOfList(tokensMap),
+      });
     });
   }
 
@@ -152,6 +200,31 @@ export function createTokens(
     }));
   }
 
+  // Null puts the token at the end of the list.
+  function moveToken(id: string, beforeId: string | null) {
+    const listed = listedTokens(tokensMap);
+    const token = listed.find((other) => other.id === id);
+    if (!token) return;
+    const others = listed.filter((other) => other.id !== id);
+    const index =
+      beforeId === null
+        ? others.length
+        : others.findIndex((other) => other.id === beforeId);
+    if (index === -1 || index === listed.indexOf(token)) return;
+    const order = orderBetween(others[index - 1]?.order, others[index]?.order);
+    undoManager.stopCapturing();
+    doc.transact(() => {
+      if (order !== null) {
+        tokensMap.set(id, { ...token, order });
+        return;
+      }
+      others.splice(index, 0, token);
+      others.forEach((other, i) => {
+        if (other.order !== i) tokensMap.set(other.id, { ...other, order: i });
+      });
+    });
+  }
+
   function removeToken(id: string) {
     undoManager.stopCapturing();
     const token = validToken(id, tokensMap.get(id));
@@ -177,6 +250,7 @@ export function createTokens(
     changeMark,
     removeMark,
     resizeToken,
+    moveToken,
     removeToken,
   };
 }

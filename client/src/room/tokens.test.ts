@@ -1,9 +1,14 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import * as Y from "yjs";
 import { oneItem } from "./areaActions";
-import { DEFAULT_MAP_BOUNDS } from "./grid";
+import { CELL_SIZE, DEFAULT_MAP_BOUNDS } from "./grid";
 import { createRoom, type Room } from "./createRoom";
-import { embeddedImage, validToken } from "./tokens";
+import {
+  embeddedImage,
+  listedTokens,
+  orderBetween,
+  validToken,
+} from "./tokens";
 import { IMAGE, moveOnlyTokenTo, only, tokenOf } from "./testRoom";
 
 const { columns, rows } = DEFAULT_MAP_BOUNDS;
@@ -160,7 +165,14 @@ describe("embeddedImage", () => {
 });
 
 describe("tokens from other players", () => {
-  const GOBLIN = { name: "Goblin", imageId: "i", x: 2, y: 3, size: 1 };
+  const GOBLIN = {
+    name: "Goblin",
+    imageId: "i",
+    x: 2,
+    y: 3,
+    size: 1,
+    order: 0.5,
+  };
 
   it("reads a token under its key and keeps only its known fields", () => {
     expect(validToken("t", { ...GOBLIN, id: "other", extra: 1 })).toEqual({
@@ -187,6 +199,9 @@ describe("tokens from other players", () => {
     ["no size", { ...GOBLIN, size: undefined }],
     ["a size too small", { ...GOBLIN, size: 0 }],
     ["a size too large", { ...GOBLIN, size: 11 }],
+    ["no order", { ...GOBLIN, order: undefined }],
+    ["an order that is no number", { ...GOBLIN, order: "1" }],
+    ["an endless order", { ...GOBLIN, order: Infinity }],
   ])("rejects %s", (_, value) => {
     expect(validToken("t", value)).toBeNull();
   });
@@ -210,5 +225,122 @@ describe("tokens from other players", () => {
     room.tokensMap.set(token.id, { ...token, extra: 1 });
     moveOnlyTokenTo(room, 2, 2);
     expect(room.tokensMap.get(token.id)).not.toHaveProperty("extra");
+  });
+});
+
+describe("the token list", () => {
+  function names() {
+    return listedTokens(room.tokensMap).map((token) => token.name);
+  }
+
+  function idOf(name: string) {
+    const token = listedTokens(room.tokensMap).find(
+      (other) => other.name === name,
+    );
+    if (!token) throw new Error(`Expected token ${name}`);
+    return token.id;
+  }
+
+  beforeEach(() => {
+    room.addToken("A", IMAGE, { x: 0, y: 0 });
+    room.addToken("B", IMAGE, { x: 1, y: 0 });
+    room.addToken("C", IMAGE, { x: 2, y: 0 });
+  });
+
+  it("lists new tokens in the order they were added", () => {
+    expect(names()).toEqual(["A", "B", "C"]);
+  });
+
+  it("moves a token to the front, between two others and to the end", () => {
+    room.moveToken(idOf("C"), idOf("A"));
+    expect(names()).toEqual(["C", "A", "B"]);
+    room.moveToken(idOf("C"), idOf("B"));
+    expect(names()).toEqual(["A", "C", "B"]);
+    room.moveToken(idOf("A"), null);
+    expect(names()).toEqual(["C", "B", "A"]);
+  });
+
+  it("undoes a move in one step", () => {
+    room.moveToken(idOf("A"), null);
+    room.moveToken(idOf("B"), null);
+    room.undoManager.undo();
+    expect(names()).toEqual(["B", "C", "A"]);
+  });
+
+  it("adds no undo step for a move to the same place", () => {
+    room.undoManager.clear();
+    room.moveToken(idOf("A"), idOf("B"));
+    room.moveToken(idOf("C"), null);
+    expect(room.undoManager.undoStack).toHaveLength(0);
+  });
+
+  it("ignores moves of or before tokens that are gone", () => {
+    room.moveToken("gone", idOf("A"));
+    room.moveToken(idOf("C"), "gone");
+    expect(names()).toEqual(["A", "B", "C"]);
+  });
+
+  it("orders tokens with the same order by id, so everyone sees the same list", () => {
+    const token = { name: "", imageId: "i", x: 0, y: 0, size: 1, order: 7 };
+    room.tokensMap.clear();
+    room.tokensMap.set("b", { ...token, id: "b" });
+    room.tokensMap.set("a", { ...token, id: "a" });
+    expect(listedTokens(room.tokensMap).map(({ id }) => id)).toEqual([
+      "a",
+      "b",
+    ]);
+  });
+
+  it("numbers the list anew when no order fits between two tokens, in one undo step", () => {
+    const a = tokenOf(room, idOf("A"));
+    const b = tokenOf(room, idOf("B"));
+    room.tokensMap.set(a.id, { ...a, order: 1 });
+    room.tokensMap.set(b.id, { ...b, order: 1 + Number.EPSILON });
+    room.moveToken(idOf("C"), b.id);
+    expect(names()).toEqual(["A", "C", "B"]);
+    expect(listedTokens(room.tokensMap).map((token) => token.order)).toEqual([
+      0, 1, 2,
+    ]);
+    room.undoManager.undo();
+    expect(names()).toEqual(["A", "B", "C"]);
+  });
+
+  it("puts pasted and duplicated tokens at the end in list order", () => {
+    room.moveToken(idOf("C"), idOf("A"));
+    room.paste(
+      room.copyArea({ x: 0, y: 0, width: 150, height: 50 }),
+      0,
+      CELL_SIZE,
+    );
+    expect(names()).toEqual(["C", "A", "B", "C", "A", "B"]);
+    room.duplicateToken(idOf("C"));
+    expect(names().at(-1)).toBe("C");
+  });
+
+  it("keeps the list order through export and import", () => {
+    room.moveToken(idOf("C"), idOf("A"));
+    const other = createRoom(new Y.Doc());
+    other.importMap(room.exportMap());
+    expect(listedTokens(other.tokensMap).map((token) => token.name)).toEqual([
+      "C",
+      "A",
+      "B",
+    ]);
+  });
+});
+
+describe("orderBetween", () => {
+  it.each<[number | undefined, number | undefined, number]>([
+    [undefined, undefined, 0],
+    [undefined, 2, 1],
+    [2, undefined, 3],
+    [1, 2, 1.5],
+  ])("finds an order between %s and %s", (lower, upper, order) => {
+    expect(orderBetween(lower, upper)).toBe(order);
+  });
+
+  it("finds none when no number fits between", () => {
+    expect(orderBetween(1, 1)).toBeNull();
+    expect(orderBetween(1, 1 + Number.EPSILON)).toBeNull();
   });
 });

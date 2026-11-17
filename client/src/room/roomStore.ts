@@ -17,6 +17,8 @@ export interface Token {
   x: number;
   y: number;
   size: number;
+  // Sorts the token list and the drawing order on the map.
+  order: number;
   effects?: StatusEffect[];
   marks?: Mark[];
 }

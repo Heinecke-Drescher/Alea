@@ -39,7 +39,7 @@ import {
 } from "./roomStore";
 import { assertRoomFits, megabytes } from "./roomSpace";
 import { textData, validMapText } from "./texts";
-import { embeddedImage, newToken, tokenData, validToken } from "./tokens";
+import { embeddedImage, listedTokens, newToken, tokenData } from "./tokens";
 import { isRecord } from "./typeGuards";
 
 const APP = "alea";
@@ -225,8 +225,8 @@ export function writeMap(
     for (const stroke of file.strokes) {
       strokesMap.set(...newStroke(stroke, isOverFog(stroke)));
     }
-    for (const data of file.tokens) {
-      const { token, image } = newToken(data);
+    for (const [index, data] of file.tokens.entries()) {
+      const { token, image } = newToken(data, index);
       imagesMap.set(token.imageId, image);
       tokensMap.set(token.id, token);
     }
@@ -269,7 +269,7 @@ export function exportMap(store: RoomStore): MapFile {
     strokes: validValues(strokesMap.entries(), validStroke).map((stroke) =>
       strokeData(stroke, isOverFog(stroke)),
     ),
-    tokens: validValues(tokensMap.entries(), validToken).flatMap((token) => {
+    tokens: listedTokens(tokensMap).flatMap((token) => {
       const image = embeddedImage(imagesMap.get(token.imageId));
       return image ? [tokenData(token, image)] : [];
     }),
