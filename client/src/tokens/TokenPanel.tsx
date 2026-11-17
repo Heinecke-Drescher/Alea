@@ -1,14 +1,7 @@
-import {
-  ActionIcon,
-  Box,
-  Group,
-  Menu,
-  Stack,
-  Title,
-  Tooltip,
-} from "@mantine/core";
+import { ActionIcon, Group, Menu, Stack, Title, Tooltip } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { IconPlus } from "@tabler/icons-react";
+import { motion } from "motion/react";
 import { useImageFileDialog } from "../images/useImageFileDialog";
 import { useRoom } from "../room/RoomContext";
 import { TOKEN_FILE_MEGABYTES, tokenFromFile } from "./addTokenFromFile";
@@ -49,9 +42,13 @@ export function TokenPanel() {
           </Menu.Dropdown>
         </Menu>
       </Group>
-      <Box mih={0} style={{ overflowY: "auto", scrollbarWidth: "thin" }}>
+      {/* Measures its scrolling, so rows dragged in a scrolled list land where they are shown. */}
+      <motion.div
+        layoutScroll
+        style={{ minHeight: 0, overflowY: "auto", scrollbarWidth: "thin" }}
+      >
         <TokenList />
-      </Box>
+      </motion.div>
       <PlaceholderModal
         opened={isPlaceholderOpen}
         onClose={placeholderModal.close}

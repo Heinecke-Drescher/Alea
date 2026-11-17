@@ -3,13 +3,13 @@ import {
   Avatar,
   Box,
   Group,
-  Stack,
   Text,
   TextInput,
   Tooltip,
   useMantineTheme,
 } from "@mantine/core";
-import { IconDots } from "@tabler/icons-react";
+import { IconDots, IconGripVertical } from "@tabler/icons-react";
+import { Reorder, useDragControls } from "motion/react";
 import { useRef, useState } from "react";
 import { DragGhost } from "../DragGhost";
 import { useFogGuard } from "../fog/useFogGuard";
@@ -31,6 +31,8 @@ import { rimStyle } from "./tokenRim";
 import classes from "./TokenList.module.css";
 import { usePointerRaise } from "../usePointerRaise";
 
+const GRIP_WIDTH = 28;
+
 export function TokenList() {
   const room = useRoom();
   const fogGuard = useFogGuard();
@@ -38,6 +40,15 @@ export function TokenList() {
   const images = useY(room.imagesMap);
   const selected = useSelectedTokens();
   const [editingId, setEditingId] = useState<string | null>(null);
+  // While a row is dragged, the list follows it here and the room learns the new place on release.
+  const [dragOrder, setDragOrder] = useState<string[] | null>(null);
+  const ids = tokens.map((token) => token.id);
+  const order = dragOrder
+    ? [
+        ...dragOrder.filter((id) => ids.includes(id)),
+        ...ids.filter((id) => !dragOrder.includes(id)),
+      ]
+    : ids;
 
   if (tokens.length === 0) {
     return (
@@ -47,19 +58,37 @@ export function TokenList() {
     );
   }
 
+  function drop(id: string) {
+    if (!dragOrder) return;
+    room.moveToken(id, order[order.indexOf(id) + 1] ?? null);
+    setDragOrder(null);
+  }
+
   return (
-    <Stack gap={4}>
-      {tokens.map((token) => (
-        <TokenRow
-          key={token.id}
-          token={token}
-          image={embeddedImage(images[token.imageId])}
-          isSelected={selected.includes(token.id)}
-          isEditing={token.id === editingId}
-          onEdit={(isEditing) => setEditingId(isEditing ? token.id : null)}
-        />
-      ))}
-    </Stack>
+    <Reorder.Group
+      as="div"
+      axis="y"
+      values={order}
+      onReorder={setDragOrder}
+      style={{ display: "flex", flexDirection: "column", gap: 4 }}
+    >
+      {order.flatMap((id) => {
+        const token = tokens.find((other) => other.id === id);
+        return token
+          ? [
+              <TokenRow
+                key={id}
+                token={token}
+                image={embeddedImage(images[token.imageId])}
+                isSelected={selected.includes(id)}
+                isEditing={id === editingId}
+                onEdit={(isEditing) => setEditingId(isEditing ? id : null)}
+                onDrop={() => drop(id)}
+              />,
+            ]
+          : [];
+      })}
+    </Reorder.Group>
   );
 }
 
@@ -69,6 +98,7 @@ interface TokenRowProps {
   isSelected: boolean;
   isEditing: boolean;
   onEdit: (isEditing: boolean) => void;
+  onDrop: () => void;
 }
 
 function TokenRow({
@@ -77,6 +107,7 @@ function TokenRow({
   isSelected,
   isEditing,
   onEdit,
+  onDrop,
 }: TokenRowProps) {
   const room = useRoom();
   const focusToken = useFocusToken();
@@ -88,6 +119,12 @@ function TokenRow({
   const imageRaise = usePointerRaise(false);
   const isTapOnImage = useRef(false);
   const avatarRef = useRef<HTMLDivElement>(null);
+  const sortControls = useDragControls();
+  const [isSorting, setIsSorting] = useState(false);
+  const [isOverGrip, setIsOverGrip] = useState(false);
+  // The grip lies inside the row, which the browser would otherwise drag as a copy for the map. The
+  // grip keeps its presses from the row, so any press on the row lets go of it.
+  const isGripPressed = useRef(false);
   const { handlers, ghostStart, ghostRef, isClickIgnored } = useScreenDrag(
     (samples) => {
       const release = samples.at(-1);
@@ -101,19 +138,38 @@ function TokenRow({
   const rim = rimStyle(theme);
 
   return (
-    <>
+    <Reorder.Item
+      as="div"
+      value={token.id}
+      dragListener={false}
+      dragControls={sortControls}
+      onDragStart={() => {
+        detail.hide();
+        setIsSorting(true);
+      }}
+      onDragEnd={() => {
+        setIsSorting(false);
+        onDrop();
+      }}
+    >
       <Tooltip
         label="Click to find, double-click to rename, drag for a copy"
         position="left"
-        // The detail of a hovered image opens where the tooltip would.
-        disabled={isEditing || imageRaise.isRaised}
+        // The detail of a hovered image opens where the tooltip would, and the grip only reorders.
+        disabled={isEditing || imageRaise.isRaised || isOverGrip || isSorting}
       >
         <Group
           gap="xs"
           wrap="nowrap"
           p={4}
           bdrs="sm"
-          bg={isSelected ? "var(--mantine-color-default-hover)" : undefined}
+          bg={
+            isSelected
+              ? "var(--mantine-color-default-hover)"
+              : isSorting
+                ? "var(--mantine-color-body)"
+                : undefined
+          }
           style={{
             cursor: isEditing ? undefined : "pointer",
             // Moving up or down scrolls the list; moving sideways drags the token to the map.
@@ -122,6 +178,10 @@ function TokenRow({
           // While editing, dragging selects text in the name instead.
           draggable={!isEditing}
           onDragStart={(event) => {
+            if (isGripPressed.current) {
+              event.preventDefault();
+              return;
+            }
             detail.hide();
             startTokenDrag(event.dataTransfer, token.id);
             // The browser would show the square picture inside the round frame, or the whole row.
@@ -135,6 +195,7 @@ function TokenRow({
           }}
           // The mouse keeps the browser's drag and drop, which also shows where it may drop.
           onPointerDown={(event) => {
+            isGripPressed.current = false;
             if (!isEditing && event.pointerType !== "mouse") {
               handlers.onPointerDown(event);
             }
@@ -150,6 +211,33 @@ function TokenRow({
             if (!isEditing) openTokenMenu(token.id, event);
           }}
         >
+          {/* Reaches over the row's padding, so a finger finds it without hitting the image. */}
+          <Box
+            c="dimmed"
+            w={GRIP_WIDTH}
+            my={-4}
+            ml={-4}
+            display="flex"
+            style={{
+              flexShrink: 0,
+              alignSelf: "stretch",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "grab",
+              touchAction: "none",
+            }}
+            onPointerDown={(event) => {
+              event.stopPropagation();
+              isGripPressed.current = true;
+              sortControls.start(event);
+            }}
+            onPointerEnter={() => setIsOverGrip(true)}
+            onPointerLeave={() => setIsOverGrip(false)}
+            onClick={(event) => event.stopPropagation()}
+            aria-label="Drag to reorder"
+          >
+            <IconGripVertical size={16} style={{ display: "block" }} />
+          </Box>
           <Box
             pos="relative"
             className={classes.image}
@@ -231,6 +319,6 @@ function TokenRow({
           style={{ ...rim, filter: avatarFilter }}
         />
       </DragGhost>
-    </>
+    </Reorder.Item>
   );
 }
