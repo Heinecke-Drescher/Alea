@@ -62,6 +62,8 @@ import { undoStep } from "../undo/useUndo";
 import { AleaMenu } from "./AleaMenu";
 import { HideHeaderButton, ShowHeaderButton } from "./HeaderToggle";
 import { useHeaderCollapsed } from "./useHeaderCollapsed";
+import { useLeaveGuard } from "./useLeaveGuard";
+import { useCloseWatcher } from "../useCloseWatcher";
 import { TAB_WIDTH, TokenDrawer } from "../tokens/TokenDrawer";
 import { SHEET_WIDTH, TokenSheet } from "../tokens/TokenSheet";
 import { TOKENS_TOGGLE_SPACE, TokensToggle } from "../tokens/TokensToggle";
@@ -171,6 +173,11 @@ function RoomView({ roomId }: { roomId: string }) {
     };
   }, []);
   useEffect(() => tokenDetail.stopHover, [tokenDetail]);
+  const isDetailOverMap = !isWide && detailTokenId !== null;
+  useCloseWatcher(isSheetOpen, closeTokens);
+  useCloseWatcher(isDetailOverMap, tokenDetail.hide);
+  // Steps back while the sheet or the detail is open, so the back gesture closes them first.
+  useLeaveGuard(!isWide && !isSheetOpen && !isDetailOverMap);
   // An open detail would come back with its map.
   function changeMap(change: () => void) {
     tokenDetail.hide();
