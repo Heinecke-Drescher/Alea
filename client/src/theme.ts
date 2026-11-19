@@ -2,6 +2,7 @@ import {
   ActionIcon,
   Button,
   createTheme,
+  type MantineTransition,
   Menu,
   Modal,
   Popover,
@@ -22,11 +23,25 @@ export const NEUTRAL_HOVER = "var(--mantine-color-default-hover)";
 // is kept from the others by mistake.
 export const PRIVATE_OUTLINE = "2px dashed var(--mantine-color-dimmed)";
 
+// Menus and popovers grow out of the corner touching their button, so one sees where they come
+// from; theme.module.css picks that corner from the side they opened on.
+const GROW_FROM_ANCHOR: MantineTransition = {
+  in: { opacity: 1, transform: "scale(1)" },
+  out: { opacity: 0, transform: "scale(.95)" },
+  transitionProperty: "transform, opacity",
+};
+const DROPDOWN_TRANSITION = {
+  transition: GROW_FROM_ANCHOR,
+  duration: 150,
+  timingFunction: "ease-out",
+};
+
 function isNeutral(props: { variant?: string; color?: string }) {
   return props.variant === "subtle" && props.color === "gray";
 }
 
 export const theme = createTheme({
+  respectReducedMotion: true,
   components: {
     ActionIcon: ActionIcon.extend({
       classNames: { root: classes.actionIcon },
@@ -39,8 +54,18 @@ export const theme = createTheme({
         root: isNeutral(props) ? { "--button-hover": NEUTRAL_HOVER } : {},
       }),
     }),
-    Menu: Menu.extend({ defaultProps: { radius: MENU_RADIUS } }),
-    Popover: Popover.extend({ defaultProps: { radius: MENU_RADIUS } }),
+    Menu: Menu.extend({
+      defaultProps: {
+        radius: MENU_RADIUS,
+        transitionProps: DROPDOWN_TRANSITION,
+      },
+    }),
+    Popover: Popover.extend({
+      defaultProps: {
+        radius: MENU_RADIUS,
+        transitionProps: DROPDOWN_TRANSITION,
+      },
+    }),
     Modal: Modal.extend({
       defaultProps: { centered: true },
       classNames: { root: classes.modalRoot, inner: classes.modalInner },

@@ -6,6 +6,47 @@
   }
 }
 
+/* Mantine marks the side a menu or popover opened on, also after flipping at an edge, so it grows
+   out of the corner touching its button (GROW_FROM_ANCHOR in theme.ts). */
+:global(:is(.mantine-Menu-dropdown, .mantine-Popover-dropdown)) {
+  &[data-position="bottom"] {
+    transform-origin: top center;
+  }
+  &[data-position="bottom-start"] {
+    transform-origin: top left;
+  }
+  &[data-position="bottom-end"] {
+    transform-origin: top right;
+  }
+  &[data-position="top"] {
+    transform-origin: bottom center;
+  }
+  &[data-position="top-start"] {
+    transform-origin: bottom left;
+  }
+  &[data-position="top-end"] {
+    transform-origin: bottom right;
+  }
+  &[data-position="left"] {
+    transform-origin: center right;
+  }
+  &[data-position="left-start"] {
+    transform-origin: top right;
+  }
+  &[data-position="left-end"] {
+    transform-origin: bottom right;
+  }
+  &[data-position="right"] {
+    transform-origin: center left;
+  }
+  &[data-position="right-start"] {
+    transform-origin: top left;
+  }
+  &[data-position="right-end"] {
+    transform-origin: bottom left;
+  }
+}
+
 /* A finger misses small icon buttons easily, so their hit area reaches past the edge; sideways
    only as far as half the 4 px gap between toolbar buttons, so neighbours never overlap. */
 @media (width < 48em) {
