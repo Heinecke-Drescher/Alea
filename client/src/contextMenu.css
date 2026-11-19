@@ -7,20 +7,3 @@
 .mantine-contextmenu-item-button {
   border-radius: var(--mantine-radius-sm);
 }
-
-/* Like Mantine's menus (GROW_FROM_ANCHOR in theme.ts), from the pointer at the top left corner.
-   The library adds this class once it has measured and placed the menu, and has no closing
-   motion. */
-@media (prefers-reduced-motion: no-preference) {
-  .mantine-contextmenu-mounted {
-    transform-origin: top left;
-    animation: grow-from-pointer 150ms ease-out;
-  }
-}
-
-@keyframes grow-from-pointer {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-}
