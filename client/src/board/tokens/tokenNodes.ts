@@ -2,6 +2,7 @@ import type { Node } from "konva/lib/Node";
 
 export const TOKEN_NAME = "token";
 export const TOKEN_BODY_NAME = "token-body";
+export const TOKEN_SHADOW_NAME = "token-shadow";
 
 export function isOnToken(target: Node) {
   return target.findAncestors(`.${TOKEN_NAME}`, true).length > 0;

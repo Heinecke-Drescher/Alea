@@ -10,6 +10,7 @@ import type { Token } from "../../room/roomStore";
 import { CELL_SIZE } from "../../room/grid";
 import { rimmedImageBox } from "../../tokens/tokenRim";
 import { BrokenTokenImage } from "./BrokenTokenImage";
+import { LiftShadow } from "./LiftShadow";
 import { SelectionRing, SelectionTint } from "./SelectionRing";
 import { TokenGrip } from "./TokenGrip";
 import { TokenRim } from "./TokenRim";
@@ -73,6 +74,7 @@ export function TokenView({
         offsetX={size / 2}
         offsetY={size / 2}
       >
+        <LiftShadow size={size} />
         {isHighlighted && <SelectionRing size={size} />}
         {/* An image from a file or another player may be broken; the rest of the map keeps working. */}
         {status === "failed" ? (

@@ -1,3 +1,4 @@
+import { useReducedMotion } from "@mantine/hooks";
 import type { KonvaEventObject, Node } from "konva/lib/Node";
 import type { IRect, Vector2d } from "konva/lib/types";
 import { useRef } from "react";
@@ -13,6 +14,7 @@ import {
 import { CELL_SIZE } from "../../room/grid";
 import { validMapText } from "../../room/texts";
 import { validToken } from "../../room/tokens";
+import { liftTokens } from "../tokens/liftTokens";
 import { cellOffset, roundToCells, squaresBounds } from "./selection";
 
 interface Drag {
@@ -22,11 +24,15 @@ interface Drag {
   // Shapes stay on grid corners, so the cells they cover stay the same.
   roundsToCells: boolean;
   others: { node: Node; start: Vector2d }[];
+  lift: ReturnType<typeof liftTokens>;
 }
 
 export function useItemDrag(room: Room, selected: Items) {
   const drag = useRef<Drag | null>(null);
   const fogGuard = useFogGuard();
+  const reducesMotion = useReducedMotion(undefined, {
+    getInitialValueInEffect: false,
+  });
 
   function onlyItem(id: string): Items {
     if (room.strokesMap.has(id)) return oneItem("strokes", id);
@@ -58,6 +64,7 @@ export function useItemDrag(room: Room, selected: Items) {
         existing(room.strokesMap, items.strokes, validStroke),
       ),
       others: others.map((other) => ({ node: other, start: other.position() })),
+      lift: liftTokens([node, ...others], reducesMotion),
     };
   }
 
@@ -102,10 +109,11 @@ export function useItemDrag(room: Room, selected: Items) {
 
   function end(event: KonvaEventObject<DragEvent>) {
     if (!drag.current) return;
-    const { items } = current();
+    const { items, lift } = current();
     const { dx, dy } = offset(event);
     // React draws the moved items from the room data, so the nodes go back first.
     placeAll(event, 0, 0);
+    lift.drop();
     drag.current = null;
     if (reachesFog(items, dx, dy)) return;
     room.moveItems(items, dx, dy);
