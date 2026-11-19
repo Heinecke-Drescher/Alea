@@ -23,8 +23,7 @@ export const NEUTRAL_HOVER = "var(--mantine-color-default-hover)";
 // is kept from the others by mistake.
 export const PRIVATE_OUTLINE = "2px dashed var(--mantine-color-dimmed)";
 
-// Menus and popovers grow out of the corner touching their button, so one sees where they come
-// from; theme.module.css picks that corner from the side they opened on.
+// So one sees where a menu comes from; theme.module.css picks the corner touching its button.
 const GROW_FROM_ANCHOR: MantineTransition = {
   in: { opacity: 1, transform: "scale(1)" },
   out: { opacity: 0, transform: "scale(.95)" },

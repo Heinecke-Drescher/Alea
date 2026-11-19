@@ -6,8 +6,6 @@ import { TOKEN_BODY_NAME, TOKEN_NAME } from "./tokenNodes";
 const LIFTED = 1.1;
 const LIFT_SECONDS = 0.15;
 
-// A dragged token is picked up like a real one: it grows a little above the other tokens, and
-// sinks back to its place in the stack when let go.
 export function liftTokens(moved: Node[], reducesMotion: boolean) {
   const lifted = moved
     .filter(
@@ -23,9 +21,10 @@ export function liftTokens(moved: Node[], reducesMotion: boolean) {
 
   function drop() {
     for (const { token, index } of lifted) {
-      // Other tokens may have been removed during the drag.
-      const count = token.getParent()?.getChildren().length ?? 0;
-      if (count > 0) token.zIndex(Math.min(index, count - 1));
+      const parent = token.getParent();
+      // Another player may have removed the token during the drag.
+      if (!parent) continue;
+      token.zIndex(Math.min(index, parent.getChildren().length - 1));
       scaleBody(token, 1, reducesMotion);
     }
   }
