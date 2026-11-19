@@ -9,7 +9,7 @@ the link to your friends.
 You need [Node.js](https://nodejs.org/) 24 or newer.
 
 1. Download the ZIP of the
-   [latest release](https://github.com/Heinecke-Drescher/Alea/releases/latest)
+   [latest release](https://github.com/Heinecke-Drescher/Aleax/releases/latest)
    and unpack it (or `git clone` the repository).
 2. In that folder, run:
 
