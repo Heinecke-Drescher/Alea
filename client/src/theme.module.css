@@ -5,3 +5,17 @@
     --modal-inner-align: flex-start;
   }
 }
+
+/* A finger misses small icon buttons easily, so their hit area reaches past the edge; sideways
+   only as far as half the 4 px gap between toolbar buttons, so neighbours never overlap. */
+@media (width < 48em) {
+  .actionIcon {
+    overflow: visible;
+  }
+
+  .actionIcon::after {
+    content: "";
+    position: absolute;
+    inset: -5px -2px;
+  }
+}

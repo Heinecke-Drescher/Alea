@@ -29,6 +29,7 @@ function isNeutral(props: { variant?: string; color?: string }) {
 export const theme = createTheme({
   components: {
     ActionIcon: ActionIcon.extend({
+      classNames: { root: classes.actionIcon },
       vars: (_, props) => ({
         root: isNeutral(props) ? { "--ai-hover": NEUTRAL_HOVER } : {},
       }),
