@@ -1,5 +1,5 @@
 [Unit]
-Description=Delete old Alea rooms daily
+Description=Delete old Aleax rooms daily
 
 [Timer]
 OnCalendar=daily

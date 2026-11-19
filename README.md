@@ -46,16 +46,16 @@ Good to know:
 <details>
 <summary>Run Aleax on a server</summary>
 
-On a Linux server, [`deploy/alea.service`](deploy/alea.service) runs Aleax as a
-systemd service: code in `/opt/alea`, rooms in `/var/lib/alea/data`, user
-`alea`. A daily timer deletes rooms that have not changed for about six months.
+On a Linux server, [`deploy/aleax.service`](deploy/aleax.service) runs Aleax as a
+systemd service: code in `/opt/aleax`, rooms in `/var/lib/aleax/data`, user
+`aleax`. A daily timer deletes rooms that have not changed for about six months.
 
 ```bash
-sudo cp deploy/alea.service deploy/alea-cleanup.* /etc/systemd/system/
-sudo systemctl enable --now alea alea-cleanup.timer
+sudo cp deploy/aleax.service deploy/aleax-cleanup.* /etc/systemd/system/
+sudo systemctl enable --now aleax aleax-cleanup.timer
 ```
 
-To update to the latest version, run `sudo sh /opt/alea/deploy/update.sh`.
+To update to the latest version, run `sudo sh /opt/aleax/deploy/update.sh`.
 If you build by hand, restart the server afterwards; it reads the list of
 website files once at startup.
 

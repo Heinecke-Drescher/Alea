@@ -1,14 +1,14 @@
 [Unit]
-Description=Alea
+Description=Aleax
 After=network-online.target
 Wants=network-online.target
 
 [Service]
-User=alea
-Group=alea
-WorkingDirectory=/opt/alea
+User=aleax
+Group=aleax
+WorkingDirectory=/opt/aleax
 Environment=PORT=3000
-Environment=DATA_DIR=/var/lib/alea/data
+Environment=DATA_DIR=/var/lib/aleax/data
 ExecStart=/usr/bin/node server/index.ts --client dist/client
 Restart=on-failure
 RestartSec=5
@@ -16,7 +16,7 @@ NoNewPrivileges=yes
 ProtectSystem=strict
 ProtectHome=yes
 PrivateTmp=yes
-ReadWritePaths=/var/lib/alea
+ReadWritePaths=/var/lib/aleax
 
 [Install]
 WantedBy=multi-user.target
