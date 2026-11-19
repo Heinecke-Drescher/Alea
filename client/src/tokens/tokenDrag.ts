@@ -1,4 +1,4 @@
-const TOKEN_TYPE = "application/x-alea-token";
+const TOKEN_TYPE = "application/x-aleax-token";
 
 export function startTokenDrag(dataTransfer: DataTransfer, tokenId: string) {
   dataTransfer.setData(TOKEN_TYPE, tokenId);

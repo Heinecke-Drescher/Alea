@@ -11,7 +11,7 @@ const LIMITS = { maxBytes: MAX_BYTES, maxRooms: 2 };
 let directory: string;
 
 beforeEach(async () => {
-  directory = await mkdtemp(path.join(tmpdir(), "alea-rooms-"));
+  directory = await mkdtemp(path.join(tmpdir(), "aleax-rooms-"));
 });
 
 afterEach(async () => {

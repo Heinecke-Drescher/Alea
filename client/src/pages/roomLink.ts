@@ -35,8 +35,10 @@ export function canShareRoomLink() {
 // Closing the share sheet rejects with an AbortError, which needs no message.
 export function shareRoomLink() {
   const link = roomLink();
-  navigator.share({ title: "Alea room", url: link }).catch((error: unknown) => {
-    if (error instanceof DOMException && error.name === "AbortError") return;
-    showLinkError("Could not share the link", link);
-  });
+  navigator
+    .share({ title: "Aleax room", url: link })
+    .catch((error: unknown) => {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      showLinkError("Could not share the link", link);
+    });
 }

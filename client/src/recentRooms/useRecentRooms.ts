@@ -9,7 +9,7 @@ import {
 } from "./recentRoomList";
 
 const STORAGE = {
-  key: "alea-recent-rooms",
+  key: "aleax-recent-rooms",
   defaultValue: NO_RECENT_ROOMS,
   deserialize: parseRecentRooms,
 };

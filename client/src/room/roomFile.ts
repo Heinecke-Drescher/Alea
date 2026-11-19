@@ -42,7 +42,7 @@ import { textData, validMapText } from "./texts";
 import { embeddedImage, listedTokens, newToken, tokenData } from "./tokens";
 import { isRecord } from "./typeGuards";
 
-const APP = "alea";
+const APP = "aleax";
 const VERSION = 1;
 // Only guards against huge files chosen by mistake. The JSON text of cells and strokes is larger
 // than their binary form in the room, so whether a map fits is measured on the room itself.
@@ -154,7 +154,7 @@ export function parseMapFile(json: string): MapFile {
 }
 
 export function parseMap(value: unknown): MapFile {
-  if (!isRecord(value) || value.app !== APP) invalid("not made by Alea");
+  if (!isRecord(value) || value.app !== APP) invalid("not made by Aleax");
   if (value.version !== VERSION) invalid(`unknown version ${value.version}`);
   const map = validMapBounds(value.bounds) ?? invalid("map size");
   return {

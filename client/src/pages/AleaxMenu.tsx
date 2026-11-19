@@ -32,19 +32,19 @@ import { RoomPeople } from "./RoomPeople";
 import { canShareRoomLink, copyRoomLink, shareRoomLink } from "./roomLink";
 import { useDmControl } from "./useDmControl";
 
-interface AleaMenuProps {
+interface AleaxMenuProps {
   connection: ConnectionState;
   awareness: Awareness | null;
   isSynced: boolean;
   onEditName: () => void;
 }
 
-export function AleaMenu({
+export function AleaxMenu({
   connection,
   awareness,
   isSynced,
   onEditName,
-}: AleaMenuProps) {
+}: AleaxMenuProps) {
   const dmControl = useDmControl(awareness);
   const { name } = usePlayer();
   const isDisconnected = connection === "disconnected";
@@ -68,7 +68,7 @@ export function AleaMenu({
               rightSection={<IconChevronDown size={16} />}
             >
               <Text span fz="h3" fw={700}>
-                Alea
+                Aleax
               </Text>
             </Button>
           </Menu.Target>

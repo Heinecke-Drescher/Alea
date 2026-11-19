@@ -6,7 +6,7 @@ import { usePhoneLayout } from "../theme";
 export function useHeaderCollapsed() {
   const canCollapse = usePhoneLayout();
   const [isStoredCollapsed, setCollapsed] = useLocalStorage({
-    key: "alea-header-collapsed",
+    key: "aleax-header-collapsed",
     defaultValue: false,
     getInitialValueInEffect: false,
   });

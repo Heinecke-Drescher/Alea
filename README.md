@@ -1,7 +1,7 @@
-# Alea
+# Aleax
 
 A shared map and dice roller for tabletop groups: tokens, drawings, fog of war
-and scenes, in real time in the browser. Start Alea on your computer and send
+and scenes, in real time in the browser. Start Aleax on your computer and send
 the link to your friends.
 
 ## Host a game for your friends
@@ -23,7 +23,7 @@ You need [Node.js](https://nodejs.org/) 24 or newer.
 
 3. To let your friends in over the internet, install
    [cloudflared](https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/)
-   and start a [Quick Tunnel](https://try.cloudflare.com/) next to Alea:
+   and start a [Quick Tunnel](https://try.cloudflare.com/) next to Aleax:
 
    ```bash
    cloudflared tunnel --url http://localhost:3000
@@ -35,7 +35,7 @@ You need [Node.js](https://nodejs.org/) 24 or newer.
 Good to know:
 
 - The tunnel address changes every time you start it.
-- Anyone who knows the address can open Alea while the tunnel runs, so stop it
+- Anyone who knows the address can open Aleax while the tunnel runs, so stop it
   (Ctrl+C) when you are done.
 - Rooms are saved in the `data` folder and are still there next time.
 - In your home network, or in a virtual network such as Hamachi or ZeroTier,
@@ -44,9 +44,9 @@ Good to know:
   virtual networks as public.
 
 <details>
-<summary>Run Alea on a server</summary>
+<summary>Run Aleax on a server</summary>
 
-On a Linux server, [`deploy/alea.service`](deploy/alea.service) runs Alea as a
+On a Linux server, [`deploy/alea.service`](deploy/alea.service) runs Aleax as a
 systemd service: code in `/opt/alea`, rooms in `/var/lib/alea/data`, user
 `alea`. A daily timer deletes rooms that have not changed for about six months.
 
@@ -64,7 +64,7 @@ For HTTPS, put a reverse proxy in front of it. With
 whole `Caddyfile` is:
 
 ```
-alea.example.com {
+aleax.example.com {
 	reverse_proxy localhost:3000
 }
 ```
@@ -120,13 +120,13 @@ the website, so no rate limit applies and no real room is touched, and let
 `npm run load-test` fill it with simulated players:
 
 ```sh
-PORT=3001 DATA_DIR=/tmp/alea-load node server/index.ts
+PORT=3001 DATA_DIR=/tmp/aleax-load node server/index.ts
 npm run load-test -- --url ws://localhost:3001 --rooms 60 --players 6
 ```
 
 It opens one more room every 10 seconds and prints how long a change takes to
 reach the other players. Run it from another computer through an SSH tunnel
 (`ssh -L 3001:localhost:3001 <server>`), as it is about as busy as the server.
-Delete `/tmp/alea-load` afterwards.
+Delete `/tmp/aleax-load` afterwards.
 
 </details>

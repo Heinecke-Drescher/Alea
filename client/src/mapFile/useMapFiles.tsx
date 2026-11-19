@@ -14,7 +14,7 @@ function downloadMap(room: Room) {
   );
   const link = document.createElement("a");
   link.href = url;
-  link.download = `alea-map-${new Date().toISOString().slice(0, 10)}.alea.json`;
+  link.download = `aleax-map-${new Date().toISOString().slice(0, 10)}.aleax.json`;
   link.click();
   // Some browsers start the download later and fail if the URL is already gone.
   setTimeout(() => URL.revokeObjectURL(url), 60_000);

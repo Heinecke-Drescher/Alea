@@ -18,7 +18,7 @@ export function MusicPopover({
 }: MusicPopoverProps) {
   return (
     // Kept mounted while closed, because removing the player would stop the music.
-    // No roles: the target is the Alea menu's heading, which opens a menu of its own.
+    // No roles: the target is the Aleax menu's heading, which opens a menu of its own.
     <Popover
       opened={opened}
       onChange={onChange}

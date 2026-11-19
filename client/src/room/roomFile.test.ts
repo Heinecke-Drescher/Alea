@@ -67,7 +67,7 @@ function validFile(): MapFile {
 describe("map files", () => {
   it("exports the map without room ids", () => {
     expect(validFile()).toEqual({
-      app: "alea",
+      app: "aleax",
       version: 1,
       bounds: { x: -2, y: 0, columns: 20, rows: 15 },
       cells: [{ x: 1, y: 1, color: "#ff0000" }],

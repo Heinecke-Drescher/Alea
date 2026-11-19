@@ -18,7 +18,7 @@ interface TokenDrawerProps {
 
 export function TokenDrawer({ onClose, ref, children }: TokenDrawerProps) {
   const [isOpen, setOpen] = useLocalStorage({
-    key: "alea-tokens-opened",
+    key: "aleax-tokens-opened",
     defaultValue: true,
     getInitialValueInEffect: false,
   });

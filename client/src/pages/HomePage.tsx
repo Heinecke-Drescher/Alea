@@ -10,7 +10,7 @@ export function HomePage() {
   return (
     <Center h="100dvh">
       <Stack align="center">
-        <Title>Alea</Title>
+        <Title>Aleax</Title>
         <Text c="dimmed">A shared map and dice for your tabletop group.</Text>
         <Button
           size="lg"

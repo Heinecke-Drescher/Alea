@@ -59,7 +59,7 @@ import { DETAIL_WIDTH, TokenDetail } from "../tokens/TokenDetail";
 import { TokenDetailContext } from "../tokens/tokenDetailControl";
 import { TokenPanel } from "../tokens/TokenPanel";
 import { undoStep } from "../undo/useUndo";
-import { AleaMenu } from "./AleaMenu";
+import { AleaxMenu } from "./AleaxMenu";
 import { HideHeaderButton, ShowHeaderButton } from "./HeaderToggle";
 import { useHeaderCollapsed } from "./useHeaderCollapsed";
 import { LeaveGuard } from "./LeaveGuard";
@@ -246,7 +246,7 @@ function RoomView({ roomId }: { roomId: string }) {
                 >
                   <AppShell.Header>
                     <Group h="100%" px="md" gap="sm" wrap="nowrap">
-                      <AleaMenu
+                      <AleaxMenu
                         connection={connection}
                         awareness={awareness}
                         isSynced={isSynced}

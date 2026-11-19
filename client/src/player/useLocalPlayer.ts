@@ -4,8 +4,8 @@ import { useState } from "react";
 import { defaultPlayerColor, isPlayerColor } from "../room/playerColors";
 import { randomPlayerName } from "./randomPlayerName";
 
-const PLAYER_ID_KEY = "alea-player-id";
-const PLAYER_NAME_KEY = "alea-player-name";
+const PLAYER_ID_KEY = "aleax-player-id";
+const PLAYER_NAME_KEY = "aleax-player-name";
 
 // Names can change or repeat, so the DM role is tied to this id kept in the browser.
 function localPlayerId() {
@@ -29,12 +29,12 @@ export function useLocalPlayer() {
     getInitialValueInEffect: false,
   });
   const [isNameAssigned, setNameAssigned] = useLocalStorage({
-    key: "alea-player-name-assigned",
+    key: "aleax-player-name-assigned",
     defaultValue: isNameMissing,
     getInitialValueInEffect: false,
   });
   const [storedColor, setColor] = useLocalStorage({
-    key: "alea-player-color",
+    key: "aleax-player-color",
     defaultValue: "",
     getInitialValueInEffect: false,
   });

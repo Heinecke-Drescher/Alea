@@ -9,7 +9,7 @@ describe("isSameOrigin", () => {
   it.each([
     ["http://localhost:3000", "localhost:3000"],
     ["http://192.168.1.20:3000", "192.168.1.20:3000"],
-    ["https://alea.example.com", "alea.example.com"],
+    ["https://aleax.example.com", "aleax.example.com"],
   ])("accepts %s on host %s", (origin, host) => {
     expect(isSameOrigin(headers({ origin, host }))).toBe(true);
   });
