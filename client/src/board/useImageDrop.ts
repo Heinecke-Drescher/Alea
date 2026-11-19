@@ -6,6 +6,7 @@ import { setBackgroundFromFile } from "../background/setBackgroundFromFile";
 import { LARGE_IMAGE_FILE_MEGABYTES } from "../images/createImage";
 import { useFogGuard } from "../fog/useFogGuard";
 import { handleImageFile, validImages } from "../images/imageFiles";
+import { useCanChangeMap } from "../player/useCanChangeMap";
 import { cellAt, containsCell, dropCells } from "../room/grid";
 import { useRoom } from "../room/RoomContext";
 import {
@@ -23,6 +24,7 @@ function isFileDrag(dataTransfer: DataTransfer) {
 export function useImageDrop(stageRef: RefObject<StageNode | null>) {
   const room = useRoom();
   const fogGuard = useFogGuard();
+  const canChangeMap = useCanChangeMap();
 
   // Also stops the browser from opening an image dropped on the board.
   function allowFileDrop(event: DragEvent<HTMLElement>) {
@@ -41,6 +43,10 @@ export function useImageDrop(stageRef: RefObject<StageNode | null>) {
   }
 
   function setBackground(files: File[]) {
+    if (!canChangeMap) {
+      notifications.show({ message: "Only the DM can change the background." });
+      return;
+    }
     const [image, ...ignored] = validImages(files, LARGE_IMAGE_FILE_MEGABYTES);
     if (!image) return;
     void handleImageFile(image, async () => {
