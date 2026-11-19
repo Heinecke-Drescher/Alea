@@ -10,6 +10,7 @@ import { hasShapes } from "../../room/drawing";
 import { CELL_SIZE, mapRect, type MapBounds } from "../../room/grid";
 import {
   cellOffset,
+  cellPasteTarget,
   centeredOn,
   clipBounds,
   itemsSelection,
@@ -36,6 +37,10 @@ interface Clipboard {
   clip: Clip;
   bounds: IRect;
   isArea: boolean;
+}
+
+function snapsToCells({ clip, isArea }: Clipboard) {
+  return isArea || hasGridContent(clip);
 }
 
 interface ClipboardOptions {
@@ -104,9 +109,13 @@ export function useClipboard({
   }
 
   function pasteAt(at: Vector2d | null) {
-    if (!clipboard.current) return;
+    const current = clipboard.current;
+    if (!current) return;
     // Before the mouse has been over the map, paste where the copy came from.
-    pasteFrom(clipboard.current, at ?? clipboard.current.bounds);
+    if (!at) pasteFrom(current, current.bounds);
+    else if (snapsToCells(current))
+      pasteFrom(current, cellPasteTarget(current.bounds, at));
+    else pasteFrom(current, at);
   }
 
   // New tokens land with their middle under the pointer, as when dragged from the token list.
@@ -115,20 +124,18 @@ export function useClipboard({
     pasteFrom({ clip, bounds, isArea: false }, centeredOn(bounds, at));
   }
 
-  function pasteFrom({ clip, bounds, isArea }: Clipboard, target: Vector2d) {
-    const snapsToCells = isArea || hasGridContent(clip);
+  function pasteFrom(current: Clipboard, target: Vector2d) {
+    const { clip, bounds, isArea } = current;
+    const isSnapped = snapsToCells(current);
     const map = mapRect(room.mapBounds());
-    if (
-      snapsToCells &&
-      (bounds.width > map.width || bounds.height > map.height)
-    ) {
+    if (isSnapped && (bounds.width > map.width || bounds.height > map.height)) {
       notifications.show({
         color: "red",
         message: "The copied area is larger than the map.",
       });
       return;
     }
-    const { dx, dy } = snapsToCells
+    const { dx, dy } = isSnapped
       ? inPixels(cellOffset(bounds, target, room.mapBounds()))
       : strokesOffset(clip, bounds, target, room.mapBounds());
     // Players' pasted strokes and texts land above the fog, so only cells and tokens are kept out of it.

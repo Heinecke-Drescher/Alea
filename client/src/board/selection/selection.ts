@@ -9,6 +9,7 @@ import {
 } from "../../room/areaActions";
 import {
   CELL_SIZE,
+  cellAt,
   mapRect,
   squareRect,
   toCells,
@@ -181,6 +182,17 @@ export function centeredOn(bounds: IRect, pointer: Vector2d) {
   return {
     x: pointer.x - bounds.width / 2,
     y: pointer.y - bounds.height / 2,
+  };
+}
+
+// A selected area need not start on a cell edge, so cells are compared: the cell holding the
+// copy's top left corner lands on the cell under the pointer, wherever the pointer is inside it.
+export function cellPasteTarget(bounds: IRect, pointer: Vector2d): Vector2d {
+  const from = cellAt(bounds);
+  const to = cellAt(pointer);
+  return {
+    x: bounds.x + (to.x - from.x) * CELL_SIZE,
+    y: bounds.y + (to.y - from.y) * CELL_SIZE,
   };
 }
 

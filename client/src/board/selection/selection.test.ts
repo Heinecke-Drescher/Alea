@@ -6,6 +6,7 @@ import {
   areaSelection,
   boxBetween,
   cellOffset,
+  cellPasteTarget,
   cellRect,
   centeredOn,
   clipBounds,
@@ -306,6 +307,20 @@ describe("centeredOn", () => {
       y: 5 * CELL_SIZE + 10,
     });
     expect(cellOffset(block, target, defaultMap)).toEqual({ dx: 4, dy: 4 });
+  });
+});
+
+describe("cellPasteTarget", () => {
+  const area = { x: 60, y: 60, width: 80, height: 80 };
+
+  it("moves the copy by whole cells wherever the pointer is inside a cell", () => {
+    for (const pointer of [
+      { x: 101, y: 101 },
+      { x: 149, y: 149 },
+    ]) {
+      const target = cellPasteTarget(area, pointer);
+      expect(cellOffset(area, target, defaultMap)).toEqual({ dx: 1, dy: 1 });
+    }
   });
 });
 
