@@ -4,10 +4,10 @@ import { useMapFiles } from "../mapFile/useMapFiles";
 import { useMapImageFile } from "../mapImage/useMapImageFile";
 
 // Called where it stays mounted: the file dialogs drop their input when the menu closes.
-export function useMapActions(onMapImageSet: () => void) {
+export function useMapActions(onAlignMapImage: () => void) {
   return {
     files: useMapFiles(),
-    mapImage: useMapImageFile(onMapImageSet),
+    mapImage: useMapImageFile(onAlignMapImage),
     background: useBackgroundFile(),
     drawings: useClearDrawings(),
   };

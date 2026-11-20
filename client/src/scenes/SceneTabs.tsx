@@ -81,7 +81,7 @@ interface SceneTabsProps {
   onPrepare: (id: string) => void;
   onLeavePreparation: () => void;
   onShowToPlayers: () => void;
-  onMapImageSet: () => void;
+  onAlignMapImage: () => void;
 }
 
 // Clicking another scene prepares it where only this player sees it; it reaches the players
@@ -91,7 +91,7 @@ export function SceneTabs({
   onPrepare,
   onLeavePreparation,
   onShowToPlayers,
-  onMapImageSet,
+  onAlignMapImage,
 }: SceneTabsProps) {
   const room = useSharedRoom();
   const canChangeMap = useCanChangeMap();
@@ -108,7 +108,7 @@ export function SceneTabs({
   const strip = useRef<HTMLDivElement>(null);
   // Per tab, so a scene switch by someone else closes the menu instead of moving it.
   const [menuTabId, setMenuTabId] = useState<string | null>(null);
-  const mapActions = useMapActions(onMapImageSet);
+  const mapActions = useMapActions(onAlignMapImage);
 
   // A new or switched-to scene may sit beyond the visible part of the strip.
   useEffect(() => {

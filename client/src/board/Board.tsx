@@ -20,7 +20,8 @@ import { Layer, Stage } from "react-konva";
 import type { Critical } from "../dice/criticalRoll";
 import type { ScreenSample } from "../useScreenDrag";
 import type { DieSides } from "../room/dice";
-import { useCanAlignMapImage } from "../mapImage/useCanAlignMapImage";
+import { useMapImage } from "../room/useMapImage";
+import { useCanChangeMap } from "../player/useCanChangeMap";
 import { usePlayer } from "../player/PlayerContext";
 import type { Awareness } from "../room/connection/connectRoom";
 import { useIsPreparing, useRoom } from "../room/RoomContext";
@@ -62,6 +63,7 @@ import { TokenHoverCard } from "./tokens/TokenHoverCard";
 import { useTokenHover } from "./tokens/useTokenHover";
 import { heldTokensClip } from "./tokens/heldTokens";
 import { HeldTokensHint } from "./tokens/HeldTokensHint";
+import { MapImageAlignHint } from "./map/MapImageAlignHint";
 import { ToolbarHint } from "./ToolbarHint";
 import { HeldTokensPreview } from "./tokens/HeldTokensPreview";
 import { isOnToken } from "./tokens/tokenNodes";
@@ -138,7 +140,8 @@ export function Board({
   const theme = useMantineTheme();
   const colorScheme = useComputedColorScheme("light");
   const [chosenTool, setTool] = useState<Tool>("select");
-  const canAlignMapImage = useCanAlignMapImage();
+  const mapImagePlace = useMapImage()?.place;
+  const canAlignMapImage = useCanChangeMap() && mapImagePlace !== undefined;
   // Losing the DM role or the map image while its tool is active falls back to selecting.
   const isToolAllowed =
     (player.isDm || !isFogTool(chosenTool)) &&
@@ -226,6 +229,7 @@ export function Board({
         input.dropTool();
         selection.clear();
         setHeld(null);
+        if (tool === "alignImage") setTool("select");
       },
     ],
     ["mod+C", clipboard.copy, keepDefault],
@@ -482,6 +486,12 @@ export function Board({
           onCancel={() => setHeld(null)}
           axisShift={axisShift}
         />
+      ) : tool === "alignImage" && mapImagePlace ? (
+        <MapImageAlignHint
+          place={mapImagePlace}
+          onDone={() => changeTool("select")}
+          axisShift={axisShift}
+        />
       ) : (
         hint && <ToolbarHint axisShift={axisShift}>{hint}</ToolbarHint>
       )}
@@ -491,7 +501,6 @@ export function Board({
         end={toolbarEnd}
         activeTool={tool}
         onToolChange={changeTool}
-        canAlignMapImage={canAlignMapImage}
         activeColor={color}
         onColorChange={setColor}
         textSize={textSize}

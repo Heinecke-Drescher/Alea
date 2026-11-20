@@ -16,7 +16,8 @@ async function imageSize(file: File) {
   return { width, height };
 }
 
-export function useMapImageFile(onSet: () => void) {
+// Setting an image goes on to aligning it, which is also offered on its own.
+export function useMapImageFile(onAlign: () => void) {
   const room = useRoom();
   const chooseMapImage = useImageFileDialog({
     maxMegabytes: LARGE_IMAGE_FILE_MEGABYTES,
@@ -26,7 +27,7 @@ export function useMapImageFile(onSet: () => void) {
       const image = await createImage(file, LARGE_IMAGE_SIZE);
       room.assertSpaceForImage(image, MAP_IMAGE_KEY);
       room.setMapImage(image, size);
-      onSet();
+      onAlign();
     },
   });
 
@@ -34,6 +35,7 @@ export function useMapImageFile(onSet: () => void) {
     canSet: useCanChangeMap(),
     hasMapImage: useMapImage() !== null,
     chooseMapImage,
+    alignMapImage: onAlign,
     removeMapImage: room.removeMapImage,
   };
 }

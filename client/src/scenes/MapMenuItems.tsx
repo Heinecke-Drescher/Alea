@@ -35,6 +35,9 @@ export function MapMenuItems({
         <Menu.Item onClick={mapImage.chooseMapImage}>Set map image</Menu.Item>
       )}
       {mapImage.canSet && mapImage.hasMapImage && (
+        <Menu.Item onClick={mapImage.alignMapImage}>Align map image</Menu.Item>
+      )}
+      {mapImage.canSet && mapImage.hasMapImage && (
         <Menu.Item color="red" onClick={mapImage.removeMapImage}>
           Remove map image
         </Menu.Item>

@@ -265,7 +265,7 @@ function RoomView({ roomId }: { roomId: string }) {
                           onShowToPlayers={() =>
                             changeMap(preparation.showToPlayers)
                           }
-                          onMapImageSet={alignMapImage}
+                          onAlignMapImage={alignMapImage}
                         />
                       )}
                       {connection === "disconnected" && (

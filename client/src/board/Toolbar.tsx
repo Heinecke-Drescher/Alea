@@ -21,7 +21,6 @@ import {
   IconEye,
   IconEyeOff,
   IconPencil,
-  IconPhotoEdit,
   IconPointer,
   IconResize,
   IconRuler,
@@ -68,12 +67,6 @@ const RESIZE_TOOL: ToolButton = {
   icon: IconResize,
 };
 
-const ALIGN_TOOL: ToolButton = {
-  tool: "alignImage",
-  label: "Align map image",
-  icon: IconPhotoEdit,
-};
-
 const DRAWING_TOOLS: ToolButton[] = [
   { tool: "pen", label: "Draw", icon: IconPencil },
   { tool: "paint", label: "Paint cells", icon: IconBucketDroplet },
@@ -98,7 +91,6 @@ interface ToolbarProps {
   end: ReactNode;
   activeTool: Tool;
   onToolChange: (tool: Tool) => void;
-  canAlignMapImage: boolean;
   activeColor: PaintColor;
   onColorChange: (color: PaintColor) => void;
   textSize: TextFontSize;
@@ -111,7 +103,6 @@ export function Toolbar({
   end,
   activeTool,
   onToolChange,
-  canAlignMapImage,
   activeColor,
   onColorChange,
   textSize,
@@ -122,12 +113,7 @@ export function Toolbar({
   const [isPicking, picking] = useDisclosure();
   const isWide = useWideLayout();
   // A narrow screen, e.g. a phone, keeps the tools players need most in view.
-  const menuTools = [
-    RESIZE_TOOL,
-    ...(canAlignMapImage ? [ALIGN_TOOL] : []),
-    ...SHAPE_TOOLS,
-    ...(isDm ? FOG_TOOLS : []),
-  ];
+  const menuTools = [RESIZE_TOOL, ...SHAPE_TOOLS, ...(isDm ? FOG_TOOLS : [])];
   // The menu's button shows the tool picked from it, so the toolbar always tells what is active.
   const pickedFromMenu = menuTools.find(({ tool }) => tool === activeTool);
   const MenuIcon = pickedFromMenu ? pickedFromMenu.icon : IconDots;
@@ -176,7 +162,6 @@ export function Toolbar({
         <Group gap={4} wrap="nowrap">
           {MAP_TOOLS.map(toolButton)}
           {isWide && toolButton(RESIZE_TOOL)}
-          {isWide && canAlignMapImage && toolButton(ALIGN_TOOL)}
           <Divider orientation="vertical" />
           {DRAWING_TOOLS.map(toolButton)}
           <TextToolButton
