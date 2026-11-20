@@ -2,6 +2,7 @@ import { ActionIcon, SimpleGrid, Tooltip } from "@mantine/core";
 import { IconEye, IconEyeOff } from "@tabler/icons-react";
 import { usePlayer } from "../player/PlayerContext";
 import { DIE_SIDES } from "../room/dice";
+import { useIsPreparing } from "../room/RoomContext";
 import { DieButton } from "./DieButton";
 import { DraggableDie } from "./DraggableDie";
 import { useDice } from "./useDice";
@@ -13,15 +14,17 @@ interface DieButtonsProps {
 export function DieButtons({ columns }: DieButtonsProps) {
   const { color } = usePlayer();
   const { isSecret, roll } = useDice();
+  const isPreparing = useIsPreparing();
   return (
     <SimpleGrid cols={columns} spacing="xs">
       {DIE_SIDES.map((sides) =>
-        isSecret ? (
+        isSecret || isPreparing ? (
           <DieButton
             key={sides}
             sides={sides}
             color={color}
             onRoll={() => roll(sides)}
+            disabled={isPreparing}
           />
         ) : (
           <DraggableDie

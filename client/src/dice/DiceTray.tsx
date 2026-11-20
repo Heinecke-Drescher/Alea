@@ -10,6 +10,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { IconChevronLeft, IconChevronRight } from "@tabler/icons-react";
 import type { ComponentProps } from "react";
 import { FloatingPanel } from "../FloatingPanel";
+import { useIsPreparing } from "../room/RoomContext";
 import { usePointerRaise } from "../usePointerRaise";
 import { PRIVATE_OUTLINE, usePhoneLayout } from "../theme";
 import { useCloseWatcher } from "../useCloseWatcher";
@@ -75,13 +76,16 @@ function TrayHistory() {
 
 export function DiceTray(props: ComponentProps<typeof FloatingPanel>) {
   const { isSecret } = useDice();
+  const isPreparing = useIsPreparing();
   return (
     <FloatingPanel pt="xs" {...props}>
       <Tooltip
         label={
-          isSecret
-            ? "Click to roll secretly"
-            : "Drag a die onto the map to roll it there, or click to roll"
+          isPreparing
+            ? "Go back to the live scene to roll"
+            : isSecret
+              ? "Click to roll secretly"
+              : "Drag a die onto the map to roll it there, or click to roll"
         }
         multiline
         w={200}

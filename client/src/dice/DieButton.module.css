@@ -21,6 +21,12 @@
   transition: transform 120ms ease-out;
 }
 
+.button:disabled {
+  cursor: not-allowed;
+  filter: grayscale(1);
+  opacity: 0.4;
+}
+
 .button[data-raised] {
   /* Grown, it lies over its neighbors instead of under the next one. */
   position: relative;

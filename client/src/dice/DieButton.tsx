@@ -63,16 +63,24 @@ interface DieButtonProps {
   color: PlayerColor;
   onRoll: () => void;
   drag?: DragHandlers;
+  disabled?: boolean;
 }
 
-export function DieButton({ sides, color, onRoll, drag }: DieButtonProps) {
+export function DieButton({
+  sides,
+  color,
+  onRoll,
+  drag,
+  disabled = false,
+}: DieButtonProps) {
   // A finger hides the die it holds, so it grows to show around the finger.
   const raise = usePointerRaise(true);
   return (
     <UnstyledButton
       className={drag ? classes.draggable : classes.button}
       aria-label={`Roll d${sides}`}
-      mod={{ raised: raise.isRaised }}
+      mod={{ raised: raise.isRaised && !disabled }}
+      disabled={disabled}
       onClick={onRoll}
       onPointerEnter={raise.handlers.onPointerEnter}
       onPointerLeave={raise.handlers.onPointerLeave}
