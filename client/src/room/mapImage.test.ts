@@ -30,11 +30,10 @@ function setImageOnMap() {
 }
 
 describe("map image", () => {
-  it("lays the image on the map, as wide as the map", () => {
-    const bounds = { x: -3, y: 2, columns: 30, rows: 20 };
-    room.resize(bounds);
-    room.setMapImage(IMAGE, { width: 3000, height: 1000 });
-    expect(room.mapBounds()).toEqual(bounds);
+  it("lays the image on the map, as wide as the map, and fits the map to it", () => {
+    room.resize({ x: -3, y: 2, columns: 30, rows: 20 });
+    room.setMapImage(IMAGE, { width: 3000, height: 1010 });
+    expect(room.mapBounds()).toEqual({ x: -3, y: 2, columns: 30, rows: 10 });
     expect(mapImage()).toEqual({
       image: IMAGE,
       place: {
@@ -54,12 +53,22 @@ describe("map image", () => {
     expect(mapImage()?.place.height).toBe(2 * MAX_MAP_CELLS * CELL_SIZE);
   });
 
-  it("undoes the image in one step and never the map size", () => {
-    setImageOnMap();
+  it("undoes the image and the map fitted to it in one step", () => {
+    room.resize({ x: 0, y: 0, columns: 24, rows: 16 });
+    room.setMapImage(IMAGE, { width: 2400, height: 2000 });
+    expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 24, rows: 20 });
     room.undoManager.undo();
     expect(mapImage()).toBeNull();
     expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 24, rows: 16 });
     expect(room.undoManager.canUndo()).toBe(false);
+  });
+
+  it("keeps the map for a new image when content lies outside it", () => {
+    room.resize({ x: 0, y: 0, columns: 24, rows: 16 });
+    room.paintCell(0, 15, "#ff0000");
+    room.setMapImage(IMAGE, { width: 2400, height: 1000 });
+    expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 24, rows: 16 });
+    expect(mapImage()?.place.height).toBe(10 * CELL_SIZE);
   });
 
   it("removes the image but keeps the map size", () => {
@@ -108,6 +117,11 @@ describe("map image", () => {
     const small = { x: 0, y: 0, width: 400, height: 300, rotation: 0 } as const;
     expect(room.placeMapImage(small)).toBe("sizeNotAllowed");
     expect(mapImage()?.place).toEqual(small);
+    expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 24, rows: 16 });
+  });
+
+  it("snaps only the image when content lies outside its map", () => {
+    setImageOnMap();
     room.paintCell(23, 0, "#ff0000");
     const narrow = {
       x: 0,
@@ -150,8 +164,19 @@ describe("map image", () => {
     expect(room.undoManager.canUndo()).toBe(false);
   });
 
-  it("rounds the height of a scaled image to whole cells", () => {
+  it("fits the map as near to a very flat image as a map may be", () => {
     room.resize({ x: 0, y: 0, columns: 24, rows: 16 });
+    room.setMapImage(IMAGE, { width: 3000, height: 1000 });
+    expect(room.mapBounds()).toEqual({
+      x: 0,
+      y: 0,
+      columns: 24,
+      rows: MIN_MAP_CELLS,
+    });
+  });
+
+  it("rounds the height of a scaled image to whole cells", () => {
+    room.resize({ x: 0, y: 0, columns: 30, rows: 20 });
     room.setMapImage(IMAGE, { width: 3000, height: 1000 });
     expect(room.scaleMapImage(31)).toBe("mapFitted");
     expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 31, rows: 10 });
@@ -197,6 +222,42 @@ describe("map image", () => {
         "Invalid map image width",
       );
     }
+  });
+
+  it("keeps the space beside the image as it is scaled and moved", () => {
+    setImageOnMap();
+    room.resize({ x: 0, y: 0, columns: 29, rows: 16 });
+    expect(room.scaleMapImage(30)).toBe("mapFitted");
+    expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 35, rows: 20 });
+    const place = mapImage()?.place;
+    if (!place) throw new Error("No map image");
+    room.placeMapImage({ ...place, x: 2 * CELL_SIZE });
+    expect(room.mapBounds()).toEqual({ x: 2, y: 0, columns: 35, rows: 20 });
+  });
+
+  it("keeps a cut off border cut off", () => {
+    setImageOnMap();
+    room.resize({ x: 1, y: 1, columns: 22, rows: 14 });
+    expect(room.scaleMapImage(30)).toBe("mapFitted");
+    expect(room.mapBounds()).toEqual({ x: 1, y: 1, columns: 28, rows: 18 });
+  });
+
+  it("keeps each side's space when the image turns", () => {
+    setImageOnMap();
+    room.resize({ x: 0, y: 0, columns: 29, rows: 16 });
+    const place = mapImage()?.place;
+    if (!place) throw new Error("No map image");
+    room.placeMapImage(turnedClockwise(place));
+    expect(room.mapBounds()).toEqual({ x: 0, y: 0, columns: 21, rows: 24 });
+  });
+
+  it("scales nothing when the space beside it would make the map too large", () => {
+    setImageOnMap();
+    room.resize({ x: 0, y: 0, columns: 34, rows: 16 });
+    room.undoManager.clear();
+    expect(room.scaleMapImage(MAX_MAP_CELLS - 5)).toBe("sizeNotAllowed");
+    expect(mapImage()?.place.width).toBe(24 * CELL_SIZE);
+    expect(room.undoManager.canUndo()).toBe(false);
   });
 
   it("throws on a place the image cannot have", () => {

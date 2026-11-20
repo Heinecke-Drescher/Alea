@@ -63,7 +63,7 @@ export function turnedClockwise({
   };
 }
 
-export const MAP_SIZE_LIMIT_MESSAGE = `Only the image snapped, as a map is ${MIN_MAP_CELLS} to ${MAX_MAP_CELLS} cells wide and high.`;
+export const MAP_SIZE_LIMIT_MESSAGE = `Only the image snapped, as the canvas is ${MIN_MAP_CELLS} to ${MAX_MAP_CELLS} cells wide and high.`;
 
 function isSamePlace(a: MapImagePlace, b: MapImagePlace) {
   return (
@@ -133,10 +133,11 @@ export function createMapImage(
   { doc, imagesMap, settingsMap, mapImageMap, undoManager }: RoomStore,
   { mapBounds, fitsInto }: MapActions,
 ) {
-  // The image starts as wide as the map, so aligning it begins where the map is.
+  // The image starts as wide as the map, so aligning it begins where the map is; the map then
+  // takes the image's height, as far as a map may, so no space is left that aligning would keep.
   function setMapImage(image: string, size: { width: number; height: number }) {
     const map = mapRect(mapBounds());
-    const place: MapImagePlace = {
+    const place = snappedToCells({
       x: map.x,
       y: map.y,
       width: map.width,
@@ -146,19 +147,61 @@ export function createMapImage(
         MAX_MAP_IMAGE_SIZE,
       ),
       rotation: 0,
-    };
+    });
+    const cells = boundsOf(place);
+    const fit = mapFit({
+      ...cells,
+      rows: clamp(cells.rows, MIN_MAP_CELLS, MAX_MAP_CELLS),
+    });
     undoManager.stopCapturing();
     doc.transact(() => {
+      if (fit.isMapChanged) settingsMap.set(BOUNDS_KEY, fit.bounds);
       mapImageMap.set(MAP_IMAGE_PLACE_KEY, place);
       imagesMap.set(MAP_IMAGE_KEY, image);
     });
     undoManager.stopCapturing();
   }
 
-  function mapFitFor(bounds: MapBounds) {
-    if (!isValidMapBounds(bounds)) return "sizeNotAllowed";
-    if (!fitsInto(bounds)) return "contentOutside";
-    return "mapFitted";
+  function mapFit(bounds: MapBounds) {
+    const result = !isValidMapBounds(bounds)
+      ? "sizeNotAllowed"
+      : !fitsInto(bounds)
+        ? "contentOutside"
+        : "mapFitted";
+    const { x, y, columns, rows } = mapBounds();
+    const isMapChanged =
+      result === "mapFitted" &&
+      (bounds.x !== x ||
+        bounds.y !== y ||
+        bounds.columns !== columns ||
+        bounds.rows !== rows);
+    return { result, bounds, isMapChanged };
+  }
+
+  // In whole cells; a negative margin is a side where the map cuts the image off.
+  function marginsAround(place: MapImagePlace) {
+    const image = boundsOf(place);
+    const map = mapBounds();
+    return {
+      left: Math.round(image.x - map.x),
+      top: Math.round(image.y - map.y),
+      right: Math.round(map.x + map.columns - image.x - image.columns),
+      bottom: Math.round(map.y + map.rows - image.y - image.rows),
+    };
+  }
+
+  // Space drawn on beside the image, or a cut off border, stays as the image moves.
+  function mapFitAround(
+    snapped: MapImagePlace,
+    { left, top, right, bottom }: ReturnType<typeof marginsAround>,
+  ) {
+    const image = boundsOf(snapped);
+    return mapFit({
+      x: image.x - left,
+      y: image.y - top,
+      columns: image.columns + left + right,
+      rows: image.rows + top + bottom,
+    });
   }
 
   function currentPlace() {
@@ -169,15 +212,10 @@ export function createMapImage(
   // The image always snaps; the map follows it only where the map may take its size.
   function snapAndFit(place: MapImagePlace, current: MapImagePlace) {
     const snapped = snappedToCells(place);
-    const bounds = boundsOf(snapped);
-    const result = mapFitFor(bounds);
-    const { x, y, columns, rows } = mapBounds();
-    const isMapChanged =
-      result === "mapFitted" &&
-      (bounds.x !== x ||
-        bounds.y !== y ||
-        bounds.columns !== columns ||
-        bounds.rows !== rows);
+    const { result, bounds, isMapChanged } = mapFitAround(
+      snapped,
+      marginsAround(current),
+    );
     // A click without moving must not leave an empty undo step.
     if (isSamePlace(snapped, current) && !isMapChanged) return result;
     undoManager.stopCapturing();
@@ -217,7 +255,10 @@ export function createMapImage(
       height: (current.height * width) / current.width,
     };
     // Unlike a drag, a typed width that the map cannot take changes nothing.
-    const result = mapFitFor(boundsOf(snappedToCells(scaled)));
+    const { result } = mapFitAround(
+      snappedToCells(scaled),
+      marginsAround(current),
+    );
     if (result !== "mapFitted") return result;
     return snapAndFit(scaled, current);
   }

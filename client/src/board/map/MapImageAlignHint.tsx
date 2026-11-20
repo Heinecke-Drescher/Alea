@@ -47,7 +47,7 @@ export function MapImageAlignHint({
     if (value === columns) return;
     notifyMapFit(
       room.scaleMapImage(value),
-      `The map would be ${value} × ${Math.round((place.height * value) / place.width)} cells, but a map is ${MIN_MAP_CELLS} to ${MAX_MAP_CELLS} cells wide and high.`,
+      `The canvas would be ${value} × ${Math.round((place.height * value) / place.width)} cells, but it may be ${MIN_MAP_CELLS} to ${MAX_MAP_CELLS} cells wide and high.`,
     );
   }
 

@@ -63,7 +63,7 @@ const MAP_TOOLS: ToolButton[] = [
 
 const RESIZE_TOOL: ToolButton = {
   tool: "resize",
-  label: "Resize map",
+  label: "Resize canvas",
   icon: IconResize,
 };
 
