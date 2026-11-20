@@ -164,7 +164,7 @@ describe("map image", () => {
     room.placeMapImage(turnedClockwise(place));
     expect(room.scaleMapImage(20)).toBe("mapFitted");
     expect(mapImage()?.place).toEqual({
-      x: 8 * CELL_SIZE,
+      x: 0,
       y: 0,
       width: 20 * CELL_SIZE,
       height: 30 * CELL_SIZE,
@@ -206,7 +206,7 @@ describe("map image", () => {
     ).toThrow("Invalid map image place");
   });
 
-  it("turns the image clockwise around its top right corner", () => {
+  it("turns the image clockwise around its top left corner", () => {
     const place = {
       x: 100,
       y: 50,
@@ -216,13 +216,12 @@ describe("map image", () => {
     } as const;
     const turned = turnedClockwise(place);
     expect(turned).toEqual({
-      x: 300,
+      x: 100,
       y: 50,
       width: 200,
       height: 400,
       rotation: 90,
     });
-    expect(turned.x + turned.width).toBe(place.x + place.width);
     const fourTimes = turnedClockwise(turnedClockwise(turnedClockwise(turned)));
     expect(fourTimes).toEqual(place);
   });

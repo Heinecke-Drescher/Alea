@@ -46,6 +46,7 @@ const NEXT_ROTATION: Record<MapImageRotation, MapImageRotation> = {
   270: 0,
 };
 
+// The top left corner stays, as it does when the width changes.
 export function turnedClockwise({
   x,
   y,
@@ -54,7 +55,7 @@ export function turnedClockwise({
   rotation,
 }: MapImagePlace): MapImagePlace {
   return {
-    x: x + width - height,
+    x,
     y,
     width: height,
     height: width,
